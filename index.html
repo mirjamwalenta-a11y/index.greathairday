@@ -8,13 +8,8 @@
 <title>A Great Hair Day · Mirjam Walenta</title>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --navy:#1B2A3B;--copper:#B5622A;--slate:#F0F2F5;--white:#fff;
-    --muted:#6B7684;--border:#D6DAE0;--error:#C0392B;
-  }
+  :root{--navy:#1B2A3B;--copper:#B5622A;--slate:#F0F2F5;--white:#fff;--muted:#6B7684;--border:#D6DAE0;--error:#C0392B;}
   body{font-family:system-ui,-apple-system,sans-serif;background:var(--navy);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-
-  /* LOGIN */
   #loginScreen{width:100%;max-width:340px;text-align:center}
   .logo-dot{width:14px;height:14px;border-radius:50%;background:var(--copper);margin:0 auto 20px}
   .logo-name{color:#fff;font-size:22px;font-weight:800;margin-bottom:4px}
@@ -26,34 +21,25 @@
   .pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:240px;margin:0 auto 20px}
   .pin-btn{aspect-ratio:1;border-radius:50%;border:none;background:rgba(255,255,255,0.1);color:#fff;font-size:22px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:inherit}
   .pin-btn:active{background:rgba(255,255,255,0.25)}
-  .pin-btn.empty{background:transparent;cursor:default}
+  .pin-btn.empty{background:transparent;cursor:default;pointer-events:none}
   .pin-error{color:#F4A49A;font-size:13px;min-height:20px;margin-bottom:8px}
-
-  /* APP */
   #appScreen{display:none;width:100%;max-width:420px}
-  .app-header{text-align:center;margin-bottom:32px}
+  .app-header{text-align:center;margin-bottom:28px}
   .app-dot{width:10px;height:10px;border-radius:50%;background:var(--copper);margin:0 auto 12px}
   .app-name{color:#fff;font-size:20px;font-weight:800;margin-bottom:2px}
   .app-sub{color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.08em;text-transform:uppercase}
   .app-greeting{color:rgba(255,255,255,0.7);font-size:13px;margin-top:8px}
-
-  .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
   .app-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px 16px;cursor:pointer;text-decoration:none;display:block;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
   .app-card:active{background:rgba(255,255,255,0.14);transform:scale(0.97)}
   .app-card-icon{font-size:28px;margin-bottom:10px}
   .app-card-name{color:#fff;font-size:14px;font-weight:700;margin-bottom:3px}
   .app-card-desc{color:rgba(255,255,255,0.45);font-size:11px;line-height:1.4}
-
-  .app-card.chefin-only{background:rgba(181,98,42,0.15);border-color:rgba(181,98,42,0.3)}
-
-  .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
+  .app-card.special{background:rgba(181,98,42,0.15);border-color:rgba(181,98,42,0.3)}
+  .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
   .logout-btn:active{background:rgba(255,255,255,0.05)}
-
-  .team-login{margin-top:20px}
+  .team-login{margin-top:16px}
   .team-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;font-family:inherit}
-  .team-btn:active{background:rgba(255,255,255,0.05)}
-
-  /* TEAM LOGIN */
   #teamLoginScreen{display:none;width:100%;max-width:340px}
   .back-link{color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;margin-bottom:24px;display:inline-block}
   .inp{width:100%;padding:12px 14px;border:none;border-radius:10px;font-size:15px;font-family:inherit;background:rgba(255,255,255,0.1);color:#fff;outline:none;margin-bottom:10px}
@@ -64,13 +50,12 @@
 </head>
 <body>
 
-<!-- MIRJAM PIN LOGIN -->
 <div id="loginScreen">
   <div class="logo-dot"></div>
   <div class="logo-name">Mirjam Walenta</div>
   <div class="logo-sub">A great hair day</div>
   <div class="pin-label">PIN eingeben</div>
-  <div class="pin-dots" id="pinDots">
+  <div class="pin-dots">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
     <div class="pin-dot" id="d2"></div>
@@ -96,7 +81,6 @@
   </div>
 </div>
 
-<!-- TEAM LOGIN (Kennung + PIN) -->
 <div id="teamLoginScreen">
   <button class="back-link" onclick="showPinLogin()">← Zurück</button>
   <div class="logo-dot"></div>
@@ -108,7 +92,6 @@
   <button class="login-btn" onclick="doTeamLogin()">Anmelden</button>
 </div>
 
-<!-- APP STARTBILDSCHIRM -->
 <div id="appScreen">
   <div class="app-header">
     <div class="app-dot"></div>
@@ -116,93 +99,69 @@
     <div class="app-sub">Mirjam Walenta · Wien</div>
     <div class="app-greeting" id="appGreeting"></div>
   </div>
-
   <div class="apps-grid" id="appsGrid"></div>
-
   <button class="logout-btn" onclick="doLogout()">Abmelden</button>
 </div>
 
 <script>
 const MIRJAM_PIN = '3101';
-const BASE = 'https://mirjamwalenta-a11y.github.io';
+const B = 'https://mirjamwalenta-a11y.github.io';
 
-// Alle Apps mit Rollen-Sichtbarkeit
+// Korrekte URLs aus den Repository-Namen
 const ALLE_APPS = [
   {
-    id: 'checkliste',
-    icon: '✅',
-    name: 'Checklisten',
-    desc: 'Tagesaufgaben & Bereiche',
-    url: `${BASE}/salon-checklist/salon-checklist.html`,
-    rollen: ['chefin','mitarbeiterin','ausbildnerin','lager']
+    icon:'✅', name:'Checklisten', desc:'Tagesaufgaben & Bereiche',
+    url:`${B}/salon-checklist/salon-checklist.html`,
+    rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
-    id: 'abwesenheit',
-    icon: '📅',
-    name: 'Abwesenheit',
-    desc: 'Urlaub & Krankenstand',
-    url: `${BASE}/abwesenheiten-ghd/index.html`,
-    rollen: ['chefin','mitarbeiterin','ausbildnerin','lager']
+    icon:'📅', name:'Abwesenheit', desc:'Urlaub & Krankenstand',
+    url:`${B}/abwesenheiten-ghd/abwesenheiten.html`,
+    rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
-    id: 'team',
-    icon: '💬',
-    name: 'Team',
-    desc: 'Mitteilungen & Besprechungen',
-    url: `${BASE}/teamapp.greathairday/teamapp.html`,
-    rollen: ['chefin','mitarbeiterin','ausbildnerin','lager']
+    icon:'💬', name:'Team', desc:'Mitteilungen & Besprechungen',
+    url:`${B}/Team/teamapp.html`,
+    rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
-    id: 'lernquiz',
-    icon: '✂️',
-    name: 'Lernquiz',
-    desc: 'Quiz & Prüfungsvorbereitung',
-    url: `${BASE}/lernquiz.greathairday/lernquiz.html`,
-    rollen: ['chefin','ausbildnerin','lehrling']
+    icon:'✂️', name:'Lernquiz', desc:'Quiz & Prüfungsvorbereitung',
+    url:`${B}/lernquiz.greathairday/lernquiz.html`,
+    rollen:['chefin','ausbildnerin','lehrling']
   },
   {
-    id: 'lerntool',
-    icon: '📖',
-    name: 'Lerntool',
-    desc: 'Lernkarten & Themen',
-    url: `${BASE}/lernquiz.greathairday/lerntool.html`,
-    rollen: ['chefin','ausbildnerin','lehrling']
+    icon:'📖', name:'Lerntool', desc:'Lernkarten & Themen',
+    url:`${B}/lerntool.index.html/lerntool.html`,
+    rollen:['chefin','ausbildnerin','lehrling']
   },
   {
-    id: 'lager',
-    icon: '📦',
-    name: 'Lager',
-    desc: 'Bestand & Bestellungen',
-    url: `${BASE}/lager.greathairday/index.html`,
-    rollen: ['chefin','lager']
+    icon:'📦', name:'Lager', desc:'Bestand & Bestellungen',
+    url:`${B}/lager.greathairday/index.html`,
+    rollen:['chefin','lager']
   },
   {
-    id: 'belege',
-    icon: '🧾',
-    name: 'Belege',
-    desc: 'Rechnungen & Steuerberater',
-    url: `${BASE}/belege.greathairday/belege.html`,
-    rollen: ['chefin'],
-    chefinOnly: true
+    icon:'📒', name:'Mitarbeiterhandbuch', desc:'Richtlinien & Standards',
+    url:`${B}/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html`,
+    rollen:['chefin','mitarbeiterin','ausbildnerin','lager'],
   },
   {
-    id: 'innung',
-    icon: '🏫',
-    name: 'Innung',
-    desc: 'Seminare & Trainer:innen',
-    url: `${BASE}/innungsapp.greathairday/innungsapp.html`,
-    rollen: ['chefin'],
-    chefinOnly: true
+    icon:'🧾', name:'Belege', desc:'Rechnungen & Steuerberater',
+    url:`${B}/belege.greathairday/belege.html`,
+    rollen:['chefin'], special:true
+  },
+  {
+    icon:'🏫', name:'Innung', desc:'Seminare & Trainer:innen',
+    url:`${B}/innungsapp.greathairday/innungsapp.html`,
+    rollen:['chefin'], special:true
   }
 ];
 
-const SUPA_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
+const SUPA_URL='https://wrxlaltgtgkdomklgrlj.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
 
-let pinBuffer = '';
-let currentSession = null;
+let pinBuffer='';
+let currentSession=null;
 
-// ── MD5 ──
 function md5(str){
   function L(q,a,b,x,s,t){let n=(q&0xFFFF)+(a&0xFFFF),m=(q>>16)+(a>>16)+(n>>16);return((m<<16)|(n&0xFFFF))&0xFFFFFFFF}
   function R(n,c){return(n<<c)|(n>>>32-c)}
@@ -217,7 +176,7 @@ function md5(str){
   s[n>>2]|=0x80<<((n%4)*8);s[(((n+8)>>6)<<4)+14]=n*8;
   let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
   for(i=0;i<s.length;i+=16){
-    let A=a,B=b,C2=c,D=d;
+    let A=a,B2=b,C2=c,D=d;
     a=F(a,b,c,d,s[i+0],7,-680876936);d=F(d,a,b,c,s[i+1],12,-389564586);c=F(c,d,a,b,s[i+2],17,606105819);b=F(b,c,d,a,s[i+3],22,-1044525330);
     a=F(a,b,c,d,s[i+4],7,-176418897);d=F(d,a,b,c,s[i+5],12,1200080426);c=F(c,d,a,b,s[i+6],17,-1473231341);b=F(b,c,d,a,s[i+7],22,-45705983);
     a=F(a,b,c,d,s[i+8],7,1770035416);d=F(d,a,b,c,s[i+9],12,-1958414417);c=F(c,d,a,b,s[i+10],17,-42063);b=F(b,c,d,a,s[i+11],22,-1990404162);
@@ -234,125 +193,93 @@ function md5(str){
     a=I(a,b,c,d,s[i+12],6,1700485571);d=I(d,a,b,c,s[i+3],10,-1894986606);c=I(c,d,a,b,s[i+10],15,-1051523);b=I(b,c,d,a,s[i+1],21,-2054922799);
     a=I(a,b,c,d,s[i+8],6,1873313359);d=I(d,a,b,c,s[i+15],10,-30611744);c=I(c,d,a,b,s[i+6],15,-1560198380);b=I(b,c,d,a,s[i+13],21,1309151649);
     a=I(a,b,c,d,s[i+4],6,-145523070);d=I(d,a,b,c,s[i+11],10,-1120210379);c=I(c,d,a,b,s[i+2],15,718787259);b=I(b,c,d,a,s[i+9],21,-343485551);
-    a=L(a,A);b=L(b,B);c=L(c,C2);d=L(d,D);
+    a=L(a,A);b=L(b,B2);c=L(c,C2);d=L(d,D);
   }
   return [a,b,c,d].map(v=>{let h='';for(let j=0;j<4;j++)h+=('0'+((v>>(j*8))&0xFF).toString(16)).slice(-2);return h;}).join('');
 }
 
-// ── INIT ──
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('ghd_session');
-  if (saved) {
-    try {
-      currentSession = JSON.parse(saved);
-      showApp();
-      return;
-    } catch(e) { localStorage.removeItem('ghd_session'); }
-  }
-  document.getElementById('loginScreen').style.display = 'block';
-  document.getElementById('teamPin').addEventListener('keydown', e => { if(e.key==='Enter') doTeamLogin(); });
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('ghd_session');
+  if(saved){try{currentSession=JSON.parse(saved);showApp();return;}catch(e){localStorage.removeItem('ghd_session');}}
+  document.getElementById('loginScreen').style.display='block';
+  document.getElementById('teamPin').addEventListener('keydown',e=>{if(e.key==='Enter')doTeamLogin();});
 });
 
-// ── PIN LOGIN (Mirjam) ──
-function pinTap(d) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += d;
+function pinTap(d){
+  if(pinBuffer.length>=4)return;
+  pinBuffer+=d;
   updatePinDots();
-  if (pinBuffer.length === 4) {
-    setTimeout(() => checkPin(), 150);
-  }
+  if(pinBuffer.length===4)setTimeout(()=>checkPin(),150);
 }
-
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0, -1);
+function pinDel(){
+  pinBuffer=pinBuffer.slice(0,-1);
   updatePinDots();
-  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinError').textContent='';
 }
-
-function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById('d' + i).className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
-  }
+function updatePinDots(){
+  for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pinBuffer.length?' filled':'');
 }
-
-function checkPin() {
-  if (pinBuffer === MIRJAM_PIN) {
-    currentSession = { name: 'Mirjam', rolle: 'chefin' };
-    localStorage.setItem('ghd_session', JSON.stringify(currentSession));
+function checkPin(){
+  if(pinBuffer===MIRJAM_PIN){
+    currentSession={name:'Mirjam',rolle:'chefin'};
+    localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
-  } else {
-    document.getElementById('pinError').textContent = 'PIN nicht korrekt.';
-    pinBuffer = '';
-    updatePinDots();
+  }else{
+    document.getElementById('pinError').textContent='PIN nicht korrekt.';
+    pinBuffer='';updatePinDots();
   }
 }
 
-// ── TEAM LOGIN ──
-function showTeamLogin() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('teamLoginScreen').style.display = 'block';
+function showTeamLogin(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('teamLoginScreen').style.display='block';
+}
+function showPinLogin(){
+  document.getElementById('teamLoginScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
+  pinBuffer='';updatePinDots();
 }
 
-function showPinLogin() {
-  document.getElementById('teamLoginScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'block';
-  pinBuffer = '';
-  updatePinDots();
-}
-
-async function doTeamLogin() {
-  const kennung = document.getElementById('teamKennung').value.trim().toLowerCase();
-  const pin = document.getElementById('teamPin').value;
-  document.getElementById('teamErr').textContent = '';
-  if (!kennung || !pin) { document.getElementById('teamErr').textContent = 'Bitte alle Felder ausfüllen.'; return; }
-  try {
-    const rows = await fetch(`${SUPA_URL}/rest/v1/salon_personen?kennung=eq.${encodeURIComponent(kennung)}&pin_hash=eq.${encodeURIComponent(md5(pin))}&aktiv=eq.true`, {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-    }).then(r => r.json());
-    if (!rows.length) {
-      document.getElementById('teamErr').textContent = 'Kennung oder PIN ungültig.';
-      return;
-    }
-    const p = rows[0];
-    currentSession = { name: p.name, rolle: p.rolle, id: p.id };
-    localStorage.setItem('ghd_session', JSON.stringify(currentSession));
+async function doTeamLogin(){
+  const kennung=document.getElementById('teamKennung').value.trim().toLowerCase();
+  const pin=document.getElementById('teamPin').value;
+  document.getElementById('teamErr').textContent='';
+  if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
+  try{
+    const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?kennung=eq.${encodeURIComponent(kennung)}&pin_hash=eq.${encodeURIComponent(md5(pin))}&aktiv=eq.true`,
+      {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
+    if(!rows.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
+    const p=rows[0];
+    currentSession={name:p.name,rolle:p.rolle,id:p.id};
+    localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
-  } catch(e) {
-    document.getElementById('teamErr').textContent = 'Verbindungsfehler.';
-  }
+  }catch(e){document.getElementById('teamErr').textContent='Verbindungsfehler.';}
 }
 
-// ── APP ──
-function showApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('teamLoginScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
-
-  // Begrüssung
-  const h = new Date().getHours();
-  const gruss = h < 12 ? 'Guten Morgen' : h < 17 ? 'Guten Tag' : 'Guten Abend';
-  document.getElementById('appGreeting').textContent = `${gruss}, ${currentSession.name}!`;
-
-  // Apps filtern nach Rolle
-  const grid = document.getElementById('appsGrid');
-  const sichtbar = ALLE_APPS.filter(a => a.rollen.includes(currentSession.rolle));
-  grid.innerHTML = sichtbar.map(a => `
-    <a href="${a.url}" class="app-card${a.chefinOnly ? ' chefin-only' : ''}">
+function showApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('teamLoginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  const h=new Date().getHours();
+  const gruss=h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend';
+  document.getElementById('appGreeting').textContent=`${gruss}, ${currentSession.name}!`;
+  const grid=document.getElementById('appsGrid');
+  const sichtbar=ALLE_APPS.filter(a=>a.rollen.includes(currentSession.rolle));
+  grid.innerHTML=sichtbar.map(a=>`
+    <a href="${a.url}" class="app-card${a.special?' special':''}">
       <div class="app-card-icon">${a.icon}</div>
       <div class="app-card-name">${a.name}</div>
       <div class="app-card-desc">${a.desc}</div>
-    </a>
-  `).join('');
+    </a>`).join('');
 }
 
-function doLogout() {
-  currentSession = null;
+function doLogout(){
+  currentSession=null;
   localStorage.removeItem('ghd_session');
-  pinBuffer = '';
-  updatePinDots();
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'block';
-  document.getElementById('pinError').textContent = '';
+  pinBuffer='';updatePinDots();
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
+  document.getElementById('pinError').textContent='';
 }
 </script>
 </body>
