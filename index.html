@@ -41,6 +41,40 @@
   .app-card.special{background:rgba(181,98,42,0.15);border-color:rgba(181,98,42,0.3)}
   .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
   .logout-btn:active{background:rgba(255,255,255,0.05)}
+  .dash-btn{display:block;width:100%;padding:12px;background:rgba(181,98,42,0.15);border:1px solid rgba(181,98,42,0.35);border-radius:10px;color:rgba(255,220,180,0.9);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px}
+  .dash-btn:active{background:rgba(181,98,42,0.28)}
+
+  /* Dashboard Screen */
+  #dashScreen{display:none;width:100%;max-width:420px}
+  .dash-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .dash-back{background:none;border:none;color:rgba(255,255,255,0.5);font-size:14px;cursor:pointer;font-family:inherit;padding:0}
+  .dash-title{color:#fff;font-size:18px;font-weight:700;flex:1;text-align:center}
+  .dash-section{font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.12em;margin:18px 0 8px}
+  .dcard{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;margin-bottom:8px}
+  .dcard-head{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .dcard-head:active{background:rgba(255,255,255,0.1)}
+  .dcard-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+  .dcard-name{flex:1;color:#fff;font-size:14px;font-weight:600}
+  .dchev{color:rgba(255,255,255,0.35);font-size:16px;transition:transform 0.2s}
+  .dchev.open{transform:rotate(90deg)}
+  .dcard-body{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:12px 14px}
+  .dcard-body.open{display:block}
+  .drow{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .drow:last-child{margin-bottom:0}
+  .dlabel{font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;min-width:68px;padding-top:3px;flex-shrink:0}
+  .dval{flex:1;font-size:13px;color:rgba(255,255,255,0.85);word-break:break-all}
+  .dval a{color:#7eb8f7;text-decoration:none;font-size:13px}
+  .dpill{display:inline-block;font-family:'SF Mono','Fira Code',monospace;font-size:11px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:2px 6px;margin:1px 3px 1px 0;color:rgba(255,255,255,0.9)}
+  .dopen{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:rgba(255,220,150,0.9);background:rgba(181,98,42,0.2);border:1px solid rgba(181,98,42,0.4);border-radius:6px;padding:5px 12px;text-decoration:none;margin-top:8px}
+  .dpin-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .dpin{font-size:12px;font-family:'SF Mono','Fira Code',monospace;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;color:rgba(255,255,255,0.8)}
+  .dapikey{font-family:'SF Mono','Fira Code',monospace;font-size:9px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 9px;word-break:break-all;color:rgba(255,255,255,0.45);line-height:1.6;margin-top:4px;display:block}
+  .dflow{background:rgba(0,0,0,0.2);border-radius:8px;padding:10px 12px;margin-top:6px}
+  .dfstep{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .dfstep:last-child{margin-bottom:0}
+  .dfnum{width:20px;height:20px;border-radius:50%;background:rgba(181,98,42,0.3);border:1px solid rgba(181,98,42,0.5);color:rgba(255,200,120,0.9);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .dftext{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5}
+  .dcode{font-family:'SF Mono','Fira Code',monospace;font-size:12px;background:rgba(46,160,67,0.2);border:1px solid rgba(46,160,67,0.4);color:rgba(100,220,120,0.95);border-radius:4px;padding:1px 6px;font-weight:700}
   .team-login{margin-top:16px}
   .team-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;font-family:inherit}
   #teamLoginScreen{display:none;width:100%;max-width:340px}
@@ -103,7 +137,179 @@
     <div class="app-greeting" id="appGreeting"></div>
   </div>
   <div class="apps-grid" id="appsGrid"></div>
+  <button class="dash-btn" onclick="showDash()">🗝 Zugangsdaten & Links</button>
   <button class="logout-btn" onclick="doLogout()">Abmelden</button>
+</div>
+
+<!-- DASHBOARD SCREEN -->
+<div id="dashScreen">
+  <div class="dash-header">
+    <button class="dash-back" onclick="hideDash()">← Zurück</button>
+    <div class="dash-title">Zugangsdaten</div>
+    <div style="width:52px"></div>
+  </div>
+
+  <div class="dash-section">Haupt-Apps</div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🏠</div><div class="dcard-name">Startseite</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/index.greathairday/" target="_blank">index.greathairday</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">📚</div><div class="dcard-name">Lernquiz &amp; Schnuppertag</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Lerntool</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html" target="_blank">lerntool.html</a></span></div>
+      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">MW121272-1050</span></span></div>
+      <div class="drow"><span class="dlabel">Meisterin</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/meisterin.html" target="_blank">meisterin.html</a></span></div>
+      <div class="drow"><span class="dlabel">PIN</span><span class="dval"><span class="dpill">191299</span></span></div>
+      <div class="drow"><span class="dlabel">Schnupper Meisterin</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html" target="_blank">schnuppertag.html</a></span></div>
+      <div class="drow"><span class="dlabel">Schnupper Lehrling</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html?modus=lehrling" target="_blank">?modus=lehrling</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">📁</div><div class="dcard-name">Dokumentenschrank</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/" target="_blank">dokumentenschrank-ghd</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">✅</div><div class="dcard-name">Checkliste</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html" target="_blank">salon-checklist.html</a></span></div>
+      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">walenta 2026</span></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🏪</div><div class="dcard-name">Lager</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager.index.html" target="_blank">lager.greathairday</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">📅</div><div class="dcard-name">Abwesenheit</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html" target="_blank">abwesenheiten-ghd</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🧾</div><div class="dcard-name">Belege</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/belege.greathairday" target="_blank">belege.greathairday</a></span></div>
+      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">2002</span></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">📖</div><div class="dcard-name">Mitarbeiterhandbuch</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html" target="_blank">Mitarbeiterhandbuch_App.html</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">👥</div><div class="dcard-name">Teambesprechung</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/Team/team.html" target="_blank">team.html</a></span></div>
+      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">MW121272-1050</span></span></div>
+    </div>
+  </div>
+
+  <div class="dash-section">Salon &amp; Innung</div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">✂️</div><div class="dcard-name">Salonapp</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/salonapp.greathairday/salonapp.html" target="_blank">salonapp.html</a></span></div>
+      <div class="drow"><span class="dlabel">Zugang</span><span class="dval"><span class="dpill">Mirjam</span> · PIN <span class="dpill">3101</span></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🏅</div><div class="dcard-name">Innungsapp</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html" target="_blank">innungsapp.html</a></span></div>
+      <div class="drow"><span class="dlabel">Zugänge</span><span class="dval"><span class="dpill">guelten</span> · PIN <span class="dpill">1801</span><br><span class="dpill">alina</span> · PIN <span class="dpill">0310</span><br><span class="dpill">Mirjam</span> · PIN <span class="dpill">1212</span></span></div>
+    </div>
+  </div>
+
+  <div class="dash-section">Team-PINs</div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🔑</div><div class="dcard-name">Demo-PINs (alle Mitarbeiter)</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="dpin-grid">
+        <span class="dpin">Mirjam · 1212</span>
+        <span class="dpin">Mazen · 1706</span>
+        <span class="dpin">Alina · 0310</span>
+        <span class="dpin">Hassan · 1007</span>
+        <span class="dpin">Ronya · 0802</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-section">Datenbank (Supabase)</div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">🗄️</div><div class="dcard-name">Supabase</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Projekt 1</span><span class="dval"><a href="https://supabase.com/dashboard/project/wrxlaltgtgkdomklgrlj/sql/new" target="_blank">SQL Editor öffnen</a></span></div>
+      <div class="drow"><span class="dlabel">Projekt 2</span><span class="dval"><a href="https://supabase.com/dashboard/project/lpuxvvfrrcnbuzafscyk/sql/787a7789-579d-443c-9404-6702f1fa4b85" target="_blank">SQL Editor öffnen</a></span></div>
+      <div class="drow"><span class="dlabel">URL</span><span class="dval"><a href="https://wrxlaltgtgkdomklgrlj.supabase.co" target="_blank">wrxlaltgtgkdomklgrlj.supabase.co</a></span></div>
+      <div class="drow"><span class="dlabel">API Key</span><span class="dval"><span class="dapikey">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdXh2dmZycmNuYnV6YWZzY3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODIxNDcsImV4cCI6MjEwMDI1ODE0N30.6VZUmmXj_x3Q8J55s_tbOHcW5-U5OXllGoEBhypaVfI</span></span></div>
+    </div>
+  </div>
+
+  <div class="dash-section">Registrierung für Freunde</div>
+
+  <div class="dcard" style="margin-bottom:28px">
+    <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">👤</div><div class="dcard-name">Ablauf Freunde-Zugang</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="dflow">
+        <div class="dfstep"><div class="dfnum">1</div><div class="dftext">Link öffnen → „Registrieren" tippen</div></div>
+        <div class="dfstep"><div class="dfnum">2</div><div class="dftext">E-Mail + Passwort eingeben</div></div>
+        <div class="dfstep"><div class="dfnum">3</div><div class="dftext">Einladungs-Code <span class="dcode">GREATHAIR2026</span> eingeben → einmalig ✓</div></div>
+        <div class="dfstep"><div class="dfnum">4</div><div class="dftext">Betriebsname + eigenen PIN wählen</div></div>
+        <div class="dfstep"><div class="dfnum">5</div><div class="dftext">Ab sofort immer nur mit seinem PIN einloggen</div></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -281,9 +487,27 @@ function showApp(){
     </a>`).join('');
 }
 
+function showDash(){
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('dashScreen').style.display='block';
+}
+function hideDash(){
+  document.getElementById('dashScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+}
+function dtoggle(head){
+  const chev=head.querySelector('.dchev');
+  const body=head.nextElementSibling;
+  const isOpen=body.classList.contains('open');
+  document.querySelectorAll('.dcard-body.open').forEach(b=>b.classList.remove('open'));
+  document.querySelectorAll('.dchev.open').forEach(c=>c.classList.remove('open'));
+  if(!isOpen){body.classList.add('open');chev.classList.add('open');}
+}
+
 function doLogout(){
   currentSession=null;
   localStorage.removeItem('ghd_session');
+  document.getElementById('dashScreen').style.display='none';
   pinBuffer='';updatePinDots();
   document.getElementById('appScreen').style.display='none';
   document.getElementById('loginScreen').style.display='block';
