@@ -153,6 +153,15 @@
 
   <div class="dcard">
     <div class="dcard-head" onclick="dtoggle(this)">
+      <div class="dcard-icon">✨</div><div class="dcard-name">Reichweite</div><div class="dchev">›</div>
+    </div>
+    <div class="dcard-body">
+      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/moment.greathairday/" target="_blank">moment.greathairday</a></span></div>
+    </div>
+  </div>
+
+  <div class="dcard">
+    <div class="dcard-head" onclick="dtoggle(this)">
       <div class="dcard-icon">🏠</div><div class="dcard-name">Startseite</div><div class="dchev">›</div>
     </div>
     <div class="dcard-body">
@@ -319,9 +328,19 @@ const B = 'https://mirjamwalenta-a11y.github.io';
 // Korrekte URLs aus den Repository-Namen
 const ALLE_APPS = [
   {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {
     icon:'✅', name:'Checklisten', desc:'Tagesaufgaben & Bereiche',
     url:`${B}/salon-checklist/salon-checklist.html`,
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
+  },
+  {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
   },
   {
     icon:'📅', name:'Abwesenheit', desc:'Urlaub & Krankenstand',
@@ -329,9 +348,19 @@ const ALLE_APPS = [
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {
     icon:'💬', name:'Team', desc:'Mitteilungen & Besprechungen',
     url:`${B}/Team/team.html`,
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
+  },
+  {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
   },
   {
     icon:'✂️', name:'Lernquiz', desc:'Quiz & Prüfungsvorbereitung',
@@ -339,9 +368,19 @@ const ALLE_APPS = [
     rollen:['chefin','ausbildnerin','lehrling']
   },
   {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {
     icon:'📖', name:'Lerntool', desc:'Lernkarten & Themen',
     url:`${B}/lerntool.index.html/lerntool.html`,
     rollen:['chefin','ausbildnerin','lehrling']
+  },
+  {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
   },
   {
     icon:'📦', name:'Lager', desc:'Bestand & Bestellungen',
@@ -349,9 +388,19 @@ const ALLE_APPS = [
     rollen:['chefin','lager']
   },
   {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {
     icon:'📒', name:'Mitarbeiterhandbuch', desc:'Richtlinien & Standards',
     url:`${B}/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html`,
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager'],
+  },
+  {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
   },
   {
     icon:'🧾', name:'Belege', desc:'Rechnungen & Steuerberater',
@@ -359,9 +408,19 @@ const ALLE_APPS = [
     rollen:['chefin'], special:true
   },
   {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {
     icon:'🏫', name:'Innung', desc:'Seminare & Trainer:innen',
     url:`${B}/innungsapp.greathairday/innungsapp.html`,
     rollen:['chefin'], special:true
+  },
+  {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
   },
   {
     icon:'🗄', name:'Schrank', desc:'Dokumente & Tresor',
@@ -461,7 +520,12 @@ async function doTeamLogin(){
   if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
   try{
     const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?kennung=eq.${encodeURIComponent(kennung)}&pin_hash=eq.${encodeURIComponent(md5(pin))}&aktiv=eq.true`,
-      {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
+      {
+    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
+    url:`${B}/moment.greathairday/`,
+    rollen:['chefin']
+  },
+  {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
     if(!rows.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
     const p=rows[0];
     currentSession={name:p.name,rolle:p.rolle,id:p.id};
