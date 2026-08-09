@@ -338,19 +338,9 @@ const ALLE_APPS = [
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {
     icon:'📅', name:'Abwesenheit', desc:'Urlaub & Krankenstand',
     url:`${B}/abwesenheiten-ghd/abwesenheiten.html`,
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
-  },
-  {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
   },
   {
     icon:'💬', name:'Team', desc:'Mitteilungen & Besprechungen',
@@ -358,19 +348,9 @@ const ALLE_APPS = [
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager']
   },
   {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {
     icon:'✂️', name:'Lernquiz', desc:'Quiz & Prüfungsvorbereitung',
     url:`${B}/lernquiz.greathairday/lernquiz.html`,
     rollen:['chefin','ausbildnerin','lehrling']
-  },
-  {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
   },
   {
     icon:'📖', name:'Lerntool', desc:'Lernkarten & Themen',
@@ -378,19 +358,9 @@ const ALLE_APPS = [
     rollen:['chefin','ausbildnerin','lehrling']
   },
   {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {
     icon:'📦', name:'Lager', desc:'Bestand & Bestellungen',
     url:`${B}/lager.greathairday/index.html`,
     rollen:['chefin','lager']
-  },
-  {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
   },
   {
     icon:'📒', name:'Mitarbeiterhandbuch', desc:'Richtlinien & Standards',
@@ -398,29 +368,14 @@ const ALLE_APPS = [
     rollen:['chefin','mitarbeiterin','ausbildnerin','lager'],
   },
   {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {
     icon:'🧾', name:'Belege', desc:'Rechnungen & Steuerberater',
     url:`${B}/belege.greathairday/belege.html`,
     rollen:['chefin'], special:true
   },
   {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {
     icon:'🏫', name:'Innung', desc:'Seminare & Trainer:innen',
     url:`${B}/innungsapp.greathairday/innungsapp.html`,
     rollen:['chefin'], special:true
-  },
-  {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
   },
   {
     icon:'🗄', name:'Schrank', desc:'Dokumente & Tresor',
@@ -520,12 +475,7 @@ async function doTeamLogin(){
   if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
   try{
     const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?kennung=eq.${encodeURIComponent(kennung)}&pin_hash=eq.${encodeURIComponent(md5(pin))}&aktiv=eq.true`,
-      {
-    icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
-    url:`${B}/moment.greathairday/`,
-    rollen:['chefin']
-  },
-  {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
+      {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
     if(!rows.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
     const p=rows[0];
     currentSession={name:p.name,rolle:p.rolle,id:p.id};
