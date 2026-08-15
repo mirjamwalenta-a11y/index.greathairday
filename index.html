@@ -83,6 +83,18 @@
   .inp::placeholder{color:rgba(255,255,255,0.35)}
   .login-btn{width:100%;padding:14px;border:none;border-radius:10px;background:#fff;color:var(--navy);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px}
   .inp-err{color:#F4A49A;font-size:12px;text-align:center;min-height:18px;margin-bottom:8px}
+  .woerni-liste{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+  .woerni-chip{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;cursor:pointer;width:100%;font-family:inherit}
+  .woerni-chip.aktiv{border-color:var(--copper);background:rgba(181,98,42,0.2);font-weight:600}
+  .woerni-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--copper);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:16px;font-family:inherit}
+  .woerni-btn:disabled{background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);cursor:not-allowed}
+  .woerni-status{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700}
+  .woerni-status.offen{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.6)}
+  .woerni-status.in_arbeit{background:rgba(230,180,80,0.2);color:#f0c060}
+  .woerni-status.erledigt{background:rgba(90,200,120,0.2);color:#7ee29a}
+  .woerni-status.fehlgeschlagen{background:rgba(220,90,90,0.2);color:#f29a9a}
+  .woerni-ergebnis{white-space:pre-wrap;font-size:13px;line-height:1.5;color:rgba(255,255,255,0.85);margin-top:8px}
+  .woerni-kopieren{background:none;border:1px solid var(--copper);color:rgba(255,220,180,0.9);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
 </style>
 </head>
 <body>
@@ -321,6 +333,20 @@
 
 </div>
 
+<!-- WÖRNI SCREEN -->
+<div id="woerniScreen" style="display:none;width:100%;max-width:420px">
+  <div class="dash-header">
+    <button class="dash-back" onclick="hideWoerni()">← Zurück</button>
+    <div class="dash-title">Wörni</div>
+    <div style="width:52px"></div>
+  </div>
+  <div class="dash-section">Neue Aufgabe: Post erstellen (Reichweite)</div>
+  <div class="woerni-liste" id="woerniAnlassListe"></div>
+  <button class="woerni-btn" id="woerniErstellenBtn" onclick="woerniAufgabeErstellen()" disabled>Aufgabe erstellen</button>
+  <div class="dash-section">Deine Aufgaben</div>
+  <div id="woerniAufgabenListe"></div>
+</div>
+
 <script>
 const MIRJAM_PIN = '3101';
 const B = 'https://mirjamwalenta-a11y.github.io';
@@ -370,6 +396,11 @@ const ALLE_APPS = [
   {
     icon:'🧾', name:'Belege', desc:'Rechnungen & Steuerberater',
     url:`${B}/belege.greathairday/belege.html`,
+    rollen:['chefin'], special:true
+  },
+  {
+    icon:'🤖', name:'Wörni', desc:'Aufgaben für deinen KI-Agenten',
+    internal:true, action:'showWoerni',
     rollen:['chefin'], special:true
   },
   {
@@ -493,7 +524,12 @@ function showApp(){
   document.getElementById('appGreeting').textContent=`${gruss}, ${currentSession.name}!`;
   const grid=document.getElementById('appsGrid');
   const sichtbar=ALLE_APPS.filter(a=>a.rollen.includes(currentSession.rolle));
-  grid.innerHTML=sichtbar.map(a=>`
+  grid.innerHTML=sichtbar.map(a=>a.internal?`
+    <div class="app-card${a.special?' special':''}" onclick="${a.action}()" style="cursor:pointer">
+      <div class="app-card-icon">${a.icon}</div>
+      <div class="app-card-name">${a.name}</div>
+      <div class="app-card-desc">${a.desc}</div>
+    </div>`:`
     <a href="${a.url}" class="app-card${a.special?' special':''}">
       <div class="app-card-icon">${a.icon}</div>
       <div class="app-card-name">${a.name}</div>
@@ -527,6 +563,57 @@ function doLogout(){
   document.getElementById('loginScreen').style.display='block';
   document.getElementById('pinError').textContent='';
 }
+
+const WOERNI_ANLAESSE=[
+  {id:'ergebnis_gut',text:'Ein Ergebnis hat heute richtig gut ausgeschaut'},
+  {id:'freier_termin',text:'Ein freier Termin soll sichtbar werden'},
+  {id:'kundin_beruehrt',text:'Eine Kundin war besonders berührt'},
+  {id:'team_moment',text:'Im Team war ein guter Moment'},
+  {id:'lehrling_lernmoment',text:'Mit dem Lehrling gab es einen Lernmoment'},
+  {id:'ruhiger_blick',text:'Ein ruhiger Blick in den Alltag passt heute'},
+  {id:'behandlung_produkt',text:'Eine Behandlung oder ein Produkt war heute auffällig'},
+  {id:'was_uns_ausmacht',text:'Ich will zeigen, was uns ausmacht'},
+  {id:'neue_mitarbeiter',text:'Ich will heute neue Mitarbeiter:innen ansprechen'},
+  {id:'ruhiger_tag',text:'Heute war ruhig, ich will trotzdem etwas zeigen'}
+];
+let woerniGewaehlterAnlass=null, woerniPollTimer=null;
+function showWoerni(){document.getElementById('appScreen').style.display='none';document.getElementById('woerniScreen').style.display='block';woerniAnlassRendern();woerniAufgabenLaden();}
+function hideWoerni(){clearTimeout(woerniPollTimer);document.getElementById('woerniScreen').style.display='none';document.getElementById('appScreen').style.display='block';}
+function woerniAnlassRendern(){
+  const c=document.getElementById('woerniAnlassListe');c.innerHTML='';
+  WOERNI_ANLAESSE.forEach(a=>{
+    const btn=document.createElement('button');btn.className='woerni-chip';btn.textContent=a.text;
+    btn.onclick=()=>{woerniGewaehlterAnlass=a.id;document.querySelectorAll('.woerni-chip').forEach(el=>el.classList.remove('aktiv'));btn.classList.add('aktiv');document.getElementById('woerniErstellenBtn').disabled=false;};
+    c.appendChild(btn);
+  });
+}
+async function woerniAufgabeErstellen(){
+  if(!woerniGewaehlterAnlass)return;
+  const btn=document.getElementById('woerniErstellenBtn');btn.disabled=true;btn.textContent='Wird erstellt...';
+  try{
+    await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
+  }catch(e){alert('Da ist etwas schiefgegangen.');}
+  btn.textContent='Aufgabe erstellen';
+  document.querySelectorAll('.woerni-chip').forEach(el=>el.classList.remove('aktiv'));
+  woerniGewaehlterAnlass=null;woerniAufgabenLaden();
+}
+function woerniStatusText(s){return {offen:'Offen',in_arbeit:'In Arbeit',erledigt:'Erledigt',fehlgeschlagen:'Fehlgeschlagen'}[s]||s;}
+async function woerniAufgabenLaden(){
+  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?select=*&order=erstellt_am.desc&limit=20`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+  const c=document.getElementById('woerniAufgabenListe');
+  if(!rows.length){c.innerHTML='<div class="dftext" style="padding:8px 0">Noch keine Aufgaben.</div>';return;}
+  c.innerHTML=rows.map(a=>{
+    const anlassText=(WOERNI_ANLAESSE.find(x=>x.id===a.anlass)||{}).text||a.anlass||'';
+    let inhalt='';
+    if(a.status==='erledigt'&&a.ergebnis){inhalt=`<div class="woerni-ergebnis">${a.ergebnis.replace(/</g,'&lt;')}</div><button class="woerni-kopieren" onclick="woerniKopieren(this)" data-text="${encodeURIComponent(a.ergebnis)}">Kopieren</button>`;}
+    else if(a.status==='fehlgeschlagen'&&a.fehler){inhalt=`<div class="woerni-ergebnis" style="color:rgba(255,255,255,0.5)">${a.fehler.replace(/</g,'&lt;')}</div>`;}
+    return `<div class="dcard" style="padding:13px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="color:#fff;font-size:13px">${anlassText}</strong><span class="woerni-status ${a.status}">${woerniStatusText(a.status)}</span></div>${inhalt}</div>`;
+  }).join('');
+  const laeuftNoch=rows.some(a=>a.status==='offen'||a.status==='in_arbeit');
+  clearTimeout(woerniPollTimer);
+  if(laeuftNoch)woerniPollTimer=setTimeout(woerniAufgabenLaden,5000);
+}
+function woerniKopieren(btn){const text=decodeURIComponent(btn.dataset.text);navigator.clipboard.writeText(text);btn.textContent='Kopiert ✓';setTimeout(()=>btn.textContent='Kopieren',2000);}
 </script>
 </body>
 </html>
