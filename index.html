@@ -95,6 +95,7 @@
   .woerni-status.fehlgeschlagen{background:rgba(220,90,90,0.2);color:#f29a9a}
   .woerni-ergebnis{white-space:pre-wrap;font-size:13px;line-height:1.5;color:rgba(255,255,255,0.85);margin-top:8px}
   .woerni-kopieren{background:none;border:1px solid var(--copper);color:rgba(255,220,180,0.9);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
+  .woerni-loeschen{background:none;border:none;color:rgba(255,255,255,0.3);font-size:14px;cursor:pointer;padding:2px 5px;line-height:1}
 </style>
 </head>
 <body>
@@ -594,9 +595,12 @@ async function woerniAufgabeErstellen(){
     const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
     const neu=(await res.json())[0];
     if(neu){
-      fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})}).catch(()=>{});
+      try{
+        const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
+        if(!fnRes.ok)alert('Wörni konnte nicht gestartet werden (Fehler '+fnRes.status+'). Die Aufgabe bleibt vorerst "Offen".');
+      }catch(fnErr){alert('Wörni konnte nicht erreicht werden: '+fnErr.message+'. Die Aufgabe bleibt vorerst "Offen".');}
     }
-  }catch(e){alert('Da ist etwas schiefgegangen.');}
+  }catch(e){alert('Da ist etwas schiefgegangen: '+e.message);}
   btn.textContent='Aufgabe erstellen';
   document.querySelectorAll('.woerni-chip').forEach(el=>el.classList.remove('aktiv'));
   woerniGewaehlterAnlass=null;woerniAufgabenLaden();
@@ -611,13 +615,18 @@ async function woerniAufgabenLaden(){
     let inhalt='';
     if(a.status==='erledigt'&&a.ergebnis){inhalt=`<div class="woerni-ergebnis">${a.ergebnis.replace(/</g,'&lt;')}</div><button class="woerni-kopieren" onclick="woerniKopieren(this)" data-text="${encodeURIComponent(a.ergebnis)}">Kopieren</button>`;}
     else if(a.status==='fehlgeschlagen'&&a.fehler){inhalt=`<div class="woerni-ergebnis" style="color:rgba(255,255,255,0.5)">${a.fehler.replace(/</g,'&lt;')}</div>`;}
-    return `<div class="dcard" style="padding:13px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="color:#fff;font-size:13px">${anlassText}</strong><span class="woerni-status ${a.status}">${woerniStatusText(a.status)}</span></div>${inhalt}</div>`;
+    return `<div class="dcard" style="padding:13px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="color:#fff;font-size:13px">${anlassText}</strong><span style="display:flex;align-items:center;gap:6px"><span class="woerni-status ${a.status}">${woerniStatusText(a.status)}</span><button class="woerni-loeschen" onclick="woerniLoeschen('${a.id}')" title="Löschen">✕</button></span></div>${inhalt}</div>`;
   }).join('');
   const laeuftNoch=rows.some(a=>a.status==='offen'||a.status==='in_arbeit');
   clearTimeout(woerniPollTimer);
   if(laeuftNoch)woerniPollTimer=setTimeout(woerniAufgabenLaden,5000);
 }
 function woerniKopieren(btn){const text=decodeURIComponent(btn.dataset.text);navigator.clipboard.writeText(text);btn.textContent='Kopiert ✓';setTimeout(()=>btn.textContent='Kopieren',2000);}
+async function woerniLoeschen(id){
+  if(!confirm('Diese Aufgabe wirklich löschen?'))return;
+  await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
+  woerniAufgabenLaden();
+}
 </script>
 </body>
 </html>
