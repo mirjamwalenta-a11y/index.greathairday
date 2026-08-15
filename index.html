@@ -591,7 +591,11 @@ async function woerniAufgabeErstellen(){
   if(!woerniGewaehlterAnlass)return;
   const btn=document.getElementById('woerniErstellenBtn');btn.disabled=true;btn.textContent='Wird erstellt...';
   try{
-    await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
+    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
+    const neu=(await res.json())[0];
+    if(neu){
+      fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})}).catch(()=>{});
+    }
   }catch(e){alert('Da ist etwas schiefgegangen.');}
   btn.textContent='Aufgabe erstellen';
   document.querySelectorAll('.woerni-chip').forEach(el=>el.classList.remove('aktiv'));
