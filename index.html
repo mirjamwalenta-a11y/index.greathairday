@@ -362,6 +362,23 @@
     <div style="width:52px"></div>
   </div>
 
+  <!-- ABWESENHEITS-BADGE -->
+  <div id="abwesenheitBadge" style="display:none;margin-bottom:16px">
+    <div class="dcard" style="padding:12px 14px;border-color:rgba(181,98,42,0.4);background:rgba(181,98,42,0.1)">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="abwesenheitToggle()">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">📅</span>
+          <div>
+            <div style="color:#fff;font-size:13px;font-weight:700" id="abwesenheitBadgeTitle">Offene Anträge</div>
+            <div style="color:rgba(255,255,255,0.5);font-size:11px">Tippen für Details</div>
+          </div>
+        </div>
+        <span id="abwesenheitBadgeChev" style="color:rgba(255,255,255,0.4);font-size:18px;transition:transform 0.2s">›</span>
+      </div>
+      <div id="abwesenheitDetails" style="display:none;margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px"></div>
+    </div>
+  </div>
+
   <!-- AUFGABEN-ZENTRALE -->
   <div class="dash-section">Neuer Auftrag</div>
 
@@ -380,7 +397,7 @@
 
   <!-- Freitext -->
   <div class="az-freitext-label">Oder in eigenen Worten</div>
-  <textarea class="az-textarea" id="azFreitext" placeholder="z. B. Bereite den Monatsabschluss für Juli vor..." rows="3"></textarea>
+  <textarea class="az-textarea" id="azFreitext" placeholder="z. B. Post über Lernmoment mit Ronya, Monatsabschluss Juli, Urlaubsantrag Alina bestätigen..." rows="3"></textarea>
 
   <!-- Vorschau -->
   <div class="az-vorschau" id="azVorschau">
@@ -411,10 +428,21 @@
     <div style="width:52px"></div>
   </div>
   <div class="dash-section">Neue Vorlage hinzufügen</div>
+  <div class="az-app-label" style="margin-bottom:6px">App</div>
+  <select class="woerni-select" id="vorlageAppSelect" onchange="vorlageAppWechseln()" style="margin-bottom:10px">
+    <option value="reichweite">✨ Reichweite</option>
+  </select>
+  <div class="az-app-label" style="margin-bottom:6px">Anlass</div>
   <select class="woerni-select" id="vorlageAnlassSelect"></select>
   <textarea class="woerni-textarea" id="vorlageTextInput" placeholder="Dein eigener Text für diesen Anlass..."></textarea>
   <button class="woerni-btn" onclick="woerniVorlageSpeichern()">Vorlage speichern</button>
-  <div class="dash-section">Deine Vorlagen</div>
+  <div class="dash-section" style="display:flex;justify-content:space-between;align-items:center">
+    <span>Deine Vorlagen</span>
+    <select class="woerni-select" id="vorlageFilterSelect" onchange="woerniVorlagenLaden()" style="width:auto;font-size:11px;padding:4px 8px">
+      <option value="">Alle Apps</option>
+      <option value="reichweite">✨ Reichweite</option>
+    </select>
+  </div>
   <div id="woerniVorlagenListe"></div>
 </div>
 
@@ -684,6 +712,7 @@ function azInit(){
   if(ta) ta.addEventListener('input',azAktualisieren);
   azAktualisieren();
   belegeMonatSelectInit();
+  abwesenheitLaden();
 }
 
 function azChipWaehlen(app,id,text,btn){
@@ -762,10 +791,16 @@ async function azSenden(){
     }catch(e){alert('Fehler: '+e.message);}
   }
 
-  // Freitext: als allgemeine Aufgabe speichern
+  // Freitext: App erkennen und speichern
   if(freitext){
     try{
-      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'allgemein',typ:'freitext',anlass:'freitext',notiz:freitext,status:'offen'})});
+      // Einfache Schlüsselwort-Erkennung
+      let erkannteApp='allgemein';
+      const ft=freitext.toLowerCase();
+      if(ft.includes('post')||ft.includes('story')||ft.includes('reichweite')||ft.includes('instagram')||ft.includes('ergebnis')||ft.includes('termin posten')||ft.includes('lernmoment')||ft.includes('mitarbeiter'))erkannteApp='reichweite';
+      else if(ft.includes('beleg')||ft.includes('rechnung')||ft.includes('steuer')||ft.includes('monatsabschluss'))erkannteApp='belege';
+      else if(ft.includes('urlaub')||ft.includes('krank')||ft.includes('abwesenheit')||ft.includes('antrag'))erkannteApp='abwesenheit';
+      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:erkannteApp,typ:'freitext',anlass:'freitext',notiz:freitext,status:'offen'})});
     }catch(e){alert('Fehler beim Speichern: '+e.message);}
   }
 
@@ -832,8 +867,7 @@ async function woerniAufgabeErstellen(){
 function showWoerniVorlagen(){
   document.getElementById('woerniScreen').style.display='none';
   document.getElementById('woerniVorlagenScreen').style.display='block';
-  const sel=document.getElementById('vorlageAnlassSelect');
-  sel.innerHTML=WOERNI_ANLAESSE.map(a=>`<option value="${a.id}">${a.text}</option>`).join('');
+  vorlageAppWechseln();
   woerniVorlagenLaden();
 }
 function hideWoerniVorlagen(){
@@ -845,14 +879,18 @@ async function woerniVorlageSpeichern(){
   const text=document.getElementById('vorlageTextInput').value.trim();
   if(!text){alert('Bitte einen Text eingeben.');return;}
   try{
-    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',anlass:anlass,text:text})});
+    const appVal=document.getElementById('vorlageAppSelect')?document.getElementById('vorlageAppSelect').value:'reichweite';
+  const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:appVal,anlass:anlass,text:text})});
     if(!res.ok){alert('Speichern fehlgeschlagen: '+res.status);return;}
   }catch(e){alert('Da ist etwas schiefgegangen: '+e.message);return;}
   document.getElementById('vorlageTextInput').value='';
   woerniVorlagenLaden();
 }
 async function woerniVorlagenLaden(){
-  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&order=erstellt_am.desc`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+  const filter=document.getElementById('vorlageFilterSelect');
+  const appFilter=filter?filter.value:'';
+  const filterParam=appFilter?`&app=eq.${appFilter}`:'';
+  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&order=erstellt_am.desc${filterParam}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
   const c=document.getElementById('woerniVorlagenListe');
   if(!rows.length){c.innerHTML='<div class="dftext" style="padding:8px 0">Noch keine Vorlagen.</div>';return;}
   c.innerHTML=rows.map(v=>{
@@ -871,11 +909,17 @@ async function woerniAufgabenLaden(){
   const c=document.getElementById('woerniAufgabenListe');
   if(!rows.length){c.innerHTML='<div class="dftext" style="padding:8px 0">Noch keine Aufgaben.</div>';return;}
   c.innerHTML=rows.map(a=>{
-    const anlassText=(WOERNI_ANLAESSE.find(x=>x.id===a.anlass)||{}).text||a.anlass||'';
+    // Titel: Freitext-Notiz oder Anlass-Text
+    let titelText='';
+    if(a.anlass==='freitext'&&a.notiz){titelText=a.notiz.length>60?a.notiz.slice(0,57)+'...':a.notiz;}
+    else{titelText=(WOERNI_ANLAESSE.find(x=>x.id===a.anlass)||AZ_SCHNELLAUSWAHL.reichweite.find(x=>x.id===a.anlass)||{}).text||a.anlass||'';}
+    // App-Label
+    const appLabel={reichweite:'✨',belege:'🧾',allgemein:'💬'}[a.app]||'🤖';
     let inhalt='';
     if(a.status==='erledigt'&&a.ergebnis){inhalt=`<div class="woerni-ergebnis">${a.ergebnis.replace(/</g,'&lt;')}</div><button class="woerni-kopieren" onclick="woerniKopieren(this)" data-text="${encodeURIComponent(a.ergebnis)}">Kopieren</button>`;}
     else if(a.status==='fehlgeschlagen'&&a.fehler){inhalt=`<div class="woerni-ergebnis" style="color:rgba(255,255,255,0.5)">${a.fehler.replace(/</g,'&lt;')}</div>`;}
-    return `<div class="dcard" style="padding:13px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="color:#fff;font-size:13px">${anlassText}</strong><span style="display:flex;align-items:center;gap:6px"><span class="woerni-status ${a.status}">${woerniStatusText(a.status)}</span><button class="woerni-loeschen" onclick="woerniLoeschen('${a.id}')" title="Löschen">✕</button></span></div>${inhalt}</div>`;
+    else if(a.status==='offen'&&a.notiz){inhalt=`<div class="woerni-ergebnis" style="color:rgba(255,255,255,0.5);font-style:italic">${a.notiz.replace(/</g,'&lt;')}</div>`;}
+    return `<div class="dcard" style="padding:13px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px">${appLabel}</span><strong style="color:#fff;font-size:13px">${titelText}</strong></div><span style="display:flex;align-items:center;gap:6px"><span class="woerni-status ${a.status}">${woerniStatusText(a.status)}</span><button class="woerni-loeschen" onclick="woerniLoeschen('${a.id}')" title="Löschen">✕</button></span></div>${inhalt}</div>`;
   }).join('');
   const laeuftNoch=rows.some(a=>a.status==='offen'||a.status==='in_arbeit');
   clearTimeout(woerniPollTimer);
@@ -977,6 +1021,59 @@ function woerniBelegeKopieren(){
   btn.textContent='Kopiert ✓';
   setTimeout(()=>btn.textContent='Kopieren',2000);
 }
+
+// === ABWESENHEIT BADGE ===
+let abwesenheitOffen=false;
+async function abwesenheitLaden(){
+  try{
+    const rows=await fetch(`${SUPA_URL}/rest/v1/abwesenheit?select=*&status=eq.offen&order=erstellt_am.desc`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+    const badge=document.getElementById('abwesenheitBadge');
+    if(!rows||!rows.length){badge.style.display='none';return;}
+    badge.style.display='block';
+    document.getElementById('abwesenheitBadgeTitle').textContent=`${rows.length} offene${rows.length===1?' Anfrage':' Anfragen'} — Abwesenheit`;
+    const details=document.getElementById('abwesenheitDetails');
+    details.innerHTML=rows.map(r=>{
+      const name=r.mitarbeiter_name||r.name||r.kennung||'Mitarbeiter:in';
+      const art=r.typ||r.art||'Abwesenheit';
+      const von=r.von?new Date(r.von).toLocaleDateString('de-AT'):'';
+      const bis=r.bis?new Date(r.bis).toLocaleDateString('de-AT'):'';
+      const zeitraum=von&&bis?(von===bis?von:`${von} – ${bis}`):'';
+      return `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.85);font-size:13px"><strong style="color:#fff">${name}</strong> — ${art}${zeitraum?' <span style="color:rgba(255,255,255,0.45);font-size:12px">('+zeitraum+')</span>':''}</div>`;
+    }).join('');
+  }catch(e){console.log('Abwesenheit laden Fehler:',e);}
+}
+function abwesenheitToggle(){
+  const details=document.getElementById('abwesenheitDetails');
+  const chev=document.getElementById('abwesenheitBadgeChev');
+  abwesenheitOffen=!abwesenheitOffen;
+  details.style.display=abwesenheitOffen?'block':'none';
+  chev.style.transform=abwesenheitOffen?'rotate(90deg)':'';
+}
+
+// === VORLAGEN: App-Wechsel ===
+const VORLAGE_ANLAESSE={
+  reichweite:[
+    {id:'ergebnis_gut',text:'Ein Ergebnis hat heute richtig gut ausgeschaut'},
+    {id:'freier_termin',text:'Ein freier Termin soll sichtbar werden'},
+    {id:'kundin_beruehrt',text:'Eine Kundin war besonders berührt'},
+    {id:'team_moment',text:'Im Team war ein guter Moment'},
+    {id:'lehrling_lernmoment',text:'Mit dem Lehrling gab es einen Lernmoment'},
+    {id:'ruhiger_blick',text:'Ein ruhiger Blick in den Alltag passt heute'},
+    {id:'behandlung_produkt',text:'Eine Behandlung oder ein Produkt war heute auffällig'},
+    {id:'was_uns_ausmacht',text:'Ich will zeigen, was uns ausmacht'},
+    {id:'neue_mitarbeiter',text:'Ich will heute neue Mitarbeiter:innen ansprechen'},
+    {id:'ruhiger_tag',text:'Heute war ruhig, ich will trotzdem etwas zeigen'}
+  ]
+};
+
+function vorlageAppWechseln(){
+  const app=document.getElementById('vorlageAppSelect').value;
+  const sel=document.getElementById('vorlageAnlassSelect');
+  const anlaesse=VORLAGE_ANLAESSE[app]||[];
+  sel.innerHTML=anlaesse.map(a=>`<option value="${a.id}">${a.text}</option>`).join('');
+  if(!anlaesse.length) sel.innerHTML='<option value="allgemein">Allgemein</option>';
+}
+
 async function woerniLoeschen(id){
   if(!confirm('Diese Aufgabe wirklich löschen?'))return;
   await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
