@@ -39,6 +39,12 @@
   .app-card-name{color:#fff;font-size:14px;font-weight:700;margin-bottom:3px}
   .app-card-desc{color:rgba(255,255,255,0.45);font-size:11px;line-height:1.4}
   .app-card.special{background:rgba(181,98,42,0.15);border-color:rgba(181,98,42,0.3)}
+  .app-card.dragging{opacity:0.3;transform:scale(0.95)}
+  .app-card.drag-over{border-color:rgba(181,98,42,0.8);background:rgba(181,98,42,0.12)}
+  .apps-grid-edit .app-card::before{content:'⠿';position:absolute;top:6px;right:8px;color:rgba(255,255,255,0.2);font-size:14px}
+  .app-card{position:relative}
+  .app-edit-btn{display:block;width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px dashed rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:10px;text-align:center}
+  .app-edit-btn:active{background:rgba(255,255,255,0.1)}
   .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
   .logout-btn:active{background:rgba(255,255,255,0.05)}
   .dash-btn{display:block;width:100%;padding:12px;background:rgba(181,98,42,0.15);border:1px solid rgba(181,98,42,0.35);border-radius:10px;color:rgba(255,220,180,0.9);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px}
@@ -116,6 +122,26 @@
   .az-send-btn:disabled{opacity:0.4;cursor:default}
   .az-vorschau{background:rgba(181,98,42,0.12);border:1px solid rgba(181,98,42,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.5;display:none}
   .az-vorschau strong{color:#fff;display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(181,98,42,0.9)}
+
+  /* Wörni Zentrale — eine Seite */
+  .wz-app-block{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;margin-bottom:10px;overflow:hidden;cursor:grab;user-select:none}
+  .wz-app-block.dragging{opacity:0.4;border-color:rgba(181,98,42,0.5)}
+  .wz-app-block.drag-over{border-color:rgba(181,98,42,0.8);background:rgba(181,98,42,0.08)}
+  .wz-app-head{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;gap:10px}
+  .wz-app-head-left{display:flex;align-items:center;gap:10px}
+  .wz-app-drag{color:rgba(255,255,255,0.2);font-size:16px;cursor:grab;padding:0 4px}
+  .wz-app-icon{font-size:20px}
+  .wz-app-name{color:#fff;font-size:14px;font-weight:700}
+  .wz-app-chev{color:rgba(255,255,255,0.35);font-size:18px;transition:transform 0.2s}
+  .wz-app-chev.open{transform:rotate(90deg)}
+  .wz-app-body{display:none;padding:0 14px 14px}
+  .wz-app-body.open{display:block}
+  .wz-chip-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+  .wz-vorlage-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .wz-vorlage-titel{color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
+  .wz-vorlage-text{color:rgba(255,255,255,0.8);font-size:13px;line-height:1.5;white-space:pre-wrap}
+  .wz-vorlage-actions{display:flex;gap:6px;margin-top:8px}
+  .wz-chip-aktiv{background:rgba(181,98,42,0.3)!important;border-color:rgba(181,98,42,0.6)!important;color:#fff!important}
 </style>
 </head>
 <body>
@@ -170,6 +196,7 @@
     <div class="app-greeting" id="appGreeting"></div>
   </div>
   <div class="apps-grid" id="appsGrid"></div>
+  <button class="app-edit-btn" id="appEditBtn" onclick="appReihenfolgeToggle()">✏️ Reihenfolge anpassen</button>
   <button class="dash-btn" onclick="showDash()">🗝 Zugangsdaten & Links</button>
   <button class="logout-btn" onclick="doLogout()">Abmelden</button>
 </div>
@@ -363,7 +390,7 @@
   </div>
 
   <!-- ABWESENHEITS-BADGE -->
-  <div id="abwesenheitBadge" style="display:none;margin-bottom:16px">
+  <div id="abwesenheitBadge" style="display:none;margin-bottom:12px">
     <div class="dcard" style="padding:12px 14px;border-color:rgba(181,98,42,0.4);background:rgba(181,98,42,0.1)">
       <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="abwesenheitToggle()">
         <div style="display:flex;align-items:center;gap:10px">
@@ -379,23 +406,12 @@
     </div>
   </div>
 
-  <!-- AUFGABEN-ZENTRALE -->
-  <div class="dash-section">Neuer Auftrag</div>
-
-  <!-- Schnellauswahl -->
-  <div class="az-app-block">
-    <div class="az-app-label">✨ Reichweite</div>
-    <div class="az-chips" id="azChipsReichweite"></div>
-  </div>
-
-  <div class="az-app-block">
-    <div class="az-app-label">🧾 Belege</div>
-    <div class="az-chips" id="azChipsBelege"></div>
-  </div>
-
-  <hr class="az-divider">
+  <!-- EINE SEITE: Apps aufklappbar + Vorlagen drin -->
+  <div class="dash-section" style="margin-bottom:10px">Auftrag & Vorlagen</div>
+  <div id="wzAppListe"></div>
 
   <!-- Freitext -->
+  <hr class="az-divider">
   <div class="az-freitext-label">Oder in eigenen Worten</div>
   <textarea class="az-textarea" id="azFreitext" placeholder="z. B. Post über Lernmoment mit Ronya, Monatsabschluss Juli, Urlaubsantrag Alina bestätigen..." rows="3"></textarea>
 
@@ -404,12 +420,9 @@
     <strong>Auftrag an Wörni</strong>
     <span id="azVorschauText"></span>
   </div>
-
   <button class="az-send-btn" id="azSendBtn" onclick="azSenden()" disabled>Auftrag absenden</button>
 
-  <button class="woerni-link-btn" onclick="showWoerniVorlagen()" style="margin-top:14px">📝 Eigene Vorlagen verwalten</button>
-
-  <!-- Ergebnis Belege-Monatsabschluss -->
+  <!-- Ergebnis Belege -->
   <div id="belegeErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Fertiger Text für den Steuerberater</div>
     <div id="belegeErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
@@ -630,19 +643,75 @@ function showApp(){
   const h=new Date().getHours();
   const gruss=h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend';
   document.getElementById('appGreeting').textContent=`${gruss}, ${currentSession.name}!`;
+  renderAppGrid();
+}
+
+let appDragSrc=null;
+let appEditModus=false;
+
+function appGetOrder(){
+  try{
+    const o=JSON.parse(localStorage.getItem('ghd_app_order')||'[]');
+    if(o.length) return o;
+  }catch(e){}
+  return ALLE_APPS.map(a=>a.name);
+}
+function appSaveOrder(){
+  const grid=document.getElementById('appsGrid');
+  const order=[...grid.querySelectorAll('[data-appname]')].map(el=>el.dataset.appname);
+  localStorage.setItem('ghd_app_order',JSON.stringify(order));
+}
+
+function renderAppGrid(){
   const grid=document.getElementById('appsGrid');
   const sichtbar=ALLE_APPS.filter(a=>a.rollen.includes(currentSession.rolle));
-  grid.innerHTML=sichtbar.map(a=>a.internal?`
-    <div class="app-card${a.special?' special':''}" onclick="${a.action}()" style="cursor:pointer">
-      <div class="app-card-icon">${a.icon}</div>
-      <div class="app-card-name">${a.name}</div>
-      <div class="app-card-desc">${a.desc}</div>
-    </div>`:`
-    <a href="${a.url}" class="app-card${a.special?' special':''}">
-      <div class="app-card-icon">${a.icon}</div>
-      <div class="app-card-name">${a.name}</div>
-      <div class="app-card-desc">${a.desc}</div>
-    </a>`).join('');
+  const order=appGetOrder();
+  const sorted=order.map(name=>sichtbar.find(a=>a.name===name)).filter(Boolean);
+  // Apps die noch nicht in der gespeicherten Reihenfolge sind, hinten anhängen
+  sichtbar.forEach(a=>{ if(!sorted.find(s=>s.name===a.name)) sorted.push(a); });
+  grid.innerHTML='';
+  sorted.forEach(a=>{
+    const el=document.createElement(a.internal?'div':'a');
+    el.className='app-card'+(a.special?' special':'');
+    el.dataset.appname=a.name;
+    if(a.internal){ el.onclick=()=>window[a.action](); el.style.cursor='pointer'; }
+    else{ el.href=a.url; }
+    el.innerHTML='<div class="app-card-icon">'+a.icon+'</div><div class="app-card-name">'+a.name+'</div><div class="app-card-desc">'+a.desc+'</div>';
+    // Drag & Drop
+    el.draggable=false;
+    el.addEventListener('dragstart',e=>{appDragSrc=el;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    el.addEventListener('dragend',()=>{el.classList.remove('dragging');grid.querySelectorAll('.app-card').forEach(c=>c.classList.remove('drag-over'));});
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
+    el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
+    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');if(appDragSrc&&appDragSrc!==el){grid.insertBefore(appDragSrc,el);appSaveOrder();}});
+    grid.appendChild(el);
+  });
+}
+
+function appReihenfolgeToggle(){
+  appEditModus=!appEditModus;
+  const grid=document.getElementById('appsGrid');
+  const btn=document.getElementById('appEditBtn');
+  grid.querySelectorAll('[data-appname]').forEach(el=>{
+    el.draggable=appEditModus;
+    // Links im Edit-Modus nicht navigieren
+    if(el.tagName==='A'){
+      if(appEditModus){ el.dataset.href=el.href; el.href='javascript:void(0)'; }
+      else if(el.dataset.href){ el.href=el.dataset.href; }
+    }
+  });
+  if(appEditModus){
+    grid.classList.add('apps-grid-edit');
+    btn.textContent='✓ Fertig';
+    btn.style.background='rgba(181,98,42,0.2)';
+    btn.style.borderColor='rgba(181,98,42,0.4)';
+    btn.style.color='rgba(255,220,180,0.9)';
+  } else {
+    grid.classList.remove('apps-grid-edit');
+    btn.textContent='✏️ Reihenfolge anpassen';
+    btn.style.background='';btn.style.borderColor='';btn.style.color='';
+    appSaveOrder();
+  }
 }
 
 function showDash(){
@@ -691,32 +760,198 @@ const AZ_SCHNELLAUSWAHL = {
 
 let azAktuelleAuswahl = null; // {app, id, text}
 
+// === WÖRNI ZENTRALE — eine Seite ===
+// App-Reihenfolge (vom User per Drag & Drop anpassbar, gespeichert in localStorage)
+const WZ_APP_DEFAULT_ORDER = ['reichweite','belege','abwesenheit','team','lernquiz','checklisten','lager','mitarbeiterhandbuch','innung','schrank'];
+
+function wzGetOrder(){
+  try{ const o=JSON.parse(localStorage.getItem('ghd_wz_order')||'[]'); return o.length?o:WZ_APP_DEFAULT_ORDER; }
+  catch(e){ return WZ_APP_DEFAULT_ORDER; }
+}
+function wzSaveOrder(order){ localStorage.setItem('ghd_wz_order',JSON.stringify(order)); }
+
+const WZ_APP_META = {
+  reichweite:      {label:'✨ Reichweite',      chips: AZ_SCHNELLAUSWAHL.reichweite||[]},
+  belege:          {label:'🧾 Belege',           chips: AZ_SCHNELLAUSWAHL.belege||[]},
+  abwesenheit:     {label:'📅 Abwesenheit',      chips:[]},
+  team:            {label:'💬 Team',             chips:[]},
+  lernquiz:        {label:'✂️ Lernquiz',         chips:[]},
+  checklisten:     {label:'✅ Checklisten',       chips:[]},
+  lager:           {label:'📦 Lager',            chips:[]},
+  mitarbeiterhandbuch:{label:'📒 Handbuch',      chips:[]},
+  innung:          {label:'🏫 Innung',           chips:[]},
+  schrank:         {label:'🗄 Schrank',          chips:[]},
+};
+
+let wzDragSrc = null;
+
+async function wzRenderApps(){
+  const liste = document.getElementById('wzAppListe');
+  if(!liste) return;
+  const order = wzGetOrder();
+  liste.innerHTML = '';
+  for(const appId of order){
+    const meta = WZ_APP_META[appId];
+    if(!meta) continue;
+    const block = document.createElement('div');
+    block.className = 'wz-app-block';
+    block.dataset.app = appId;
+    block.draggable = true;
+    block.innerHTML = `
+      <div class="wz-app-head" onclick="wzToggle('${appId}',this)">
+        <div class="wz-app-head-left">
+          <span class="wz-app-drag" title="Verschieben">⠿</span>
+          <span class="wz-app-name">${meta.label}</span>
+        </div>
+        <span class="wz-app-chev">›</span>
+      </div>
+      <div class="wz-app-body" id="wzBody_${appId}">
+        <div class="wz-chip-grid" id="wzChips_${appId}"></div>
+        <div id="wzVorlagen_${appId}" style="margin-top:8px"></div>
+        <button class="woerni-link-btn" onclick="vorlageNeuOeffnen('${appId}')" style="margin-top:8px;font-size:12px">+ Neue Vorlage</button>
+      </div>`;
+    // Drag & Drop
+    block.addEventListener('dragstart', e=>{ wzDragSrc=block; block.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    block.addEventListener('dragend',   ()=>{ block.classList.remove('dragging'); document.querySelectorAll('.wz-app-block').forEach(b=>b.classList.remove('drag-over')); });
+    block.addEventListener('dragover',  e=>{ e.preventDefault(); block.classList.add('drag-over'); });
+    block.addEventListener('dragleave', ()=>block.classList.remove('drag-over'));
+    block.addEventListener('drop',      e=>{ e.preventDefault(); block.classList.remove('drag-over'); if(wzDragSrc&&wzDragSrc!==block){ liste.insertBefore(wzDragSrc,block); wzSaveDragOrder(); }});
+    liste.appendChild(block);
+    // Chips rendern
+    const chipContainer = block.querySelector(`#wzChips_${appId}`);
+    (meta.chips||[]).forEach(a=>{
+      const btn=document.createElement('button');
+      btn.className='az-chip'; btn.textContent=a.text;
+      btn.onclick=(e)=>{ e.stopPropagation(); azChipWaehlen(appId,a.id,a.text,btn); };
+      chipContainer.appendChild(btn);
+    });
+  }
+}
+
+function wzSaveDragOrder(){
+  const liste = document.getElementById('wzAppListe');
+  if(!liste) return;
+  const order = [...liste.querySelectorAll('.wz-app-block')].map(b=>b.dataset.app);
+  wzSaveOrder(order);
+}
+
+function wzToggle(appId, head){
+  const body = document.getElementById('wzBody_'+appId);
+  const chev = head.querySelector('.wz-app-chev');
+  const isOpen = body.classList.contains('open');
+  if(!isOpen){
+    body.classList.add('open');
+    chev.classList.add('open');
+    wzLadeVorlagen(appId);
+  } else {
+    body.classList.remove('open');
+    chev.classList.remove('open');
+  }
+}
+
+async function wzLadeVorlagen(appId){
+  const el=document.getElementById('wzVorlagen_'+appId);
+  if(!el)return;
+  const alleAnlaesse=Object.values(VORLAGE_ANLAESSE).flat();
+  const rows=await fetch(SUPA_URL+'/rest/v1/woerni_vorlagen?select=*&app=eq.'+appId+'&order=erstellt_am.desc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+  el.innerHTML='';
+  if(!rows.length){
+    const standards=VORLAGE_STANDARDS[appId]||[];
+    if(standards.length){
+      const hint=document.createElement('div');
+      hint.style.cssText='color:rgba(255,255,255,0.35);font-size:11px;margin-bottom:6px';
+      hint.textContent='Vorschläge:';
+      el.appendChild(hint);
+      standards.forEach(function(v){
+        const anlassText=(alleAnlaesse.find(function(x){return x.id===v.anlass;})||{}).text||v.anlass||'';
+        const textPrev=v.text.split('\n').join(' ').slice(0,80)+(v.text.length>80?'...':'');
+        const scard=document.createElement('div');
+        scard.className='wz-vorlage-card';
+        scard.style.cssText='border-style:dashed;opacity:0.7';
+        scard.dataset.app=appId;
+        scard.dataset.anlass=v.anlass;
+        scard.dataset.text=v.text;
+        const btn=document.createElement('button');
+        btn.className='woerni-kopieren';
+        btn.style.fontSize='11px';
+        btn.textContent='+ Übernehmen';
+        btn.addEventListener('click',function(){wzStandardUebernehmenEl(btn);});
+        const titelDiv=document.createElement('div');titelDiv.className='wz-vorlage-titel';titelDiv.textContent=anlassText;
+        const textDiv=document.createElement('div');textDiv.className='wz-vorlage-text';textDiv.style.cssText='color:rgba(255,255,255,0.5);font-size:12px';textDiv.textContent=textPrev;
+        const actDiv=document.createElement('div');actDiv.className='wz-vorlage-actions';actDiv.appendChild(btn);
+        scard.appendChild(titelDiv);scard.appendChild(textDiv);scard.appendChild(actDiv);
+        el.appendChild(scard);
+      });
+    }
+    return;
+  }
+  rows.forEach(function(v){
+    const anlassText=(alleAnlaesse.find(function(x){return x.id===v.anlass;})||{}).text||v.anlass||'';
+    const card=document.createElement('div');
+    card.className='wz-vorlage-card';
+    card.dataset.id=v.id;
+    card.dataset.text=v.text;
+    card.dataset.app=appId;
+    const editBtn=document.createElement('button');
+    editBtn.className='woerni-kopieren';editBtn.style.fontSize='11px';editBtn.textContent='✏️ Bearbeiten';
+    editBtn.addEventListener('click',function(){vorlageEditOeffnenById(editBtn);});
+    const delBtn=document.createElement('button');
+    delBtn.className='woerni-loeschen';delBtn.title='Löschen';delBtn.textContent='✕';
+    delBtn.addEventListener('click',function(){wzVorlageLoeschenById(delBtn);});
+    const titelDiv=document.createElement('div');titelDiv.className='wz-vorlage-titel';titelDiv.textContent=anlassText;
+    const textDiv=document.createElement('div');textDiv.className='wz-vorlage-text';
+    textDiv.innerHTML=v.text.replace(/</g,'&lt;').split('\n').join('<br>');
+    const actDiv=document.createElement('div');actDiv.className='wz-vorlage-actions';actDiv.appendChild(editBtn);actDiv.appendChild(delBtn);
+    card.appendChild(titelDiv);card.appendChild(textDiv);card.appendChild(actDiv);
+    el.appendChild(card);
+  });
+}
+
+
+async function wzStandardUebernehmen(appId, anlass, text){
+  try{ await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass,text})}); }
+  catch(e){ alert('Fehler: '+e.message); return; }
+  wzLadeVorlagen(appId);
+}
+
+function wzStandardUebernehmenEl(btn){
+  const card=btn.closest('.wz-vorlage-card');
+  wzStandardUebernehmen(card.dataset.app, card.dataset.anlass, card.dataset.text);
+}
+function vorlageEditOeffnenById(btn){
+  const card=btn.closest('.wz-vorlage-card');
+  vorlageEditOeffnen(card.dataset.id, card.dataset.text);
+}
+function wzVorlageLoeschenById(btn){
+  const card=btn.closest('.wz-vorlage-card');
+  wzVorlageLoeschen(card.dataset.id, card.dataset.app);
+}
+async function wzVorlageLoeschen(id, appId){
+  if(!confirm('Vorlage wirklich löschen?'))return;
+  await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
+  wzLadeVorlagen(appId);
+}
+
+// Neue Vorlage Modal
+let vorlageNeuAppId = null;
+function vorlageNeuOeffnen(appId){
+  vorlageNeuAppId = appId;
+  const meta = WZ_APP_META[appId]||{};
+  document.getElementById('vorlageNeuTitel').textContent = 'Neue Vorlage — '+meta.label;
+  const anlaesse = VORLAGE_ANLAESSE[appId]||[];
+  document.getElementById('vorlageAnlassSelect').innerHTML = anlaesse.length
+    ? anlaesse.map(a=>`<option value="${a.id}">${a.text}</option>`).join('')
+    : '<option value="allgemein">Allgemein</option>';
+  document.getElementById('vorlageTextInput').value='';
+  document.getElementById('vorlageNeuModal').style.display='flex';
+}
+function vorlageNeuSchliessen(){ document.getElementById('vorlageNeuModal').style.display='none'; vorlageNeuAppId=null; }
+
 function azInit(){
-  // Reichweite-Chips
-  const cr = document.getElementById('azChipsReichweite');
-  if(cr){
-    cr.innerHTML='';
-    AZ_SCHNELLAUSWAHL.reichweite.forEach(a=>{
-      const btn=document.createElement('button');
-      btn.className='az-chip';btn.textContent=a.text;
-      btn.onclick=()=>azChipWaehlen('reichweite',a.id,a.text,btn);
-      cr.appendChild(btn);
-    });
-  }
-  // Belege-Chips
-  const cb = document.getElementById('azChipsBelege');
-  if(cb){
-    cb.innerHTML='';
-    AZ_SCHNELLAUSWAHL.belege.forEach(a=>{
-      const btn=document.createElement('button');
-      btn.className='az-chip';btn.textContent=a.text;
-      btn.onclick=()=>azChipWaehlen('belege',a.id,a.text,btn);
-      cb.appendChild(btn);
-    });
-  }
+  wzRenderApps();
   // Freitext-Listener
   const ta=document.getElementById('azFreitext');
-  if(ta) ta.addEventListener('input',azAktualisieren);
+  if(ta){ ta.removeEventListener('input',azAktualisieren); ta.addEventListener('input',azAktualisieren); }
   azAktualisieren();
   belegeMonatSelectInit();
   abwesenheitLaden();
@@ -871,27 +1106,19 @@ async function woerniAufgabeErstellen(){
   document.querySelectorAll('.woerni-chip').forEach(el=>el.classList.remove('aktiv'));
   woerniGewaehlterAnlass=null;woerniAufgabenLaden();
 }
-function showWoerniVorlagen(){
-  document.getElementById('woerniScreen').style.display='none';
-  document.getElementById('woerniVorlagenScreen').style.display='block';
-  vorlageAppTabs();
-  vorlageAnlassSelectFuellen();
-  woerniVorlagenLaden();
-}
-function hideWoerniVorlagen(){
-  document.getElementById('woerniVorlagenScreen').style.display='none';
-  document.getElementById('woerniScreen').style.display='block';
-}
+// showWoerniVorlagen nicht mehr nötig — alles in Hauptscreen
 async function woerniVorlageSpeichern(){
   const anlass=document.getElementById('vorlageAnlassSelect').value;
   const text=document.getElementById('vorlageTextInput').value.trim();
   if(!text){alert('Bitte einen Text eingeben.');return;}
+  const appId=vorlageNeuAppId||vorlageAktuelleApp||'reichweite';
   try{
-    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:vorlageAktuelleApp,anlass:anlass,text:text})});
+    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass:anlass,text:text})});
     if(!res.ok){alert('Speichern fehlgeschlagen: '+res.status);return;}
   }catch(e){alert('Da ist etwas schiefgegangen: '+e.message);return;}
   document.getElementById('vorlageTextInput').value='';
-  woerniVorlagenLaden();
+  vorlageNeuSchliessen();
+  wzLadeVorlagen(appId);
 }
 async function woerniVorlagenLaden(){
   const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.${vorlageAktuelleApp}&order=erstellt_am.desc`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
@@ -911,7 +1138,8 @@ async function woerniVorlagenLaden(){
           </div>
           <div class="woerni-ergebnis" style="color:rgba(255,255,255,0.45)">${v.text.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
         </div>`;
-      }).join('');
+        c.appendChild(scard);
+      });
     } else {
       c.innerHTML='<div class="dftext" style="padding:8px 0">Noch keine Vorlagen.</div>';
     }
