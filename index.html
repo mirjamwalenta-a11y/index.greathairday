@@ -99,6 +99,23 @@
   .woerni-textarea{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;font-family:inherit;margin-bottom:10px;min-height:90px;resize:vertical}
   .woerni-select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;font-family:inherit;margin-bottom:10px}
   .woerni-link-btn{display:block;width:100%;padding:10px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:16px;text-align:center}
+
+  /* Aufgaben-Zentrale */
+  .az-app-block{margin-bottom:8px}
+  .az-app-label{color:rgba(255,255,255,0.45);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
+  .az-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+  .az-chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:rgba(255,255,255,0.8);font-size:12px;padding:6px 14px;cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:left}
+  .az-chip:active,.az-chip.aktiv{background:rgba(181,98,42,0.3);border-color:rgba(181,98,42,0.6);color:#fff}
+  .az-divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:16px 0}
+  .az-freitext-label{color:rgba(255,255,255,0.45);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
+  .az-textarea{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:14px;padding:12px 14px;font-family:inherit;resize:none;min-height:80px;margin-bottom:10px}
+  .az-textarea::placeholder{color:rgba(255,255,255,0.3)}
+  .az-textarea:focus{outline:none;border-color:rgba(181,98,42,0.5);background:rgba(255,255,255,0.08)}
+  .az-send-btn{display:block;width:100%;padding:13px;background:rgba(181,98,42,0.8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .az-send-btn:active{background:rgba(181,98,42,1)}
+  .az-send-btn:disabled{opacity:0.4;cursor:default}
+  .az-vorschau{background:rgba(181,98,42,0.12);border:1px solid rgba(181,98,42,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.5;display:none}
+  .az-vorschau strong{color:#fff;display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(181,98,42,0.9)}
 </style>
 </head>
 <body>
@@ -341,14 +358,48 @@
 <div id="woerniScreen" style="display:none;width:100%;max-width:420px">
   <div class="dash-header">
     <button class="dash-back" onclick="hideWoerni()">← Zurück</button>
-    <div class="dash-title">Wörni</div>
+    <div class="dash-title">🤖 Wörni</div>
     <div style="width:52px"></div>
   </div>
-  <div class="dash-section">Neue Aufgabe: Post erstellen (Reichweite)</div>
-  <div class="woerni-liste" id="woerniAnlassListe"></div>
-  <button class="woerni-btn" id="woerniErstellenBtn" onclick="woerniAufgabeErstellen()" disabled>Aufgabe erstellen</button>
-  <button class="woerni-link-btn" onclick="showWoerniVorlagen()">📝 Eigene Vorlagen verwalten</button>
-  <div class="dash-section">Deine Aufgaben</div>
+
+  <!-- AUFGABEN-ZENTRALE -->
+  <div class="dash-section">Neuer Auftrag</div>
+
+  <!-- Schnellauswahl -->
+  <div class="az-app-block">
+    <div class="az-app-label">✨ Reichweite</div>
+    <div class="az-chips" id="azChipsReichweite"></div>
+  </div>
+
+  <div class="az-app-block">
+    <div class="az-app-label">🧾 Belege</div>
+    <div class="az-chips" id="azChipsBelege"></div>
+  </div>
+
+  <hr class="az-divider">
+
+  <!-- Freitext -->
+  <div class="az-freitext-label">Oder in eigenen Worten</div>
+  <textarea class="az-textarea" id="azFreitext" placeholder="z. B. Bereite den Monatsabschluss für Juli vor..." rows="3"></textarea>
+
+  <!-- Vorschau -->
+  <div class="az-vorschau" id="azVorschau">
+    <strong>Auftrag an Wörni</strong>
+    <span id="azVorschauText"></span>
+  </div>
+
+  <button class="az-send-btn" id="azSendBtn" onclick="azSenden()" disabled>Auftrag absenden</button>
+
+  <button class="woerni-link-btn" onclick="showWoerniVorlagen()" style="margin-top:14px">📝 Eigene Vorlagen verwalten</button>
+
+  <!-- Ergebnis Belege-Monatsabschluss -->
+  <div id="belegeErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0">Fertiger Text für den Steuerberater</div>
+    <div id="belegeErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" id="belegeKopierenBtn" onclick="woerniBelegeKopieren()" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <div class="dash-section" style="margin-top:24px">Alle Aufgaben</div>
   <div id="woerniAufgabenListe"></div>
 </div>
 
@@ -437,6 +488,8 @@ const ALLE_APPS = [
 
 const SUPA_URL='https://wrxlaltgtgkdomklgrlj.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
+const BELEGE_URL='https://lpuxvvfrrcnbuzafscyk.supabase.co';
+const BELEGE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdXh2dmZycmNuYnV6YWZzY3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODIxNDcsImV4cCI6MjEwMDI1ODE0N30.6VZUmmXj_x3Q8J55s_tbOHcW5-U5OXllGoEBhypaVfI';
 
 let pinBuffer='';
 let currentSession=null;
@@ -584,6 +637,152 @@ function doLogout(){
   document.getElementById('pinError').textContent='';
 }
 
+// === AUFGABEN-ZENTRALE ===
+const AZ_SCHNELLAUSWAHL = {
+  reichweite: [
+    {id:'ergebnis_gut',     text:'📸 Ergebnis zeigen'},
+    {id:'freier_termin',    text:'📅 Freien Termin posten'},
+    {id:'kundin_beruehrt',  text:'💛 Berührter Moment'},
+    {id:'team_moment',      text:'👥 Team-Moment'},
+    {id:'lehrling_lernmoment', text:'🎓 Lernmoment Lehrling'},
+    {id:'was_uns_ausmacht',    text:'🏡 Was uns ausmacht'},
+    {id:'neue_mitarbeiter',    text:'🔍 Mitarbeiter:in gesucht'},
+    {id:'ruhiger_tag',         text:'🌿 Ruhiger Tag'},
+  ],
+  belege: [
+    {id:'belege_monatsabschluss', text:'📋 Monatsabschluss vorbereiten'},
+  ]
+};
+
+let azAktuelleAuswahl = null; // {app, id, text}
+
+function azInit(){
+  // Reichweite-Chips
+  const cr = document.getElementById('azChipsReichweite');
+  if(cr){
+    cr.innerHTML='';
+    AZ_SCHNELLAUSWAHL.reichweite.forEach(a=>{
+      const btn=document.createElement('button');
+      btn.className='az-chip';btn.textContent=a.text;
+      btn.onclick=()=>azChipWaehlen('reichweite',a.id,a.text,btn);
+      cr.appendChild(btn);
+    });
+  }
+  // Belege-Chips
+  const cb = document.getElementById('azChipsBelege');
+  if(cb){
+    cb.innerHTML='';
+    AZ_SCHNELLAUSWAHL.belege.forEach(a=>{
+      const btn=document.createElement('button');
+      btn.className='az-chip';btn.textContent=a.text;
+      btn.onclick=()=>azChipWaehlen('belege',a.id,a.text,btn);
+      cb.appendChild(btn);
+    });
+  }
+  // Freitext-Listener
+  const ta=document.getElementById('azFreitext');
+  if(ta) ta.addEventListener('input',azAktualisieren);
+  azAktualisieren();
+  belegeMonatSelectInit();
+}
+
+function azChipWaehlen(app,id,text,btn){
+  // Alle Chips deaktivieren
+  document.querySelectorAll('.az-chip').forEach(c=>c.classList.remove('aktiv'));
+  // Diesen aktivieren
+  btn.classList.add('aktiv');
+  azAktuelleAuswahl={app,id,text};
+  // Freitext leeren
+  const ta=document.getElementById('azFreitext');
+  if(ta) ta.value='';
+  azAktualisieren();
+}
+
+function azAktualisieren(){
+  const ta=document.getElementById('azFreitext');
+  const freitext=ta?ta.value.trim():'';
+  const vorschau=document.getElementById('azVorschau');
+  const vorschauText=document.getElementById('azVorschauText');
+  const sendBtn=document.getElementById('azSendBtn');
+
+  let auftragText='';
+  if(azAktuelleAuswahl && !freitext){
+    auftragText=azAktuelleAuswahl.text.replace(/^[^\w]+ /,''); // Emoji entfernen für Klarheit
+  } else if(freitext){
+    azAktuelleAuswahl=null;
+    document.querySelectorAll('.az-chip').forEach(c=>c.classList.remove('aktiv'));
+    auftragText=freitext;
+  }
+
+  if(auftragText){
+    vorschauText.textContent=auftragText;
+    vorschau.style.display='block';
+    sendBtn.disabled=false;
+  } else {
+    vorschau.style.display='none';
+    sendBtn.disabled=true;
+  }
+}
+
+async function azSenden(){
+  const ta=document.getElementById('azFreitext');
+  const freitext=ta?ta.value.trim():'';
+  const sendBtn=document.getElementById('azSendBtn');
+
+  sendBtn.disabled=true;
+  sendBtn.textContent='Wird gesendet...';
+  document.getElementById('belegeErgebnis').style.display='none';
+
+  // Belege-Monatsabschluss: direkt lokal erledigen
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='belege_monatsabschluss'){
+    sendBtn.textContent='Auftrag absenden';
+    azReset();
+    await woerniBelegeMonatsabschluss();
+    return;
+  }
+
+  // Reichweite-Aufgaben: an Supabase/Wörni senden
+  if(azAktuelleAuswahl && azAktuelleAuswahl.app==='reichweite'){
+    try{
+      const anlassId=azAktuelleAuswahl.id;
+      const vorlagen=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.reichweite&anlass=eq.${anlassId}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+      if(vorlagen&&vorlagen.length){
+        const gewaehlt=vorlagen[Math.floor(Math.random()*vorlagen.length)];
+        await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'erledigt',ergebnis:gewaehlt.text,erledigt_am:new Date().toISOString()})});
+      } else {
+        const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'offen'})});
+        const neu=(await res.json())[0];
+        if(neu){
+          try{
+            const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
+            if(!fnRes.ok)alert('Wörni konnte nicht gestartet werden (Fehler '+fnRes.status+').');
+          }catch(e){alert('Wörni konnte nicht erreicht werden: '+e.message);}
+        }
+      }
+    }catch(e){alert('Fehler: '+e.message);}
+  }
+
+  // Freitext: als allgemeine Aufgabe speichern
+  if(freitext){
+    try{
+      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'allgemein',typ:'freitext',anlass:'freitext',notiz:freitext,status:'offen'})});
+    }catch(e){alert('Fehler beim Speichern: '+e.message);}
+  }
+
+  sendBtn.textContent='Auftrag absenden';
+  azReset();
+  woerniAufgabenLaden();
+}
+
+function azReset(){
+  azAktuelleAuswahl=null;
+  document.querySelectorAll('.az-chip').forEach(c=>c.classList.remove('aktiv'));
+  const ta=document.getElementById('azFreitext');
+  if(ta) ta.value='';
+  document.getElementById('azVorschau').style.display='none';
+  document.getElementById('azSendBtn').disabled=true;
+}
+
 const WOERNI_ANLAESSE=[
   {id:'ergebnis_gut',text:'Ein Ergebnis hat heute richtig gut ausgeschaut'},
   {id:'freier_termin',text:'Ein freier Termin soll sichtbar werden'},
@@ -597,7 +796,7 @@ const WOERNI_ANLAESSE=[
   {id:'ruhiger_tag',text:'Heute war ruhig, ich will trotzdem etwas zeigen'}
 ];
 let woerniGewaehlterAnlass=null, woerniPollTimer=null;
-function showWoerni(){document.getElementById('appScreen').style.display='none';document.getElementById('woerniScreen').style.display='block';woerniAnlassRendern();woerniAufgabenLaden();}
+function showWoerni(){document.getElementById('appScreen').style.display='none';document.getElementById('woerniScreen').style.display='block';azInit();woerniAufgabenLaden();}
 function hideWoerni(){clearTimeout(woerniPollTimer);document.getElementById('woerniScreen').style.display='none';document.getElementById('appScreen').style.display='block';}
 function woerniAnlassRendern(){
   const c=document.getElementById('woerniAnlassListe');c.innerHTML='';
@@ -683,6 +882,101 @@ async function woerniAufgabenLaden(){
   if(laeuftNoch)woerniPollTimer=setTimeout(woerniAufgabenLaden,5000);
 }
 function woerniKopieren(btn){const text=decodeURIComponent(btn.dataset.text);navigator.clipboard.writeText(text);btn.textContent='Kopiert ✓';setTimeout(()=>btn.textContent='Kopieren',2000);}
+
+// --- BELEGE MONATSABSCHLUSS ---
+function belegeMonatSelectInit(){
+  const sel=document.getElementById('belegeMonatSelect');
+  if(!sel)return;
+  const heute=new Date();
+  const monate=[];
+  for(let i=0;i<12;i++){
+    const d=new Date(heute.getFullYear(),heute.getMonth()-i,1);
+    const label=d.toLocaleString('de-AT',{month:'long',year:'numeric'});
+    const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monate.push({label,val});
+  }
+  sel.innerHTML=monate.map(m=>`<option value="${m.val}">${m.label}</option>`).join('');
+}
+
+async function woerniBelegeMonatsabschluss(){
+  const sel=document.getElementById('belegeMonatSelect');
+  const monat=sel.value; // z.B. "2026-07"
+  const [jahr,mon]=monat.split('-');
+  const vonDatum=`${monat}-01`;
+  const bisDatum=`${monat}-${new Date(+jahr,+mon,0).getDate()}`;
+
+  const btn=document.getElementById('belegeAbschlussBtn');
+  btn.disabled=true;btn.textContent='Wird abgerufen...';
+  document.getElementById('belegeErgebnis').style.display='none';
+
+  try{
+    const url=`${BELEGE_URL}/rest/v1/belege_neu?select=*&datum=gte.${vonDatum}&datum=lte.${bisDatum}&order=datum.asc`;
+    const rows=await fetch(url,{headers:{'apikey':BELEGE_KEY,'Authorization':`Bearer ${BELEGE_KEY}`}}).then(r=>r.json());
+
+    if(!rows||rows.length===0){
+      alert(`Für ${new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'})} wurden keine Belege gefunden.`);
+      btn.disabled=false;btn.textContent='Monatsabschluss erstellen';
+      return;
+    }
+
+    // Summen berechnen
+    let nettoGesamt=0,mwstGesamt=0;
+    const kategorien={};
+    const lieferanten=[];
+
+    rows.forEach(b=>{
+      const netto=parseFloat(b.netto||b.betrag||0);
+      const mwst=parseFloat(b.mwst||b.vorsteuer||0);
+      nettoGesamt+=netto;
+      mwstGesamt+=mwst;
+      const kat=b.kategorie||b.typ||'Sonstiges';
+      kategorien[kat]=(kategorien[kat]||0)+1;
+      if(b.lieferant&&!lieferanten.includes(b.lieferant))lieferanten.push(b.lieferant);
+    });
+
+    const monatsname=new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'});
+    const bruttoGesamt=nettoGesamt+mwstGesamt;
+
+    const katZeilen=Object.entries(kategorien).map(([k,n])=>`  • ${k}: ${n} Beleg${n>1?'e':''}`).join('\n');
+
+    const text=`Betreff: Belege ${monatsname} – Mirjam Walenta, A Great Hair Day
+
+Guten Tag,
+
+anbei die Belege für ${monatsname}.
+
+Zusammenfassung:
+  Anzahl Belege: ${rows.length}
+  Netto gesamt:  € ${nettoGesamt.toFixed(2)}
+  Vorsteuer:     € ${mwstGesamt.toFixed(2)}
+  Brutto gesamt: € ${bruttoGesamt.toFixed(2)}
+
+Kategorien:
+${katZeilen}
+
+Mit freundlichen Grüßen,
+Mirjam Walenta
+A Great Hair Day
+Rechte Wienzeile 47, 1050 Wien
+Tel: 01 586 31 30`;
+
+    document.getElementById('belegeErgebnisText').textContent=text;
+    document.getElementById('belegeErgebnis').style.display='block';
+    document.getElementById('belegeKopierenBtn').textContent='Kopieren';
+
+  }catch(e){
+    alert('Fehler beim Abrufen der Belege: '+e.message);
+  }
+  btn.disabled=false;btn.textContent='Monatsabschluss erstellen';
+}
+
+function woerniBelegeKopieren(){
+  const text=document.getElementById('belegeErgebnisText').textContent;
+  navigator.clipboard.writeText(text);
+  const btn=document.getElementById('belegeKopierenBtn');
+  btn.textContent='Kopiert ✓';
+  setTimeout(()=>btn.textContent='Kopieren',2000);
+}
 async function woerniLoeschen(id){
   if(!confirm('Diese Aufgabe wirklich löschen?'))return;
   await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
