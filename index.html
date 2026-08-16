@@ -674,7 +674,7 @@ function renderAppGrid(){
     const el=document.createElement(a.internal?'div':'a');
     el.className='app-card'+(a.special?' special':'');
     el.dataset.appname=a.name;
-    if(a.internal){ el.onclick=()=>window[a.action](); el.style.cursor='pointer'; }
+    if(a.internal){ el.onclick=(e)=>{ if(!appEditModus) window[a.action](); }; el.style.cursor='pointer'; }
     else{ el.href=a.url; }
     el.innerHTML='<div class="app-card-icon">'+a.icon+'</div><div class="app-card-name">'+a.name+'</div><div class="app-card-desc">'+a.desc+'</div>';
     // Drag & Drop
@@ -684,6 +684,18 @@ function renderAppGrid(){
     el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
     el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
     el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');if(appDragSrc&&appDragSrc!==el){grid.insertBefore(appDragSrc,el);appSaveOrder();}});
+    // Touch-Support Mobile
+    let appTouchY=0;
+    el.addEventListener('touchstart',e=>{ if(!appEditModus)return; appDragSrc=el; appTouchY=e.touches[0].clientY; el.classList.add('dragging'); },{passive:true});
+    el.addEventListener('touchmove',e=>{
+      if(!appEditModus)return; e.preventDefault();
+      const y=e.touches[0].clientY;
+      const cards=[...grid.querySelectorAll('[data-appname]:not(.dragging)')];
+      const target=cards.find(c=>{ const r=c.getBoundingClientRect(); return y>=r.top&&y<=r.bottom; });
+      cards.forEach(c=>c.classList.remove('drag-over'));
+      if(target){ target.classList.add('drag-over'); if(y<appTouchY) grid.insertBefore(appDragSrc,target); else grid.insertBefore(appDragSrc,target.nextSibling); appTouchY=y; }
+    },{passive:false});
+    el.addEventListener('touchend',()=>{ if(!appEditModus)return; el.classList.remove('dragging'); grid.querySelectorAll('[data-appname]').forEach(c=>c.classList.remove('drag-over')); appSaveOrder(); });
     grid.appendChild(el);
   });
 }
@@ -694,10 +706,15 @@ function appReihenfolgeToggle(){
   const btn=document.getElementById('appEditBtn');
   grid.querySelectorAll('[data-appname]').forEach(el=>{
     el.draggable=appEditModus;
-    // Links im Edit-Modus nicht navigieren
     if(el.tagName==='A'){
-      if(appEditModus){ el.dataset.href=el.href; el.href='javascript:void(0)'; }
-      else if(el.dataset.href){ el.href=el.dataset.href; }
+      if(appEditModus){
+        el.dataset.href=el.href;
+        el.href='javascript:void(0)';
+        el.onclick=(e)=>e.preventDefault();
+      } else {
+        if(el.dataset.href) el.href=el.dataset.href;
+        el.onclick=null;
+      }
     }
   });
   if(appEditModus){
@@ -812,10 +829,22 @@ async function wzRenderApps(){
       </div>`;
     // Drag & Drop
     block.addEventListener('dragstart', e=>{ wzDragSrc=block; block.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
-    block.addEventListener('dragend',   ()=>{ block.classList.remove('dragging'); document.querySelectorAll('.wz-app-block').forEach(b=>b.classList.remove('drag-over')); });
+    block.addEventListener('dragend',   ()=>{ block.classList.remove('dragging'); document.querySelectorAll('.wz-app-block').forEach(b=>b.classList.remove('drag-over')); wzSaveDragOrder(); });
     block.addEventListener('dragover',  e=>{ e.preventDefault(); block.classList.add('drag-over'); });
     block.addEventListener('dragleave', ()=>block.classList.remove('drag-over'));
     block.addEventListener('drop',      e=>{ e.preventDefault(); block.classList.remove('drag-over'); if(wzDragSrc&&wzDragSrc!==block){ liste.insertBefore(wzDragSrc,block); wzSaveDragOrder(); }});
+    // Touch-Support für Mobile
+    let touchY=0;
+    block.addEventListener('touchstart',e=>{ wzDragSrc=block; touchY=e.touches[0].clientY; block.classList.add('dragging'); },{passive:true});
+    block.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      const y=e.touches[0].clientY;
+      const els=[...liste.querySelectorAll('.wz-app-block:not(.dragging)')];
+      const target=els.find(el=>{ const r=el.getBoundingClientRect(); return y>=r.top&&y<=r.bottom; });
+      els.forEach(el=>el.classList.remove('drag-over'));
+      if(target){ target.classList.add('drag-over'); if(y<touchY) liste.insertBefore(wzDragSrc,target); else liste.insertBefore(wzDragSrc,target.nextSibling); touchY=y; }
+    },{passive:false});
+    block.addEventListener('touchend',()=>{ block.classList.remove('dragging'); document.querySelectorAll('.wz-app-block').forEach(b=>b.classList.remove('drag-over')); wzSaveDragOrder(); });
     liste.appendChild(block);
     // Chips rendern
     const chipContainer = block.querySelector(`#wzChips_${appId}`);
