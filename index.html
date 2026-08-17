@@ -147,6 +147,24 @@
   .toast{background:#1B2A3B;color:#fff;padding:11px 20px;border-radius:10px;border-left:4px solid rgba(181,98,42,0.9);box-shadow:0 4px 16px rgba(0,0,0,0.35);font-size:13px;opacity:0;transform:translateY(10px);transition:opacity 0.25s ease,transform 0.25s ease;white-space:nowrap}
   .toast.show{opacity:1;transform:translateY(0)}
 
+  /* ── Zugangsdaten Gate-Screen ── */
+  #zgGateScreen{display:none;width:100%;max-width:340px;text-align:center}
+  .zg-steps{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px}
+  .zg-step{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
+  .zg-step.aktiv{border-color:#B5622A;background:rgba(181,98,42,0.2);color:rgba(255,220,180,0.9)}
+  .zg-step.done{border-color:rgba(90,200,120,0.6);background:rgba(90,200,120,0.15);color:#7ee29a}
+  .zg-step-linie{width:28px;height:2px;background:rgba(255,255,255,0.1);border-radius:1px}
+  .zg-label{color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:14px}
+  .zg-pw-input{width:100%;padding:13px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:12px;background:rgba(255,255,255,0.07);color:#fff;font-size:16px;font-family:inherit;outline:none;text-align:center;letter-spacing:0.06em;margin-bottom:10px;transition:border-color 0.2s}
+  .zg-pw-input::placeholder{color:rgba(255,255,255,0.25);letter-spacing:0}
+  .zg-pw-input:focus{border-color:rgba(181,98,42,0.5)}
+  .zg-pw-input.zg-fehler{border-color:rgba(220,80,80,0.5);animation:zgSchütteln 0.35s ease}
+  @keyframes zgSchütteln{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  .zg-weiter-btn{width:100%;padding:13px;border:none;border-radius:12px;background:#B5622A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px}
+  .zg-weiter-btn:active{background:#9a4e20}
+  .zg-abbruch-btn{display:block;width:100%;padding:10px;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;font-family:inherit}
+  .zg-fehler-text{color:#f29a9a;font-size:12px;min-height:18px;margin-bottom:8px}
+
   /* ── TASK 3: Jiggle-Animation im Sortiermodus ── */
   @keyframes ghd-jiggle {
     0%,100% { transform: rotate(0deg); }
@@ -300,6 +318,55 @@
   <button class="app-edit-btn" id="appEditBtn" onclick="appReihenfolgeToggle()">✏️ Reihenfolge anpassen</button>
   <button class="dash-btn" onclick="showDash()">🗝 Zugangsdaten & Links</button>
   <button class="logout-btn" onclick="doLogout()">Abmelden</button>
+</div>
+
+<!-- ZUGANGSDATEN GATE -->
+<div id="zgGateScreen">
+  <div style="font-size:32px;margin-bottom:8px">🔐</div>
+  <div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:4px">Zugangsdaten</div>
+  <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:28px">Nur für dich · Bitte verifizieren</div>
+
+  <div class="zg-steps">
+    <div class="zg-step aktiv" id="zgStep1">1</div>
+    <div class="zg-step-linie"></div>
+    <div class="zg-step" id="zgStep2">2</div>
+  </div>
+
+  <!-- Schritt 1: Passwort -->
+  <div id="zgSchrittPW">
+    <div class="zg-label">Passwort eingeben</div>
+    <input class="zg-pw-input" id="zgPwInput" type="password" placeholder="Geheimcode" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <div class="zg-fehler-text" id="zgPwFehler"></div>
+    <button class="zg-weiter-btn" onclick="zgPwPruefen()">Weiter →</button>
+    <button class="zg-abbruch-btn" onclick="zgAbbrechen()">← Zurück</button>
+  </div>
+
+  <!-- Schritt 2: PIN -->
+  <div id="zgSchrittPIN" style="display:none">
+    <div class="pin-label">PIN eingeben</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="zgd0"></div>
+      <div class="pin-dot" id="zgd1"></div>
+      <div class="pin-dot" id="zgd2"></div>
+      <div class="pin-dot" id="zgd3"></div>
+    </div>
+    <div class="zg-fehler-text" id="zgPinFehler"></div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="zgPinTap('1')">1</button>
+      <button class="pin-btn" onclick="zgPinTap('2')">2</button>
+      <button class="pin-btn" onclick="zgPinTap('3')">3</button>
+      <button class="pin-btn" onclick="zgPinTap('4')">4</button>
+      <button class="pin-btn" onclick="zgPinTap('5')">5</button>
+      <button class="pin-btn" onclick="zgPinTap('6')">6</button>
+      <button class="pin-btn" onclick="zgPinTap('7')">7</button>
+      <button class="pin-btn" onclick="zgPinTap('8')">8</button>
+      <button class="pin-btn" onclick="zgPinTap('9')">9</button>
+      <button class="pin-btn empty"></button>
+      <button class="pin-btn" onclick="zgPinTap('0')">0</button>
+      <button class="pin-btn" onclick="zgPinDel()">⌫</button>
+    </div>
+    <button class="zg-abbruch-btn" onclick="zgAbbrechen()">← Zurück</button>
+  </div>
 </div>
 
 <!-- DASHBOARD SCREEN -->
@@ -1198,14 +1265,106 @@ function appReihenfolgeToggle(){
   }
 }
 
+// ── Zugangsdaten-Schutz ──────────────────────────
+const ZG_PW  = 'ZG-Mirli';
+const ZG_PIN = '3101';
+const ZG_SESSION = 'ghd_zg_ok'; // bleibt bis App-Logout
+
 function showDash(){
+  // Bereits verifiziert? Direkt rein.
+  if(sessionStorage.getItem(ZG_SESSION)==='1'){
+    _dashOeffnen(); return;
+  }
+  // Sonst: Gate-Screen zeigen
   document.getElementById('appScreen').style.display='none';
+  zgReset();
+  document.getElementById('zgGateScreen').style.display='block';
+}
+function _dashOeffnen(){
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('zgGateScreen').style.display='none';
   document.getElementById('dashScreen').style.display='block';
 }
 function hideDash(){
   document.getElementById('dashScreen').style.display='none';
   document.getElementById('appScreen').style.display='block';
 }
+
+// Gate: Passwort prüfen
+function zgPwPruefen(){
+  const inp=document.getElementById('zgPwInput');
+  const err=document.getElementById('zgPwFehler');
+  if(inp.value===ZG_PW){
+    err.textContent='';
+    inp.classList.remove('zg-fehler');
+    // Schritt 1 → done, Schritt 2 → aktiv
+    document.getElementById('zgStep1').className='zg-step done';
+    document.getElementById('zgStep1').textContent='✓';
+    document.getElementById('zgStep2').className='zg-step aktiv';
+    document.getElementById('zgSchrittPW').style.display='none';
+    document.getElementById('zgSchrittPIN').style.display='block';
+  } else {
+    err.textContent='Falsches Passwort — bitte nochmal versuchen.';
+    inp.value='';
+    inp.classList.add('zg-fehler');
+    setTimeout(()=>inp.classList.remove('zg-fehler'),400);
+    showToast('⚠️ Falsches Passwort');
+  }
+}
+
+// Gate: PIN
+let zgPinBuffer='';
+function zgPinTap(d){
+  if(zgPinBuffer.length>=4) return;
+  zgPinBuffer+=d;
+  zgAktualisiereDots();
+  if(zgPinBuffer.length===4) setTimeout(zgPinPruefen,150);
+}
+function zgPinDel(){
+  zgPinBuffer=zgPinBuffer.slice(0,-1);
+  zgAktualisiereDots();
+  document.getElementById('zgPinFehler').textContent='';
+}
+function zgAktualisiereDots(){
+  for(let i=0;i<4;i++){
+    document.getElementById('zgd'+i).className='pin-dot'+(i<zgPinBuffer.length?' filled':'');
+  }
+}
+function zgPinPruefen(){
+  if(zgPinBuffer===ZG_PIN){
+    sessionStorage.setItem(ZG_SESSION,'1');
+    _dashOeffnen();
+    showToast('🔓 Zugangsdaten entsperrt');
+  } else {
+    document.getElementById('zgPinFehler').textContent='Falscher PIN — bitte nochmal versuchen.';
+    zgPinBuffer=''; zgAktualisiereDots();
+    showToast('⚠️ Falscher PIN');
+  }
+}
+function zgAbbrechen(){
+  document.getElementById('zgGateScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  zgReset();
+}
+function zgReset(){
+  zgPinBuffer='';
+  zgAktualisiereDots();
+  document.getElementById('zgPwInput').value='';
+  document.getElementById('zgPwFehler').textContent='';
+  document.getElementById('zgPinFehler').textContent='';
+  document.getElementById('zgStep1').className='zg-step aktiv';
+  document.getElementById('zgStep1').textContent='1';
+  document.getElementById('zgStep2').className='zg-step';
+  document.getElementById('zgStep2').textContent='2';
+  document.getElementById('zgSchrittPW').style.display='block';
+  document.getElementById('zgSchrittPIN').style.display='none';
+}
+// Bei App-Logout auch ZG-Session löschen
+const _origDoLogout=doLogout;
+doLogout=function(){
+  sessionStorage.removeItem(ZG_SESSION);
+  _origDoLogout();
+};
 function dtoggle(head){
   const chev=head.querySelector('.dchev');
   const body=head.nextElementSibling;
