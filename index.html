@@ -146,6 +146,102 @@
   #toastContainer{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
   .toast{background:#1B2A3B;color:#fff;padding:11px 20px;border-radius:10px;border-left:4px solid rgba(181,98,42,0.9);box-shadow:0 4px 16px rgba(0,0,0,0.35);font-size:13px;opacity:0;transform:translateY(10px);transition:opacity 0.25s ease,transform 0.25s ease;white-space:nowrap}
   .toast.show{opacity:1;transform:translateY(0)}
+
+  /* ── TASK 3: Jiggle-Animation im Sortiermodus ── */
+  @keyframes ghd-jiggle {
+    0%,100% { transform: rotate(0deg); }
+    20%      { transform: rotate(-1.5deg); }
+    40%      { transform: rotate(1.5deg); }
+    60%      { transform: rotate(-1deg); }
+    80%      { transform: rotate(1deg); }
+  }
+  .apps-grid-edit .app-card {
+    animation: ghd-jiggle 0.5s ease-in-out infinite;
+    /* Jede Karte leicht versetzt für natürlichen Look */
+  }
+  .apps-grid-edit .app-card:nth-child(even) {
+    animation-delay: 0.07s;
+  }
+  .apps-grid-edit .app-card:nth-child(3n) {
+    animation-delay: 0.13s;
+  }
+  /* Jiggle pausieren beim Drag-Over */
+  .apps-grid-edit .app-card.drag-over,
+  .apps-grid-edit .app-card.dragging {
+    animation: none;
+  }
+
+  /* ── TASK 2: Wörni Power-Up Styles ── */
+  /* Diktat-Button */
+  .ghd-dikt-btn {
+    display:inline-flex;align-items:center;gap:7px;
+    padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);
+    font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:all 0.2s;margin-bottom:8px;
+  }
+  .ghd-dikt-btn:active { background:rgba(255,255,255,0.14); }
+  .ghd-dikt-btn.aufnahme {
+    background:rgba(220,60,60,0.18);border-color:rgba(220,60,60,0.5);
+    color:#ff8a8a;animation:ghd-pulse-ring 1.2s ease-in-out infinite;
+  }
+  @keyframes ghd-pulse-ring {
+    0%,100% { box-shadow: 0 0 0 0 rgba(220,60,60,0.35); }
+    50%      { box-shadow: 0 0 0 7px rgba(220,60,60,0); }
+  }
+  /* WhatsApp-Button */
+  .ghd-wa-btn {
+    display:inline-flex;align-items:center;gap:7px;
+    padding:8px 14px;border-radius:20px;border:1px solid rgba(37,211,102,0.35);
+    background:rgba(37,211,102,0.1);color:rgba(37,211,102,0.9);
+    font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:all 0.2s;margin-top:8px;
+  }
+  .ghd-wa-btn:active { background:rgba(37,211,102,0.2); }
+  /* Lade-Spinner */
+  .ghd-spinner {
+    display:inline-block;width:16px;height:16px;
+    border:2px solid rgba(255,255,255,0.2);
+    border-top-color:rgba(181,98,42,0.9);
+    border-radius:50%;animation:ghd-spin 0.7s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes ghd-spin { to { transform: rotate(360deg); } }
+  .ghd-loading-row {
+    display:flex;align-items:center;gap:10px;
+    color:rgba(255,255,255,0.45);font-size:13px;padding:10px 0;
+  }
+
+  /* ── TASK 1: Heute-Sektionen ── */
+  .heute-section-label {
+    font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);
+    text-transform:uppercase;letter-spacing:0.12em;
+    margin:16px 0 8px;padding-left:2px;
+  }
+  .heute-section-label:first-child { margin-top:0; }
+  .heute-aufgabe-card {
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+    transition:background 0.15s;margin-bottom:8px;
+  }
+  .heute-aufgabe-card:active { background:rgba(255,255,255,0.11); }
+  .heute-aufgabe-card.erledigt { opacity:0.45; }
+  .heute-aufgabe-card.erledigt .heute-aufgabe-titel {
+    text-decoration:line-through;color:rgba(255,255,255,0.4);
+  }
+  .heute-check-btn {
+    width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);
+    background:transparent;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+  }
+  .heute-check-btn.done {
+    background:rgba(90,200,120,0.3);border-color:rgba(90,200,120,0.6);
+    color:#7ee29a;font-size:12px;
+  }
+  .heute-aufgabe-titel { color:#fff;font-size:13px;font-weight:600;line-height:1.4;flex:1; }
+  .heute-aufgabe-prio { font-size:14px;flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -464,6 +560,11 @@
   <!-- Freitext -->
   <hr class="az-divider">
   <div class="az-freitext-label">Oder in eigenen Worten</div>
+  <!-- TASK 2: Diktat-Button -->
+  <button class="ghd-dikt-btn" id="diktBtn" onclick="diktToggle()">
+    <span id="diktIcon">🎤</span>
+    <span id="diktLabel">Diktieren</span>
+  </button>
   <textarea class="az-textarea" id="azFreitext" placeholder="z. B. Post über Lernmoment mit Ronya, Monatsabschluss Juli, Urlaubsantrag Alina bestätigen..." rows="3"></textarea>
 
   <!-- Vorschau -->
@@ -473,20 +574,32 @@
   </div>
   <button class="az-send-btn" id="azSendBtn" onclick="azSenden()" disabled>Auftrag absenden</button>
 
+  <!-- TASK 2: Globaler Lade-Spinner (wird per JS ein-/ausgeblendet) -->
+  <div id="ghdSpinner" style="display:none;margin:12px 0">
+    <div class="ghd-loading-row">
+      <span class="ghd-spinner"></span>
+      <span id="ghdSpinnerText">Wörni arbeitet…</span>
+    </div>
+  </div>
+
   <!-- Ergebnis Belege -->
   <div id="belegeErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Fertiger Text für den Steuerberater</div>
     <div id="belegeErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" id="belegeKopierenBtn" onclick="woerniBelegeKopieren()" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" id="belegeKopierenBtn" onclick="woerniBelegeKopieren()">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('belegeErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Lernquiz Ergebnis -->
   <div id="quizErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Neue Lernkarte</div>
     <div id="quizErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="woerni-kopieren" id="quizKopierenBtn" onclick="quizKopieren()" style="flex:1">Kopieren</button>
-      <button class="woerni-btn" id="quizSpeichernBtn" onclick="quizInLernquizSpeichern()" style="flex:1;padding:8px">In Lernquiz speichern</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" id="quizKopierenBtn" onclick="quizKopieren()">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('quizErgebnisText')">💬 WhatsApp</button>
+      <button class="woerni-btn" id="quizSpeichernBtn" onclick="quizInLernquizSpeichern()" style="padding:8px;width:100%">In Lernquiz speichern</button>
     </div>
   </div>
 
@@ -494,70 +607,100 @@
   <div id="belegeKatErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Belege nach Kategorie</div>
     <div id="belegeKatText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('belegeKatText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('belegeKatText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('belegeKatText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Steuerberater-Mail Ergebnis -->
   <div id="steuermailErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Steuerberater-Mail</div>
     <div id="steuermailText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('steuermailText').textContent);showToast('✓ Mail kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('steuermailText').textContent);showToast('✓ Mail kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('steuermailText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Schrank Ergebnis -->
   <div id="schrankErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="schrankErgebnisTitel">Dokumentenschrank</div>
     <div id="schrankErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('schrankErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('schrankErgebnisText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('schrankErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Abwesenheit Ergebnis -->
   <div id="abwErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="abwErgebnisTitel">Abwesenheit</div>
     <div id="abwErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('abwErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('abwErgebnisText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('abwErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Team Ergebnis -->
   <div id="teamErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0">Besprechungsnotiz</div>
     <div id="teamErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('teamErgebnisText').textContent);showToast('✓ Notiz kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('teamErgebnisText').textContent);showToast('✓ Notiz kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('teamErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Lager Ergebnis -->
   <div id="lagerErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="lagerErgebnisTitel">Lager</div>
     <div id="lagerErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lagerErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lagerErgebnisText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('lagerErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Handbuch Ergebnis -->
   <div id="handbuchErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="handbuchErgebnisTitel">Mitarbeiterhandbuch</div>
     <div id="handbuchErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('handbuchErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('handbuchErgebnisText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('handbuchErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Lerntool Ergebnis -->
   <div id="lerntoolErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="lerntoolErgebnisTitel">Lerntool</div>
     <div id="lerntoolErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lerntoolErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lerntoolErgebnisText').textContent);showToast('✓ Kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('lerntoolErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Checklisten Ergebnis -->
   <div id="checkErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="checkErgebnisTitel">Checkliste</div>
     <div id="checkErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('checkErgebnisText').textContent);showToast('✓ Checkliste kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('checkErgebnisText').textContent);showToast('✓ Checkliste kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('checkErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <!-- Innung Ergebnis -->
   <div id="innungErgebnis" style="display:none;margin-top:16px" class="dcard">
     <div class="dash-section" style="margin-top:0;padding-top:0" id="innungErgebnisTitel">Innung</div>
     <div id="innungErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
-    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('innungErgebnisText').textContent);showToast('✓ Text kopiert')" style="margin-top:10px">Kopieren</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('innungErgebnisText').textContent);showToast('✓ Text kopiert')">Kopieren</button>
+      <button class="ghd-wa-btn" onclick="ghdSendWhatsApp('innungErgebnisText')">💬 WhatsApp</button>
+    </div>
   </div>
 
   <div class="dash-section" style="margin-top:24px">Alle Aufgaben</div>
@@ -753,19 +896,97 @@ async function heuteLaden(){
   }
   leer.style.display='none';
   wSatz.textContent=aufgaben.length===1?'Ich habe 1 Ding gefunden, das heute wichtig ist.':'Ich habe '+aufgaben.length+' Dinge gefunden, die heute wichtig sind.';
-  const prioPunkt={'rot':'🔴','orange':'🟠','grau':'⚪'};
-  liste.innerHTML=aufgaben.map(a=>{
+
+  // ── TASK 1: Aufgaben in 3 Tagesabschnitte einteilen ──
+  // Priorität → Abschnitt-Heuristik
+  const morgenAufgaben=[], laufendAufgaben=[], abendAufgaben=[];
+  aufgaben.forEach(a=>{
+    const t=(a.titel||'').toLowerCase();
+    const b=(a.bereich||'').toLowerCase();
+    // Abend-Keywords
+    if(t.includes('abschluss')||t.includes('abend')||t.includes('kasse')||t.includes('wochenend')||t.includes('sicherheit')||b==='abschluss'){
+      abendAufgaben.push(a);
+    // Morgen-Routine Keywords
+    } else if(t.includes('morgen')||t.includes('tagesstart')||t.includes('öffnen')||t.includes('routine')||a.prioritaet==='rot'){
+      morgenAufgaben.push(a);
+    // Alles andere = laufende Aufgaben
+    } else {
+      laufendAufgaben.push(a);
+    }
+  });
+
+  // Heute-Status aus localStorage laden
+  const heute=new Date().toDateString();
+  let erledigtHeute={};
+  try{
+    const saved=JSON.parse(localStorage.getItem('ghd_heute_erledigt')||'{}');
+    // Nur heutige Einträge behalten
+    erledigtHeute=saved[heute]||{};
+  }catch(e){}
+
+  function heuteKarteHtml(a,idx){
+    const prioPunkt={'rot':'🔴','orange':'🟠','grau':'⚪'};
     const pkt=prioPunkt[a.prioritaet]||'⚪';
-    const link=a.app_link?`onclick="window.open('${a.app_link}','_blank')"`:
-      a._quelle==='woerni'?`onclick="hideHeute();showWoerni();"`:'' ;
-    return `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent" ${link}>
+    const key=(a.id||a.titel||'')+idx;
+    const done=!!erledigtHeute[key];
+    const linkAttr=a.app_link?`onclick="heuteOeffnen('${a.app_link}','${key}',this)"`:
+      a._quelle==='woerni'?`onclick="hideHeute();showWoerni();"`:
+      `onclick="heuteToggle('${key}',this)"`;
+    return `<div class="heute-aufgabe-card${done?' erledigt':''}" data-key="${key}" ${linkAttr}>
       <div style="display:flex;align-items:center;gap:10px;flex:1">
-        <span style="font-size:16px;flex-shrink:0">${pkt}</span>
-        <span style="color:#fff;font-size:13px;font-weight:600;line-height:1.4">${a.titel}</span>
+        <span class="heute-aufgabe-prio">${pkt}</span>
+        <span class="heute-aufgabe-titel">${a.titel}</span>
       </div>
-      <span style="color:rgba(255,255,255,0.3);font-size:16px;flex-shrink:0">›</span>
+      <button class="heute-check-btn${done?' done':''}" onclick="event.stopPropagation();heuteToggle('${key}',this.closest('.heute-aufgabe-card'))">${done?'✓':''}</button>
     </div>`;
-  }).join('');
+  }
+
+  let html='';
+  if(morgenAufgaben.length){
+    html+='<div class="heute-section-label">🌅 Morgen-Routine</div>';
+    morgenAufgaben.forEach((a,i)=>html+=heuteKarteHtml(a,'m'+i));
+  }
+  if(laufendAufgaben.length){
+    html+='<div class="heute-section-label">⚡ Laufende Aufgaben</div>';
+    laufendAufgaben.forEach((a,i)=>html+=heuteKarteHtml(a,'l'+i));
+  }
+  if(abendAufgaben.length){
+    html+='<div class="heute-section-label">🌙 Abend-Abschluss</div>';
+    abendAufgaben.forEach((a,i)=>html+=heuteKarteHtml(a,'a'+i));
+  }
+  liste.innerHTML=html;
+}
+
+// Heute: Abhak-Funktion mit localStorage-Persistenz
+function heuteToggle(key, cardEl){
+  const heute=new Date().toDateString();
+  let alle={};
+  try{ alle=JSON.parse(localStorage.getItem('ghd_heute_erledigt')||'{}'); }catch(e){}
+  if(!alle[heute]) alle[heute]={};
+  const warErledigt=!!alle[heute][key];
+  alle[heute][key]=!warErledigt;
+  // Alte Tage bereinigen (max 3 Tage aufbewahren)
+  const keys=Object.keys(alle);
+  if(keys.length>3) delete alle[keys[0]];
+  localStorage.setItem('ghd_heute_erledigt',JSON.stringify(alle));
+  // UI updaten
+  const card=cardEl||document.querySelector(`[data-key="${key}"]`);
+  if(card){
+    const btn=card.querySelector('.heute-check-btn');
+    if(!warErledigt){
+      card.classList.add('erledigt');
+      if(btn){btn.classList.add('done');btn.textContent='✓';}
+      showToast('✓ Erledigt');
+    } else {
+      card.classList.remove('erledigt');
+      if(btn){btn.classList.remove('done');btn.textContent='';}
+    }
+  }
+}
+
+// Heute: App-Link öffnen + als erledigt markieren
+function heuteOeffnen(url, key, cardEl){
+  window.open(url,'_blank');
 }
 
 function showToast(msg, dauer=2500){
@@ -2458,6 +2679,142 @@ async function woerniLoeschen(id){
   await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
   woerniAufgabenLaden();
 }
+
+// ════════════════════════════════════════════════════
+// TASK 2 — WÖRNI POWER-UP
+// ════════════════════════════════════════════════════
+
+// ── Lade-Spinner ──────────────────────────────────
+function ghdSpinnerShow(text='Wörni arbeitet…'){
+  const el=document.getElementById('ghdSpinner');
+  const txt=document.getElementById('ghdSpinnerText');
+  if(el){ el.style.display='block'; if(txt) txt.textContent=text; }
+}
+function ghdSpinnerHide(){
+  const el=document.getElementById('ghdSpinner');
+  if(el) el.style.display='none';
+}
+
+// ── WhatsApp-Output ───────────────────────────────
+// Öffnet den Text eines beliebigen Ergebnis-Elements in WhatsApp
+function ghdSendWhatsApp(elementId){
+  const el=document.getElementById(elementId);
+  if(!el){ showToast('⚠️ Kein Text gefunden'); return; }
+  const text=el.textContent||el.innerText||'';
+  if(!text.trim()){ showToast('⚠️ Kein Text vorhanden'); return; }
+  const url='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+  showToast('💬 WhatsApp wird geöffnet…');
+}
+
+// ── Diktat-Modul (Web Speech API) ─────────────────
+let diktErkennung=null;
+let diktAktiv=false;
+
+function diktToggle(){
+  if(diktAktiv){ diktStopp(); return; }
+  diktStart();
+}
+
+function diktStart(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    showToast('⚠️ Diktat nicht unterstützt (Safari/Chrome empfohlen)');
+    return;
+  }
+  try{
+    diktErkennung=new SpeechRecognition();
+    diktErkennung.lang='de-AT';       // Österreichisches Deutsch
+    diktErkennung.continuous=true;    // Endlos-Modus
+    diktErkennung.interimResults=true; // Live-Vorschau
+
+    const ta=document.getElementById('azFreitext');
+    let letzterFertig='';
+
+    diktErkennung.onresult=function(e){
+      let interim='';
+      let fertig='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal){
+          fertig+=e.results[i][0].transcript+' ';
+        } else {
+          interim+=e.results[i][0].transcript;
+        }
+      }
+      if(fertig) letzterFertig+=fertig;
+      // Textarea: fertiger Text + laufender Zwischentext
+      ta.value=letzterFertig+interim;
+      // Vorschau aktualisieren
+      azAktualisieren();
+    };
+
+    diktErkennung.onerror=function(e){
+      if(e.error==='no-speech') return; // Stillschweigen ignorieren
+      showToast('🎤 Fehler: '+e.error);
+      diktStopp();
+    };
+
+    diktErkennung.onend=function(){
+      // Automatisch neu starten wenn noch aktiv (iOS bricht oft ab)
+      if(diktAktiv) diktErkennung.start();
+    };
+
+    diktErkennung.start();
+    diktAktiv=true;
+    diktUIAktiv(true);
+    showToast('🎤 Aufnahme läuft — sprich jetzt');
+
+  }catch(e){
+    showToast('🎤 Diktat-Fehler: '+e.message);
+    diktAktiv=false;
+  }
+}
+
+function diktStopp(){
+  diktAktiv=false;
+  if(diktErkennung){
+    try{ diktErkennung.stop(); }catch(e){}
+    diktErkennung=null;
+  }
+  diktUIAktiv(false);
+  showToast('🎤 Aufnahme beendet');
+  azAktualisieren(); // Sende-Button prüfen
+}
+
+function diktUIAktiv(aktiv){
+  const btn=document.getElementById('diktBtn');
+  const icon=document.getElementById('diktIcon');
+  const label=document.getElementById('diktLabel');
+  if(!btn) return;
+  if(aktiv){
+    btn.classList.add('aufnahme');
+    if(icon) icon.textContent='⏹';
+    if(label) label.textContent='Stopp';
+  } else {
+    btn.classList.remove('aufnahme');
+    if(icon) icon.textContent='🎤';
+    if(label) label.textContent='Diktieren';
+  }
+}
+
+// Diktat stoppen wenn Wörni-Screen verlassen wird
+const _origHideWoerni=hideWoerni;
+hideWoerni=function(){
+  if(diktAktiv) diktStopp();
+  _origHideWoerni();
+};
+
+// ── Spinner in azSenden integrieren ──────────────
+// Überschreibe den Send-Button-Text durch Spinner während des Ladens
+const _origAzSenden=azSenden;
+azSenden=async function(){
+  ghdSpinnerShow('Wörni arbeitet…');
+  try{
+    await _origAzSenden();
+  }finally{
+    ghdSpinnerHide();
+  }
+};
 </script>
 </body>
 </html>
