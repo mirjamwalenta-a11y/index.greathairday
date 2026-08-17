@@ -377,176 +377,54 @@
     <div style="width:52px"></div>
   </div>
 
-  <div class="dash-section">Haupt-Apps</div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">✨</div><div class="dcard-name">Reichweite</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/moment.greathairday/" target="_blank">moment.greathairday</a></span></div>
+  <!-- Admin-Bar -->
+  <div id="zgAdminBar" style="display:none;background:rgba(181,98,42,0.12);border:1px solid rgba(181,98,42,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
+    <span style="color:rgba(255,200,120,0.85);font-size:12px;font-weight:700">✏️ Bearbeitungs-Modus</span>
+    <div style="display:flex;gap:8px">
+      <button onclick="zgModalSektionOeffnen()" style="background:rgba(181,98,42,0.6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit">+ Bereich</button>
+      <button onclick="zgAdminToggle()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit">Fertig</button>
     </div>
   </div>
 
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🏠</div><div class="dcard-name">Startseite</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/index.greathairday/" target="_blank">index.greathairday</a></span></div>
+  <!-- Dynamischer Inhalt -->
+  <div id="zgInhalt"></div>
+
+  <!-- Bearbeiten-Button -->
+  <button id="zgEditBtn" onclick="zgAdminToggle()" style="display:block;width:100%;padding:10px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.35);font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px;margin-bottom:24px">
+    ✏️ Zugangsdaten bearbeiten
+  </button>
+</div>
+
+<!-- MODAL: Neue Zeile -->
+<div id="zgModalZeile" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:#1B2A3B;border:1px solid rgba(255,255,255,0.15);border-radius:18px 18px 0 0;padding:24px 20px 36px;width:100%;max-width:480px">
+    <div style="color:#fff;font-size:15px;font-weight:700;margin-bottom:14px">Neue Zeile hinzufügen</div>
+    <select id="zgZeileSektionSel" style="width:100%;padding:11px 14px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;background:rgba(255,255,255,0.07);color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px"></select>
+    <input id="zgZeileLabel" class="inp" placeholder="Bezeichnung (z.B. Passwort, Link, PIN)" style="margin-bottom:10px">
+    <select id="zgZeileTyp" onchange="zgZeileTypWechseln()" style="width:100%;padding:11px 14px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;background:rgba(255,255,255,0.07);color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px">
+      <option value="pill">🔑 PIN / Code (Pill)</option>
+      <option value="link">🌐 URL / Link</option>
+      <option value="text">📝 Text / Hinweis</option>
+    </select>
+    <input id="zgZeileWert" class="inp" placeholder="Wert eingeben…" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px">
+      <button onclick="zgModalZeileSchliessen()" style="flex:1;padding:12px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;background:none;color:rgba(255,255,255,0.5);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Abbrechen</button>
+      <button onclick="zgZeileHinzufuegen()" style="flex:1;padding:12px;border:none;border-radius:10px;background:#B5622A;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Speichern</button>
     </div>
   </div>
+</div>
 
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">📚</div><div class="dcard-name">Lernquiz &amp; Schnuppertag</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Lerntool</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html" target="_blank">lerntool.html</a></span></div>
-      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">MW121272-1050</span></span></div>
-      <div class="drow"><span class="dlabel">Meisterin</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/meisterin.html" target="_blank">meisterin.html</a></span></div>
-      <div class="drow"><span class="dlabel">PIN</span><span class="dval"><span class="dpill">191299</span></span></div>
-      <div class="drow"><span class="dlabel">Schnupper Meisterin</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html" target="_blank">schnuppertag.html</a></span></div>
-      <div class="drow"><span class="dlabel">Schnupper Lehrling</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html?modus=lehrling" target="_blank">?modus=lehrling</a></span></div>
+<!-- MODAL: Neue Sektion -->
+<div id="zgModalSektion" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:#1B2A3B;border:1px solid rgba(255,255,255,0.15);border-radius:18px 18px 0 0;padding:24px 20px 36px;width:100%;max-width:480px">
+    <div style="color:#fff;font-size:15px;font-weight:700;margin-bottom:14px">Neuen Bereich anlegen</div>
+    <input id="zgSektionIcon" class="inp" placeholder="Emoji (z.B. 🔑)" style="margin-bottom:10px">
+    <input id="zgSektionName" class="inp" placeholder="Name des Bereichs (z.B. GitHub)" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px">
+      <button onclick="zgModalSektionSchliessen()" style="flex:1;padding:12px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;background:none;color:rgba(255,255,255,0.5);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Abbrechen</button>
+      <button onclick="zgSektionHinzufuegen()" style="flex:1;padding:12px;border:none;border-radius:10px;background:#B5622A;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Anlegen</button>
     </div>
   </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">📁</div><div class="dcard-name">Dokumentenschrank</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/" target="_blank">dokumentenschrank-ghd</a></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">✅</div><div class="dcard-name">Checkliste</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html" target="_blank">salon-checklist.html</a></span></div>
-      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">walenta 2026</span></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🏪</div><div class="dcard-name">Lager</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager.index.html" target="_blank">lager.greathairday</a></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">📅</div><div class="dcard-name">Abwesenheit</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html" target="_blank">abwesenheiten-ghd</a></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🧾</div><div class="dcard-name">Belege</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/belege.greathairday" target="_blank">belege.greathairday</a></span></div>
-      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">2002</span></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">📖</div><div class="dcard-name">Mitarbeiterhandbuch</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html" target="_blank">Mitarbeiterhandbuch_App.html</a></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">👥</div><div class="dcard-name">Teambesprechung</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/Team/team.html" target="_blank">team.html</a></span></div>
-      <div class="drow"><span class="dlabel">PW</span><span class="dval"><span class="dpill">MW121272-1050</span></span></div>
-    </div>
-  </div>
-
-  <div class="dash-section">Salon &amp; Innung</div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">✂️</div><div class="dcard-name">Salonapp</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/salonapp.greathairday/salonapp.html" target="_blank">salonapp.html</a></span></div>
-      <div class="drow"><span class="dlabel">Zugang</span><span class="dval"><span class="dpill">Mirjam</span> · PIN <span class="dpill">3101</span></span></div>
-    </div>
-  </div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🏅</div><div class="dcard-name">Innungsapp</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Link</span><span class="dval"><a href="https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html" target="_blank">innungsapp.html</a></span></div>
-      <div class="drow"><span class="dlabel">Zugänge</span><span class="dval"><span class="dpill">guelten</span> · PIN <span class="dpill">1801</span><br><span class="dpill">alina</span> · PIN <span class="dpill">0310</span><br><span class="dpill">Mirjam</span> · PIN <span class="dpill">1212</span></span></div>
-    </div>
-  </div>
-
-  <div class="dash-section">Team-PINs</div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🔑</div><div class="dcard-name">Demo-PINs (alle Mitarbeiter)</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="dpin-grid">
-        <span class="dpin">Mirjam · 1212</span>
-        <span class="dpin">Mazen · 1706</span>
-        <span class="dpin">Alina · 0310</span>
-        <span class="dpin">Hassan · 1007</span>
-        <span class="dpin">Ronya · 0802</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="dash-section">Datenbank (Supabase)</div>
-
-  <div class="dcard">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">🗄️</div><div class="dcard-name">Supabase</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="drow"><span class="dlabel">Projekt 1</span><span class="dval"><a href="https://supabase.com/dashboard/project/wrxlaltgtgkdomklgrlj/sql/new" target="_blank">SQL Editor öffnen</a></span></div>
-      <div class="drow"><span class="dlabel">Projekt 2</span><span class="dval"><a href="https://supabase.com/dashboard/project/lpuxvvfrrcnbuzafscyk/sql/787a7789-579d-443c-9404-6702f1fa4b85" target="_blank">SQL Editor öffnen</a></span></div>
-      <div class="drow"><span class="dlabel">URL</span><span class="dval"><a href="https://wrxlaltgtgkdomklgrlj.supabase.co" target="_blank">wrxlaltgtgkdomklgrlj.supabase.co</a></span></div>
-      <div class="drow"><span class="dlabel">API Key</span><span class="dval"><span class="dapikey">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdXh2dmZycmNuYnV6YWZzY3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODIxNDcsImV4cCI6MjEwMDI1ODE0N30.6VZUmmXj_x3Q8J55s_tbOHcW5-U5OXllGoEBhypaVfI</span></span></div>
-    </div>
-  </div>
-
-  <div class="dash-section">Registrierung für Freunde</div>
-
-  <div class="dcard" style="margin-bottom:28px">
-    <div class="dcard-head" onclick="dtoggle(this)">
-      <div class="dcard-icon">👤</div><div class="dcard-name">Ablauf Freunde-Zugang</div><div class="dchev">›</div>
-    </div>
-    <div class="dcard-body">
-      <div class="dflow">
-        <div class="dfstep"><div class="dfnum">1</div><div class="dftext">Link öffnen → „Registrieren" tippen</div></div>
-        <div class="dfstep"><div class="dfnum">2</div><div class="dftext">E-Mail + Passwort eingeben</div></div>
-        <div class="dfstep"><div class="dfnum">3</div><div class="dftext">Einladungs-Code <span class="dcode">GREATHAIR2026</span> eingeben → einmalig ✓</div></div>
-        <div class="dfstep"><div class="dfnum">4</div><div class="dftext">Betriebsname + eigenen PIN wählen</div></div>
-        <div class="dfstep"><div class="dfnum">5</div><div class="dftext">Ab sofort immer nur mit seinem PIN einloggen</div></div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <!-- HEUTE SCREEN -->
@@ -1284,11 +1162,293 @@ function _dashOeffnen(){
   document.getElementById('appScreen').style.display='none';
   document.getElementById('zgGateScreen').style.display='none';
   document.getElementById('dashScreen').style.display='block';
+  zgAdminAktiv=false;
+  zgRendern();
+  showToast('🔓 Zugangsdaten entsperrt');
 }
 function hideDash(){
   document.getElementById('dashScreen').style.display='none';
   document.getElementById('appScreen').style.display='block';
 }
+
+// ════════════════════════════════════════
+// ZUGANGSDATEN — Dynamisches System
+// ════════════════════════════════════════
+const ZG_DATEN_KEY = 'ghd_zg_daten_v2';
+
+const ZG_DEFAULT = [
+  { id:'zgs1', section:'Haupt-Apps', icon:'✨', name:'Reichweite',
+    zeilen:[{id:'z1',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/moment.greathairday/'}] },
+  { id:'zgs2', section:'Haupt-Apps', icon:'🏠', name:'Startseite',
+    zeilen:[{id:'z2',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/index.greathairday/'}] },
+  { id:'zgs3', section:'Haupt-Apps', icon:'📚', name:'Lernquiz & Schnuppertag',
+    zeilen:[
+      {id:'z3',typ:'link', label:'Lerntool',          wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
+      {id:'z4',typ:'pill', label:'PW',                wert:'MW121272-1050'},
+      {id:'z5',typ:'link', label:'Meisterin',         wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/meisterin.html'},
+      {id:'z6',typ:'pill', label:'PIN',               wert:'191299'},
+      {id:'z7',typ:'link', label:'Schnupper Meisterin',wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
+      {id:'z8',typ:'link', label:'Schnupper Lehrling', wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html?modus=lehrling'},
+    ]},
+  { id:'zgs4', section:'Haupt-Apps', icon:'📁', name:'Dokumentenschrank',
+    zeilen:[{id:'z9',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'}] },
+  { id:'zgs5', section:'Haupt-Apps', icon:'✅', name:'Checkliste',
+    zeilen:[
+      {id:'z10',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
+      {id:'z11',typ:'pill',label:'PW',wert:'walenta 2026'},
+    ]},
+  { id:'zgs6', section:'Haupt-Apps', icon:'🏪', name:'Lager',
+    zeilen:[{id:'z12',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager.index.html'}] },
+  { id:'zgs7', section:'Haupt-Apps', icon:'📅', name:'Abwesenheit',
+    zeilen:[{id:'z13',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'}] },
+  { id:'zgs8', section:'Haupt-Apps', icon:'🧾', name:'Belege',
+    zeilen:[
+      {id:'z14',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/belege.greathairday'},
+      {id:'z15',typ:'pill',label:'PW',wert:'2002'},
+    ]},
+  { id:'zgs9', section:'Haupt-Apps', icon:'📖', name:'Mitarbeiterhandbuch',
+    zeilen:[{id:'z16',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'}] },
+  { id:'zgs10', section:'Haupt-Apps', icon:'👥', name:'Teambesprechung',
+    zeilen:[
+      {id:'z17',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/Team/team.html'},
+      {id:'z18',typ:'pill',label:'PW',wert:'MW121272-1050'},
+    ]},
+  { id:'zgs11', section:'Salon & Innung', icon:'✂️', name:'Salonapp',
+    zeilen:[
+      {id:'z19',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/salonapp.greathairday/salonapp.html'},
+      {id:'z20',typ:'text',label:'Zugang',wert:'Mirjam · PIN 3101'},
+    ]},
+  { id:'zgs12', section:'Salon & Innung', icon:'🏅', name:'Innungsapp',
+    zeilen:[
+      {id:'z21',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
+      {id:'z22',typ:'text',label:'Zugänge',wert:'guelten · PIN 1801 | alina · PIN 0310 | Mirjam · PIN 1212'},
+    ]},
+  { id:'zgs13', section:'Team-PINs', icon:'🔑', name:'Alle Mitarbeiter',
+    zeilen:[
+      {id:'z23',typ:'pill',label:'Mirjam',wert:'1212'},
+      {id:'z24',typ:'pill',label:'Mazen', wert:'1706'},
+      {id:'z25',typ:'pill',label:'Alina', wert:'0310'},
+      {id:'z26',typ:'pill',label:'Hassan',wert:'1007'},
+      {id:'z27',typ:'pill',label:'Ronya', wert:'0802'},
+    ]},
+  { id:'zgs14', section:'Datenbank', icon:'🗄️', name:'Supabase',
+    zeilen:[
+      {id:'z28',typ:'link',label:'Projekt 1',wert:'https://supabase.com/dashboard/project/wrxlaltgtgkdomklgrlj/sql/new'},
+      {id:'z29',typ:'link',label:'Projekt 2',wert:'https://supabase.com/dashboard/project/lpuxvvfrrcnbuzafscyk/sql/787a7789-579d-443c-9404-6702f1fa4b85'},
+      {id:'z30',typ:'link',label:'URL',wert:'https://wrxlaltgtgkdomklgrlj.supabase.co'},
+    ]},
+  { id:'zgs15', section:'Registrierung', icon:'👤', name:'Freunde-Zugang',
+    zeilen:[
+      {id:'z31',typ:'pill',label:'Einladungs-Code',wert:'GREATHAIR2026'},
+      {id:'z32',typ:'text',label:'Ablauf',wert:'1. Link öffnen → Registrieren\n2. E-Mail + Passwort\n3. Code eingeben\n4. Betrieb + PIN wählen'},
+    ]},
+];
+
+let zgAdminAktiv = false;
+
+function zgDatenLaden(){
+  try{
+    const d=JSON.parse(localStorage.getItem(ZG_DATEN_KEY));
+    if(d&&d.length) return d;
+  }catch(e){}
+  localStorage.setItem(ZG_DATEN_KEY, JSON.stringify(ZG_DEFAULT));
+  return ZG_DEFAULT;
+}
+function zgDatenSpeichern(d){ localStorage.setItem(ZG_DATEN_KEY, JSON.stringify(d)); }
+function zgUid(){ return 'z'+Math.random().toString(36).slice(2,8); }
+
+function zgRendern(){
+  const daten = zgDatenLaden();
+  const cont  = document.getElementById('zgInhalt');
+  if(!cont) return;
+  cont.innerHTML = '';
+
+  // Sektions-Gruppen ermitteln
+  const sections = [...new Set(daten.map(d=>d.section))];
+
+  sections.forEach(sec=>{
+    const gruppe = daten.filter(d=>d.section===sec);
+    // Sektions-Label
+    const lbl = document.createElement('div');
+    lbl.className = 'dash-section';
+    lbl.style.display = 'flex';
+    lbl.style.justifyContent = 'space-between';
+    lbl.style.alignItems = 'center';
+    lbl.innerHTML = `<span>${sec}</span>`;
+    cont.appendChild(lbl);
+
+    gruppe.forEach(karte=>{
+      const card = document.createElement('div');
+      card.className = 'dcard';
+      card.dataset.id = karte.id;
+
+      // Header
+      const head = document.createElement('div');
+      head.className = 'dcard-head';
+      head.innerHTML = `
+        <div class="dcard-icon">${karte.icon}</div>
+        <div class="dcard-name" style="flex:1">${karte.name}</div>
+        <button class="zg-del-card-btn" data-id="${karte.id}" onclick="zgKarteLoeschen('${karte.id}')" style="display:none;background:none;border:none;color:rgba(255,255,255,0.25);font-size:16px;cursor:pointer;padding:2px 6px;margin-right:4px" title="Bereich löschen">✕</button>
+        <button class="zg-add-zeile-btn" data-id="${karte.id}" onclick="zgModalZeileOeffnen('${karte.id}')" style="display:none;background:rgba(181,98,42,0.4);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;padding:3px 9px;cursor:pointer;font-family:inherit;margin-right:6px">+ Zeile</button>
+        <div class="dchev">›</div>`;
+      head.addEventListener('click', e=>{
+        if(e.target.closest('.zg-del-card-btn,.zg-add-zeile-btn')) return;
+        dtoggle(head);
+      });
+      card.appendChild(head);
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'dcard-body';
+
+      karte.zeilen.forEach(z=>{
+        const row = document.createElement('div');
+        row.className = 'drow';
+        row.dataset.zid = z.id;
+
+        let wertHtml = '';
+        if(z.typ==='pill'){
+          wertHtml = `<span class="dval"><span class="dpill" style="cursor:pointer;user-select:all" onclick="zgKopieren('${z.wert.replace(/'/g,"\\'")}',this)" title="Tippen zum Kopieren">${z.wert}</span></span>`;
+        } else if(z.typ==='link'){
+          const kurz = z.wert.replace('https://','').replace(/\/$/,'');
+          wertHtml = `<span class="dval"><a href="${z.wert}" target="_blank" style="color:#7eb8f7;font-size:12px">${kurz}</a></span>`;
+        } else {
+          wertHtml = `<span class="dval" style="font-size:12px;color:rgba(255,255,255,0.6);font-family:inherit;white-space:pre-line">${z.wert}</span>`;
+        }
+
+        row.innerHTML = `
+          <span class="dlabel" style="min-width:80px">${z.label}</span>
+          ${wertHtml}
+          <button class="zg-del-zeile-btn" onclick="zgZeileLoeschen('${karte.id}','${z.id}')" style="display:none;background:none;border:none;color:rgba(255,255,255,0.2);font-size:14px;cursor:pointer;padding:2px 4px;flex-shrink:0" title="Zeile löschen">✕</button>`;
+        body.appendChild(row);
+      });
+
+      card.appendChild(body);
+      cont.appendChild(card);
+    });
+  });
+
+  // Admin-Buttons sichtbar machen falls aktiv
+  if(zgAdminAktiv) zgAdminApply();
+}
+
+function zgKopieren(text, el){
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('✓ Kopiert: '+text);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✓ Kopiert');
+  });
+}
+
+// ── Admin Toggle ──
+function zgAdminToggle(){
+  zgAdminAktiv = !zgAdminAktiv;
+  const bar = document.getElementById('zgAdminBar');
+  const btn = document.getElementById('zgEditBtn');
+  if(zgAdminAktiv){
+    bar.style.display='flex';
+    btn.textContent='✓ Fertig';
+    btn.style.borderColor='rgba(181,98,42,0.4)';
+    btn.style.color='rgba(255,220,180,0.7)';
+    zgAdminApply();
+  } else {
+    bar.style.display='none';
+    btn.textContent='✏️ Zugangsdaten bearbeiten';
+    btn.style.borderColor='';
+    btn.style.color='';
+    document.querySelectorAll('.zg-del-card-btn,.zg-del-zeile-btn,.zg-add-zeile-btn').forEach(b=>b.style.display='none');
+    showToast('✓ Gespeichert');
+  }
+}
+function zgAdminApply(){
+  document.querySelectorAll('.zg-del-card-btn').forEach(b=>b.style.display='block');
+  document.querySelectorAll('.zg-del-zeile-btn').forEach(b=>b.style.display='block');
+  document.querySelectorAll('.zg-add-zeile-btn').forEach(b=>b.style.display='inline-block');
+}
+
+// ── Karte löschen ──
+function zgKarteLoeschen(id){
+  const daten=zgDatenLaden();
+  const karte=daten.find(d=>d.id===id);
+  if(!confirm('Bereich "'+( karte?karte.name:'')+'" wirklich löschen?')) return;
+  zgDatenSpeichern(daten.filter(d=>d.id!==id));
+  zgRendern();
+  showToast('✓ Bereich gelöscht');
+}
+
+// ── Zeile löschen ──
+function zgZeileLoeschen(karteId, zeileId){
+  if(!confirm('Diese Zeile wirklich löschen?')) return;
+  const daten=zgDatenLaden();
+  const karte=daten.find(d=>d.id===karteId);
+  if(karte) karte.zeilen=karte.zeilen.filter(z=>z.id!==zeileId);
+  zgDatenSpeichern(daten);
+  zgRendern();
+  showToast('✓ Zeile gelöscht');
+}
+
+// ── Modal: Neue Zeile ──
+let zgAktuelleKarteId = null;
+function zgModalZeileOeffnen(karteId){
+  zgAktuelleKarteId = karteId;
+  const daten=zgDatenLaden();
+  const sel=document.getElementById('zgZeileSektionSel');
+  sel.innerHTML=daten.map(d=>`<option value="${d.id}"${d.id===karteId?' selected':''}>${d.icon} ${d.name}</option>`).join('');
+  document.getElementById('zgZeileLabel').value='';
+  document.getElementById('zgZeileWert').value='';
+  document.getElementById('zgZeileTyp').value='pill';
+  document.getElementById('zgZeileWert').placeholder='PIN / Code eingeben…';
+  const m=document.getElementById('zgModalZeile');
+  m.style.display='flex';
+}
+function zgModalZeileSchliessen(){ document.getElementById('zgModalZeile').style.display='none'; }
+function zgZeileTypWechseln(){
+  const t=document.getElementById('zgZeileTyp').value;
+  document.getElementById('zgZeileWert').placeholder=
+    t==='pill'?'PIN / Code eingeben…':t==='link'?'https://…':'Text / Hinweis eingeben…';
+}
+function zgZeileHinzufuegen(){
+  const karteId=document.getElementById('zgZeileSektionSel').value;
+  const label=document.getElementById('zgZeileLabel').value.trim();
+  const wert=document.getElementById('zgZeileWert').value.trim();
+  const typ=document.getElementById('zgZeileTyp').value;
+  if(!label||!wert){ showToast('⚠️ Bitte alle Felder ausfüllen'); return; }
+  const daten=zgDatenLaden();
+  const karte=daten.find(d=>d.id===karteId);
+  if(karte) karte.zeilen.push({id:zgUid(),typ,label,wert});
+  zgDatenSpeichern(daten);
+  zgModalZeileSchliessen();
+  zgRendern();
+  showToast('✓ Zeile hinzugefügt');
+}
+
+// ── Modal: Neue Sektion/Karte ──
+function zgModalSektionOeffnen(){
+  document.getElementById('zgSektionIcon').value='';
+  document.getElementById('zgSektionName').value='';
+  document.getElementById('zgModalSektion').style.display='flex';
+}
+function zgModalSektionSchliessen(){ document.getElementById('zgModalSektion').style.display='none'; }
+function zgSektionHinzufuegen(){
+  const icon=document.getElementById('zgSektionIcon').value.trim()||'📌';
+  const name=document.getElementById('zgSektionName').value.trim();
+  if(!name){ showToast('⚠️ Bitte einen Namen eingeben'); return; }
+  const daten=zgDatenLaden();
+  daten.push({id:zgUid(), section:'Eigene Einträge', icon, name, zeilen:[]});
+  zgDatenSpeichern(daten);
+  zgModalSektionSchliessen();
+  zgRendern();
+  showToast('✓ Bereich "'+name+'" angelegt');
+}
+
+// Modals bei Klick außerhalb schließen
+document.addEventListener('click',e=>{
+  if(e.target.id==='zgModalZeile') zgModalZeileSchliessen();
+  if(e.target.id==='zgModalSektion') zgModalSektionSchliessen();
+});
 
 // Gate: Passwort prüfen
 function zgPwPruefen(){
@@ -1334,7 +1494,6 @@ function zgPinPruefen(){
   if(zgPinBuffer===ZG_PIN){
     sessionStorage.setItem(ZG_SESSION,'1');
     _dashOeffnen();
-    showToast('🔓 Zugangsdaten entsperrt');
   } else {
     document.getElementById('zgPinFehler').textContent='Falscher PIN — bitte nochmal versuchen.';
     zgPinBuffer=''; zgAktualisiereDots();
