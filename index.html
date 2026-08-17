@@ -142,10 +142,15 @@
   .wz-vorlage-text{color:rgba(255,255,255,0.8);font-size:13px;line-height:1.5;white-space:pre-wrap}
   .wz-vorlage-actions{display:flex;gap:6px;margin-top:8px}
   .wz-chip-aktiv{background:rgba(181,98,42,0.3)!important;border-color:rgba(181,98,42,0.6)!important;color:#fff!important}
+  /* Toast System */
+  #toastContainer{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+  .toast{background:#1B2A3B;color:#fff;padding:11px 20px;border-radius:10px;border-left:4px solid rgba(181,98,42,0.9);box-shadow:0 4px 16px rgba(0,0,0,0.35);font-size:13px;opacity:0;transform:translateY(10px);transition:opacity 0.25s ease,transform 0.25s ease;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
 
+<div id="toastContainer"></div>
 <div id="loginScreen">
   <div class="logo-dot"></div>
   <div class="logo-name">Mirjam Walenta</div>
@@ -429,6 +434,72 @@
     <button class="woerni-kopieren" id="belegeKopierenBtn" onclick="woerniBelegeKopieren()" style="margin-top:10px">Kopieren</button>
   </div>
 
+  <!-- Lernquiz Ergebnis -->
+  <div id="quizErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0">Neue Lernkarte</div>
+    <div id="quizErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="woerni-kopieren" id="quizKopierenBtn" onclick="quizKopieren()" style="flex:1">Kopieren</button>
+      <button class="woerni-btn" id="quizSpeichernBtn" onclick="quizInLernquizSpeichern()" style="flex:1;padding:8px">In Lernquiz speichern</button>
+    </div>
+  </div>
+
+  <!-- Belege Kategorien Ergebnis -->
+  <div id="belegeKatErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0">Belege nach Kategorie</div>
+    <div id="belegeKatText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('belegeKatText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Steuerberater-Mail Ergebnis -->
+  <div id="steuermailErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0">Steuerberater-Mail</div>
+    <div id="steuermailText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('steuermailText').textContent);showToast('✓ Mail kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Schrank Ergebnis -->
+  <div id="schrankErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="schrankErgebnisTitel">Dokumentenschrank</div>
+    <div id="schrankErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('schrankErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Abwesenheit Ergebnis -->
+  <div id="abwErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="abwErgebnisTitel">Abwesenheit</div>
+    <div id="abwErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('abwErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Team Ergebnis -->
+  <div id="teamErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0">Besprechungsnotiz</div>
+    <div id="teamErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('teamErgebnisText').textContent);showToast('✓ Notiz kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Lager Ergebnis -->
+  <div id="lagerErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="lagerErgebnisTitel">Lager</div>
+    <div id="lagerErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lagerErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Handbuch Ergebnis -->
+  <div id="handbuchErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="handbuchErgebnisTitel">Mitarbeiterhandbuch</div>
+    <div id="handbuchErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('handbuchErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Lerntool Ergebnis -->
+  <div id="lerntoolErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="lerntoolErgebnisTitel">Lerntool</div>
+    <div id="lerntoolErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lerntoolErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
   <div class="dash-section" style="margin-top:24px">Alle Aufgaben</div>
   <div id="woerniAufgabenListe"></div>
 </div>
@@ -533,6 +604,18 @@ const ALLE_APPS = [
     rollen:['chefin'], special:true
   }
 ];
+
+function showToast(msg, dauer=2500){
+  const cont=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  cont.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{
+    t.classList.remove('show');
+    t.addEventListener('transitionend',()=>t.remove());
+  },dauer);
+}
 
 const SUPA_URL='https://wrxlaltgtgkdomklgrlj.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
@@ -771,7 +854,13 @@ const AZ_SCHNELLAUSWAHL = {
     {id:'ruhiger_tag',         text:'🌿 Ruhiger Tag'},
   ],
   belege: [
-    {id:'belege_monatsabschluss', text:'📋 Monatsabschluss vorbereiten'},
+    {id:'belege_monatsabschluss',   text:'📋 Monatsabschluss vorbereiten'},
+    {id:'belege_kategorien',        text:'📊 Nach Kategorien zusammenfassen'},
+    {id:'belege_steuermail',        text:'📧 Steuerberater-Mail formulieren'},
+  ],
+  schrank: [
+    {id:'schrank_suche',   text:'🔍 Dokument suchen'},
+    {id:'schrank_ablage',  text:'📁 Neue Ablage-Notiz'},
   ]
 };
 
@@ -790,14 +879,15 @@ function wzSaveOrder(order){ localStorage.setItem('ghd_wz_order',JSON.stringify(
 const WZ_APP_META = {
   reichweite:      {label:'✨ Reichweite',      chips: AZ_SCHNELLAUSWAHL.reichweite||[]},
   belege:          {label:'🧾 Belege',           chips: AZ_SCHNELLAUSWAHL.belege||[]},
-  abwesenheit:     {label:'📅 Abwesenheit',      chips:[]},
-  team:            {label:'💬 Team',             chips:[]},
-  lernquiz:        {label:'✂️ Lernquiz',         chips:[]},
+  abwesenheit:     {label:'📅 Abwesenheit',      chips:[{id:'abw_urlaubsplan',text:'📆 Urlaubsplan anzeigen'},{id:'abw_mitteilung',text:'✉️ Team-Mitteilung formulieren'}]},
+  team:            {label:'💬 Team',             chips:[{id:'team_besprechung',text:'📝 Besprechungsnotiz'}]},
+  lerntool:        {label:'📖 Lerntool',         chips:[{id:'lerntool_fortschritt',text:'📊 Fortschritt Ronya'},{id:'lerntool_lernkarte',text:'🃏 Neue Lernkarte'}]},
+  lernquiz:        {label:'✂️ Lernquiz',         chips:[{id:'quiz_frage_mc',text:'📝 MC-Frage erstellen'},{id:'quiz_frage_offen',text:'❓ Offene Frage erstellen'}]},
   checklisten:     {label:'✅ Checklisten',       chips:[]},
-  lager:           {label:'📦 Lager',            chips:[]},
-  mitarbeiterhandbuch:{label:'📒 Handbuch',      chips:[]},
+  lager:           {label:'📦 Lager',            chips:[{id:'lager_bestellung',text:'🛒 Bestellliste erstellen'},{id:'lager_inventur',text:'📋 Inventur vorbereiten'}]},
+  mitarbeiterhandbuch:{label:'📒 Handbuch',      chips:[{id:'handbuch_neu',text:'📌 Neuen Eintrag erstellen'},{id:'handbuch_suche',text:'🔍 Eintrag suchen'}]},
   innung:          {label:'🏫 Innung',           chips:[]},
-  schrank:         {label:'🗄 Schrank',          chips:[]},
+  schrank:         {label:'🗄 Schrank',          chips:[{id:'schrank_suche',text:'🔍 Dokument suchen'},{id:'schrank_ablage',text:'📁 Neue Ablage-Notiz'}]},
 };
 
 let wzDragSrc = null;
@@ -1033,6 +1123,82 @@ async function azSenden(){
   sendBtn.textContent='Wird gesendet...';
   document.getElementById('belegeErgebnis').style.display='none';
 
+  // Lernquiz: Frage per Claude API generieren
+  if(azAktuelleAuswahl && (azAktuelleAuswahl.id==='quiz_frage_mc'||azAktuelleAuswahl.id==='quiz_frage_offen')){
+    sendBtn.textContent='Auftrag absenden';
+    azReset();
+    await woerniQuizFrageGenerieren(azAktuelleAuswahl.id);
+    return;
+  }
+
+  // Alle Ergebnis-Divs ausblenden
+  ['belegeKatErgebnis','steuermailErgebnis','schrankErgebnis'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+
+  // Belege nach Kategorien
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='belege_kategorien'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniBelegeKategorien(); return;
+  }
+  // Steuerberater-Mail
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='belege_steuermail'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniSteuermailGenerieren(); return;
+  }
+  // Schrank suchen
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='schrank_suche'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniSchrankSuche(); return;
+  }
+  // Schrank Ablage-Notiz
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='schrank_ablage'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniSchrankAblage(); return;
+  }
+
+  // Abwesenheit
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='abw_urlaubsplan'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniAbwUrlaubsplan(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='abw_mitteilung'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniAbwMitteilung(); return;
+  }
+  // Team
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='team_besprechung'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniTeamBesprechung(); return;
+  }
+  // Lager
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='lager_bestellung'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniLagerBestellung(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='lager_inventur'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniLagerInventur(); return;
+  }
+  // Handbuch
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='handbuch_neu'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniHandbuchNeu(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='handbuch_suche'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniHandbuchSuche(); return;
+  }
+  // Lerntool
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='lerntool_fortschritt'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniLerntoolFortschritt(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='lerntool_lernkarte'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniQuizFrageGenerieren('quiz_frage_mc'); return;
+  }
+
   // Belege-Monatsabschluss: direkt lokal erledigen
   if(azAktuelleAuswahl && azAktuelleAuswahl.id==='belege_monatsabschluss'){
     sendBtn.textContent='Auftrag absenden';
@@ -1222,7 +1388,7 @@ async function woerniAufgabenLaden(){
   clearTimeout(woerniPollTimer);
   if(laeuftNoch)woerniPollTimer=setTimeout(woerniAufgabenLaden,5000);
 }
-function woerniKopieren(btn){const text=decodeURIComponent(btn.dataset.text);navigator.clipboard.writeText(text);btn.textContent='Kopiert ✓';setTimeout(()=>btn.textContent='Kopieren',2000);}
+function woerniKopieren(btn){const text=decodeURIComponent(btn.dataset.text);navigator.clipboard.writeText(text);showToast('✓ In Zwischenablage kopiert');}
 
 // --- BELEGE MONATSABSCHLUSS ---
 function belegeMonatSelectInit(){
@@ -1238,6 +1404,473 @@ function belegeMonatSelectInit(){
   }
   sel.innerHTML=monate.map(m=>`<option value="${m.val}">${m.label}</option>`).join('');
 }
+
+// === LERNQUIZ — WÖRNI GENERIERT FRAGEN ===
+let quizAktuellesFrage = null; // gespeichertes Objekt für "In Lernquiz speichern"
+
+async function woerniQuizFrageGenerieren(typ){
+  document.getElementById('quizErgebnis').style.display='none';
+  quizAktuellesFrage=null;
+
+  // Thema abfragen
+  const thema=prompt('Zu welchem Thema soll die Frage sein?\n(z.B. Haarfarbe, Hygiene, Chemie, Kundenberatung...)');
+  if(!thema||!thema.trim()) return;
+
+  // Lehrjahr abfragen
+  const ljInput=prompt('Für welches Lehrjahr? (1, 2 oder 3)');
+  const lehrjahr=parseInt(ljInput)||1;
+
+  // Lade-Anzeige
+  const ergebnisDiv=document.getElementById('quizErgebnis');
+  const ergebnisText=document.getElementById('quizErgebnisText');
+  ergebnisText.textContent='Wörni generiert die Frage...';
+  ergebnisDiv.style.display='block';
+
+  // Prompt für Claude
+  const isMC = typ==='quiz_frage_mc';
+  const systemPrompt = 'Du bist Lernquiz-Assistent für österreichische Friseur-Lehrlinge. Erstelle professionelle Lernfragen auf Deutsch. Antworte NUR mit validem JSON, kein zusätzlicher Text.';
+  const userPrompt = isMC
+    ? 'Erstelle eine Multiple-Choice-Frage zum Thema "'+thema+'" für Lehrjahr '+lehrjahr+'. Antworte ausschließlich mit diesem JSON-Format: {"frage":"...","optionen":["A) ...","B) ...","C) ...","D) ..."],"richtig":"A","erklaerung":"...","thema":"'+thema+'"}'
+    : 'Erstelle eine offene Lernfrage zum Thema "'+thema+'" für Lehrjahr '+lehrjahr+'. Antworte ausschließlich mit diesem JSON-Format: {"frage":"...","musterloesung":"...","hinweis":"...","thema":"'+thema+'"}';
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[{role:'user',content:userPrompt}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content&&data.content[0]?data.content[0].text:'';
+    let parsed;
+    try{ parsed=JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e){ ergebnisText.textContent='Wörni konnte keine gültige Frage generieren. Bitte nochmal versuchen.'; return; }
+
+    // Ergebnis anzeigen
+    quizAktuellesFrage={typ:isMC?'mc':'offen', lehrjahr, thema:parsed.thema||thema, daten:parsed};
+    let anzeigeText = '📌 '+parsed.frage+'\n\n';
+    if(isMC){
+      (parsed.optionen||[]).forEach(o=>{ anzeigeText+=o+'\n'; });
+      anzeigeText+='\n✅ Richtig: '+parsed.richtig;
+      if(parsed.erklaerung) anzeigeText+='\n\n💡 '+parsed.erklaerung;
+    } else {
+      anzeigeText+='✅ Musterlösung:\n'+parsed.musterloesung;
+      if(parsed.hinweis) anzeigeText+='\n\n💡 Hinweis: '+parsed.hinweis;
+    }
+    ergebnisText.textContent=anzeigeText;
+    document.getElementById('quizSpeichernBtn').disabled=false;
+    document.getElementById('quizSpeichernBtn').textContent='In Lernquiz speichern';
+  }catch(e){
+    ergebnisText.textContent='Fehler: '+e.message;
+  }
+}
+
+async function quizInLernquizSpeichern(){
+  if(!quizAktuellesFrage)return;
+  const btn=document.getElementById('quizSpeichernBtn');
+  btn.disabled=true; btn.textContent='Wird gespeichert...';
+
+  const {typ,lehrjahr,thema,daten}=quizAktuellesFrage;
+  // frage_id automatisch generieren
+  const frage_id=lehrjahr+'-w-'+Date.now();
+  // inhalt als JSON-String
+  let inhalt;
+  if(typ==='mc'){
+    inhalt=JSON.stringify({optionen:daten.optionen,richtig:daten.richtig,erklaerung:daten.erklaerung||''});
+  } else {
+    inhalt=JSON.stringify({musterloesung:daten.musterloesung,hinweis:daten.hinweis||''});
+  }
+
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/fragen',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({lehrjahr,frage_id,typ,frage:daten.frage,inhalt,thema})
+    });
+    if(res.ok){
+      btn.textContent='✅ Gespeichert!';
+      btn.style.background='rgba(80,180,80,0.3)';
+      setTimeout(()=>{ btn.textContent='In Lernquiz speichern'; btn.style.background=''; btn.disabled=false; },3000);
+    } else {
+      const err=await res.text();
+      btn.textContent='Fehler beim Speichern';
+      btn.disabled=false;
+      alert('Supabase Fehler: '+err);
+    }
+  }catch(e){
+    btn.textContent='Fehler';
+    btn.disabled=false;
+    alert('Fehler: '+e.message);
+  }
+}
+
+function quizKopieren(){
+  const text=document.getElementById('quizErgebnisText').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('✓ Lernfrage kopiert');
+}
+
+// === ABWESENHEIT ===
+async function woerniAbwUrlaubsplan(){
+  const div=document.getElementById('abwErgebnis');
+  const txt=document.getElementById('abwErgebnisText');
+  document.getElementById('abwErgebnisTitel').textContent='Urlaubsplan aktueller Monat';
+  txt.textContent='Wörni lädt Urlaubsplan...'; div.style.display='block';
+  try{
+    const heute=new Date();
+    const von=heute.getFullYear()+'-'+String(heute.getMonth()+1).padStart(2,'0')+'-01';
+    const bis=heute.getFullYear()+'-'+String(heute.getMonth()+1).padStart(2,'0')+'-'+new Date(heute.getFullYear(),heute.getMonth()+1,0).getDate();
+    const rows=await fetch(SUPA_URL+'/rest/v1/abwesenheit?select=*&or=(von.gte.'+von+',bis.gte.'+von+')&bis.lte.'+bis+'&order=von.asc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+    const monatsname=heute.toLocaleString('de-AT',{month:'long',year:'numeric'});
+    if(!rows||!rows.length){
+      txt.textContent='Urlaubsplan '+monatsname+'\n\nKeine Abwesenheiten eingetragen.';
+      return;
+    }
+    const zeilen=rows.map(function(r){
+      const name=r.mitarbeiter_name||r.name||r.kennung||'–';
+      const art=r.typ||r.art||'Abwesenheit';
+      const von2=r.von?new Date(r.von).toLocaleDateString('de-AT'):'?';
+      const bis2=r.bis?new Date(r.bis).toLocaleDateString('de-AT'):'?';
+      const status=r.status==='bestaetigt'?'✅':r.status==='offen'?'⏳':'❌';
+      return status+' '+name+' — '+art+' ('+von2+(von2!==bis2?' bis '+bis2:'')+')';
+    });
+    txt.textContent='Urlaubsplan '+monatsname+'\n'+'─'.repeat(28)+'\n'+zeilen.join('\n');
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+async function woerniAbwMitteilung(){
+  const name=prompt('Für wen die Mitteilung?\n(z.B. Alina, Hassan, Mazen, Ronya)');
+  if(!name||!name.trim())return;
+  const art=prompt('Art der Abwesenheit?\n1. Urlaub\n2. Krankenstand\n3. Wunschfrei\n\nNummer eingeben:');
+  const artText=['Urlaub','Krankenstand','Wunschfrei'][parseInt(art)-1]||'Abwesenheit';
+  const zeitraum=prompt('Zeitraum? (z.B. Mo 18.8. bis Mi 20.8.)');
+  if(!zeitraum)return;
+
+  const div=document.getElementById('abwErgebnis');
+  const txt=document.getElementById('abwErgebnisText');
+  document.getElementById('abwErgebnisTitel').textContent='Team-Mitteilung: '+artText;
+  txt.textContent='Wörni formuliert...'; div.style.display='block';
+
+  try{
+    const prompt2='Formuliere eine kurze, freundliche Team-Mitteilung auf Deutsch für einen Friseursalon. '+name+' hat '+artText+' vom/am '+zeitraum+'. Das Team soll informiert werden. Maximal 3 Sätze, direkt und klar. Beginne mit "Liebes Team,"';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:prompt2}]})});
+    const data=await res.json();
+    txt.textContent=data.content&&data.content[0]?data.content[0].text:'Fehler beim Generieren.';
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === TEAM ===
+async function woerniTeamBesprechung(){
+  const themen=prompt('Was waren die Themen der Besprechung?\n(Stichworte, getrennt durch Komma)');
+  if(!themen||!themen.trim())return;
+  const beschluesse=prompt('Was wurde beschlossen oder vereinbart?\n(optional)');
+
+  const div=document.getElementById('teamErgebnis');
+  const txt=document.getElementById('teamErgebnisText');
+  txt.textContent='Wörni schreibt Notiz...'; div.style.display='block';
+
+  try{
+    const p='Erstelle eine kurze, strukturierte Besprechungsnotiz auf Deutsch für einen Friseursalon. Datum: '+new Date().toLocaleDateString('de-AT')+'. Themen: '+themen+(beschluesse?'. Beschlüsse: '+beschluesse:'')+'. Format: Datum, Themen als Liste, Beschlüsse als Liste, Nächste Schritte. Klar und knapp.';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:p}]})});
+    const data=await res.json();
+    txt.textContent=data.content&&data.content[0]?data.content[0].text:'Fehler beim Generieren.';
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === LAGER ===
+async function woerniLagerBestellung(){
+  const produkte=prompt('Welche Produkte müssen bestellt werden?\n(Stichworte, getrennt durch Komma)');
+  if(!produkte||!produkte.trim())return;
+  const lieferant=prompt('Lieferant? (optional)');
+
+  const div=document.getElementById('lagerErgebnis');
+  const txt=document.getElementById('lagerErgebnisText');
+  document.getElementById('lagerErgebnisTitel').textContent='Bestellliste';
+  txt.textContent='Wörni erstellt Liste...'; div.style.display='block';
+
+  const heute=new Date().toLocaleDateString('de-AT');
+  const zeilen=['Bestellliste — '+heute,'─'.repeat(24)];
+  if(lieferant) zeilen.push('Lieferant: '+lieferant,'');
+  produkte.split(',').forEach(function(p,i){
+    zeilen.push((i+1)+'. '+p.trim());
+  });
+  zeilen.push('','Bestellt von: Mirjam Walenta');
+  txt.textContent=zeilen.join('\n');
+}
+
+async function woerniLagerInventur(){
+  const div=document.getElementById('lagerErgebnis');
+  const txt=document.getElementById('lagerErgebnisText');
+  document.getElementById('lagerErgebnisTitel').textContent='Inventur-Checkliste';
+  txt.textContent='Wörni erstellt Checkliste...'; div.style.display='block';
+
+  const heute=new Date().toLocaleDateString('de-AT');
+  txt.textContent=[
+    'Inventur — '+heute,
+    '─'.repeat(24),
+    '',
+    'FARBEN & CHEMIE',
+    '☐ Haarfarben (alle Nuancen)',
+    '☐ Blondierung',
+    '☐ Oxidationsmittel (3%, 6%, 9%, 12%)',
+    '☐ Tönungen',
+    '☐ Dauerwellmittel',
+    '',
+    'PFLEGE & STYLING',
+    '☐ Shampoos (Damen/Herren)',
+    '☐ Conditioner / Masken',
+    '☐ Styling-Produkte',
+    '☐ Hitzeschutz',
+    '',
+    'VERBRAUCHSMATERIAL',
+    '☐ Handschuhe',
+    '☐ Umhänge / Capes',
+    '☐ Alufolie / Strähnenfolie',
+    '☐ Wattebändchen',
+    '☐ Einwegmaterial',
+    '',
+    'GERÄTE & WERKZEUG',
+    '☐ Scheren (Zustand prüfen)',
+    '☐ Föhn / Glätteisen / Lockenwickler',
+    '☐ Bürsten & Kämme',
+    '',
+    'Prüfer: Mirjam Walenta'
+  ].join('\n');
+}
+
+// === MITARBEITERHANDBUCH ===
+async function woerniHandbuchNeu(){
+  const kategorie=prompt('Welche Kategorie?\n1. Arbeitszeit & Ablauf\n2. Kundenbetreuung\n3. Hygiene & Sauberkeit\n4. Produkte & Technik\n5. Verhalten & Werte\n6. Sonstiges\n\nNummer eingeben:');
+  const katTexte=['Arbeitszeit & Ablauf','Kundenbetreuung','Hygiene & Sauberkeit','Produkte & Technik','Verhalten & Werte','Sonstiges'];
+  const katText=katTexte[parseInt(kategorie)-1]||'Sonstiges';
+  const inhalt=prompt('Was soll der neue Eintrag beinhalten?\n(Stichworte oder kurze Beschreibung)');
+  if(!inhalt||!inhalt.trim())return;
+
+  const div=document.getElementById('handbuchErgebnis');
+  const txt=document.getElementById('handbuchErgebnisText');
+  document.getElementById('handbuchErgebnisTitel').textContent='Neuer Handbuch-Eintrag';
+  txt.textContent='Wörni formuliert Eintrag...'; div.style.display='block';
+
+  try{
+    const p='Formuliere einen klaren, professionellen Handbuch-Eintrag auf Deutsch für einen Friseursalon in Wien. Kategorie: '+katText+'. Inhalt: '+inhalt+'. Format: Überschrift, dann 3-5 klare Regeln oder Punkte. Ton: freundlich aber verbindlich. Beginne direkt mit der Überschrift, kein Intro.';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:p}]})});
+    const data=await res.json();
+    txt.textContent=data.content&&data.content[0]?data.content[0].text:'Fehler beim Generieren.';
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+async function woerniHandbuchSuche(){
+  const stichwort=prompt('Nach welchem Thema im Handbuch suchen?\n(z.B. Kundenberatung, Hygiene, Pause...)');
+  if(!stichwort||!stichwort.trim())return;
+
+  const div=document.getElementById('handbuchErgebnis');
+  const txt=document.getElementById('handbuchErgebnisText');
+  document.getElementById('handbuchErgebnisTitel').textContent='Handbuch: '+stichwort;
+  txt.textContent='Wörni sucht...'; div.style.display='block';
+
+  try{
+    const q=encodeURIComponent(stichwort.toLowerCase());
+    const rows=await fetch(SUPA_URL+'/rest/v1/mitarbeiterhandbuch?select=*&or=(titel.ilike.%25'+q+'%25,inhalt.ilike.%25'+q+'%25,kategorie.ilike.%25'+q+'%25)&order=erstellt_am.desc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+    if(!rows||!rows.length){
+      txt.textContent='Kein Eintrag zu "'+stichwort+'" gefunden.';
+      return;
+    }
+    txt.textContent=rows.map(function(r,i){
+      return (i+1)+'. '+( r.titel||r.kategorie||'–')+'\n'+( r.inhalt||'').slice(0,200)+(r.inhalt&&r.inhalt.length>200?'...':'');
+    }).join('\n\n');
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === LERNTOOL ===
+async function woerniLerntoolFortschritt(){
+  const div=document.getElementById('lerntoolErgebnis');
+  const txt=document.getElementById('lerntoolErgebnisText');
+  document.getElementById('lerntoolErgebnisTitel').textContent='Lernfortschritt Ronya';
+  txt.textContent='Wörni lädt Fortschritt...'; div.style.display='block';
+
+  try{
+    // Quiz-Ergebnisse aus Supabase laden
+    const rows=await fetch(SUPA_URL+'/rest/v1/quiz_ergebnisse?select=*&order=erstellt_am.desc&limit=20',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+    if(!rows||!rows.length){
+      txt.textContent='Noch keine Quiz-Ergebnisse von Ronya gefunden.\n\nHinweis: Ergebnisse werden gespeichert sobald Ronya das Lernquiz verwendet.';
+      return;
+    }
+    const richtig=rows.filter(function(r){return r.korrekt||r.richtig;}).length;
+    const gesamt=rows.length;
+    const quote=Math.round(richtig/gesamt*100);
+    const letztes=rows[0];
+    const letztDatum=letztes.erstellt_am?new Date(letztes.erstellt_am).toLocaleDateString('de-AT'):'–';
+    txt.textContent=[
+      'Lernfortschritt Ronya',
+      '─'.repeat(24),
+      '',
+      'Letzte Aktivität: '+letztDatum,
+      'Letzte '+gesamt+' Fragen:',
+      '  Richtig: '+richtig+' / '+gesamt+' ('+quote+'%)',
+      '',
+      quote>=80?'✅ Sehr gut — weiter so!':quote>=60?'👍 Gut — noch etwas üben':'💪 Mehr üben empfohlen',
+    ].join('\n');
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === BELEGE KATEGORIEN ===
+async function woerniBelegeKategorien(){
+  const sel=document.createElement('select');
+  const heute=new Date();
+  const optionen=[];
+  for(let i=0;i<12;i++){
+    const d=new Date(heute.getFullYear(),heute.getMonth()-i,1);
+    const label=d.toLocaleString('de-AT',{month:'long',year:'numeric'});
+    const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    optionen.push({label,val});
+  }
+  const monat=prompt('Welcher Monat?\n'+optionen.map((o,i)=>(i+1)+'. '+o.label).join('\n')+'\n\nNummer eingeben:');
+  const idx=parseInt(monat)-1;
+  const gewaehlt=optionen[idx]||optionen[0];
+  const [jahr,mon]=gewaehlt.val.split('-');
+  const von=gewaehlt.val+'-01';
+  const bis=gewaehlt.val+'-'+new Date(+jahr,+mon,0).getDate();
+
+  const div=document.getElementById('belegeKatErgebnis');
+  const txt=document.getElementById('belegeKatText');
+  txt.textContent='Wörni lädt Belege...'; div.style.display='block';
+
+  try{
+    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis+'&order=kategorie.asc',{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY}}).then(r=>r.json());
+    if(!rows||!rows.length){txt.textContent='Keine Belege gefunden.';return;}
+    const kat={};
+    rows.forEach(b=>{
+      const k=b.kategorie||'Sonstiges';
+      if(!kat[k])kat[k]={anzahl:0,netto:0};
+      kat[k].anzahl++;
+      kat[k].netto+=parseFloat(b.netto||b.betrag||0);
+    });
+    const monatsname=new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'});
+    let out='Belege nach Kategorie — '+monatsname+'\n'+'─'.repeat(32)+'\n';
+    Object.entries(kat).sort((a,b)=>b[1].netto-a[1].netto).forEach(([k,v])=>{
+      out+=k+': '+v.anzahl+' Beleg'+(v.anzahl>1?'e':'')+' / € '+v.netto.toFixed(2)+'\n';
+    });
+    out+='─'.repeat(32)+'\nGesamt: '+rows.length+' Belege';
+    txt.textContent=out;
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === STEUERBERATER-MAIL ===
+async function woerniSteuermailGenerieren(){
+  const heute=new Date();
+  const optionen=[];
+  for(let i=0;i<6;i++){
+    const d=new Date(heute.getFullYear(),heute.getMonth()-i,1);
+    const label=d.toLocaleString('de-AT',{month:'long',year:'numeric'});
+    const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    optionen.push({label,val});
+  }
+  const monat=prompt('Für welchen Monat?\n'+optionen.map((o,i)=>(i+1)+'. '+o.label).join('\n')+'\n\nNummer eingeben:');
+  const idx=parseInt(monat)-1;
+  const gewaehlt=optionen[isNaN(idx)||idx<0?0:idx]||optionen[0];
+  const parts=gewaehlt.val.split('-');
+  const jahr=parts[0]; const mon=parts[1];
+  const von=gewaehlt.val+'-01';
+  const bis=gewaehlt.val+'-'+new Date(+jahr,+mon,0).getDate();
+
+  const div=document.getElementById('steuermailErgebnis');
+  const txt=document.getElementById('steuermailText');
+  txt.textContent='Wörni formuliert die Mail...'; div.style.display='block';
+
+  try{
+    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis,{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY}}).then(r=>r.json());
+    const monatsname=new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'});
+    if(!rows||!rows.length){
+      txt.textContent='Betreff: Belege '+monatsname+' – Mirjam Walenta\n\nGuten Tag,\n\nfür '+monatsname+' liegen leider noch keine Belege vor.\n\nMit freundlichen Grüßen,\nMirjam Walenta\nA Great Hair Day\nRechte Wienzeile 47, 1050 Wien';
+      return;
+    }
+    let netto=0,mwst=0;
+    const kat={};
+    rows.forEach(function(b){
+      netto+=parseFloat(b.netto||b.betrag||0);
+      mwst+=parseFloat(b.mwst||b.vorsteuer||0);
+      const k=b.kategorie||'Sonstiges';
+      kat[k]=(kat[k]||0)+1;
+    });
+    const katZeilen=Object.entries(kat).map(function(e){return '  • '+e[0]+': '+e[1]+' Beleg'+(e[1]>1?'e':'');}).join('\n');
+    const mail=[
+      'Betreff: Belege '+monatsname+' – Mirjam Walenta, A Great Hair Day',
+      '',
+      'Guten Tag,',
+      '',
+      'anbei übermittle ich Ihnen die Belege für '+monatsname+'.',
+      '',
+      'Zusammenfassung:',
+      '  Anzahl Belege: '+rows.length,
+      '  Netto gesamt:  € '+netto.toFixed(2),
+      '  Vorsteuer:     € '+mwst.toFixed(2),
+      '  Brutto gesamt: € '+(netto+mwst).toFixed(2),
+      '',
+      'Kategorien:',
+      katZeilen,
+      '',
+      'Bei Rückfragen stehe ich gerne zur Verfügung.',
+      '',
+      'Mit freundlichen Grüßen,',
+      'Mirjam Walenta',
+      'A Great Hair Day',
+      'Rechte Wienzeile 47, 1050 Wien',
+      'Tel: 01 586 31 30',
+      'walenta@greathairday.at'
+    ].join('\n');
+    txt.textContent=mail;
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+// === DOKUMENTENSCHRANK ===
+async function woerniSchrankSuche(){
+  const stichwort=prompt('Nach welchem Dokument suchen?\n(z.B. Mietvertrag, Gewerbeschein, Versicherung...)');
+  if(!stichwort||!stichwort.trim())return;
+  const div=document.getElementById('schrankErgebnis');
+  const txt=document.getElementById('schrankErgebnisText');
+  document.getElementById('schrankErgebnisTitel').textContent='Suchergebnis: '+stichwort;
+  txt.textContent='Wörni sucht...'; div.style.display='block';
+  try{
+    const q=encodeURIComponent(stichwort.toLowerCase());
+    const rows=await fetch(SUPA_URL+'/rest/v1/schrank_dokumente?select=*&or=(name.ilike.%25'+q+'%25,beschreibung.ilike.%25'+q+'%25,kategorie.ilike.%25'+q+'%25)&order=erstellt_am.desc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+    if(!rows||!rows.length){
+      txt.textContent='Keine Dokumente zu "'+stichwort+'" gefunden.\n\nTipp: Prüfe ob das Dokument im Schrank abgelegt ist.';
+      return;
+    }
+    txt.textContent=rows.map(function(d,i){
+      return (i+1)+'. '+d.name+'\n   Kategorie: '+(d.kategorie||'–')+'\n   '+(d.beschreibung||'')+'\n   Abgelegt: '+(d.erstellt_am?new Date(d.erstellt_am).toLocaleDateString('de-AT'):'–');
+    }).join('\n\n');
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+async function woerniSchrankAblage(){
+  const name=prompt('Name des Dokuments:');
+  if(!name||!name.trim())return;
+  const kategorie=prompt('Kategorie:\n(z.B. Verträge, Behörden, Versicherung, Finanzen, Personal, Sonstiges)');
+  const beschreibung=prompt('Kurze Beschreibung (optional):');
+  const div=document.getElementById('schrankErgebnis');
+  const txt=document.getElementById('schrankErgebnisText');
+  document.getElementById('schrankErgebnisTitel').textContent='Neue Ablage-Notiz';
+  txt.textContent='Wird gespeichert...'; div.style.display='block';
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/schrank_dokumente',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({name:name.trim(),kategorie:kategorie||'Sonstiges',beschreibung:beschreibung||''})
+    });
+    if(res.ok){
+      txt.textContent='✅ Gespeichert!\n\nDokument: '+name+'\nKategorie: '+(kategorie||'Sonstiges')+'\nBeschreibung: '+(beschreibung||'–')+'\nAbgelegt am: '+new Date().toLocaleDateString('de-AT');
+      showToast('✓ Dokument im Schrank abgelegt');
+    } else {
+      txt.textContent='Fehler beim Speichern. Bitte nochmal versuchen.';
+    }
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
 
 async function woerniBelegeMonatsabschluss(){
   const sel=document.getElementById('belegeMonatSelect');
@@ -1314,9 +1947,7 @@ Tel: 01 586 31 30`;
 function woerniBelegeKopieren(){
   const text=document.getElementById('belegeErgebnisText').textContent;
   navigator.clipboard.writeText(text);
-  const btn=document.getElementById('belegeKopierenBtn');
-  btn.textContent='Kopiert ✓';
-  setTimeout(()=>btn.textContent='Kopieren',2000);
+  showToast('✓ Steuerberater-Text kopiert');
 }
 
 // === ABWESENHEIT BADGE ===
