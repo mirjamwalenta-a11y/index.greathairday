@@ -386,6 +386,52 @@
 
 </div>
 
+<!-- HEUTE SCREEN -->
+<div id="heuteScreen" style="display:none;width:100%;max-width:420px">
+  <div class="dash-header">
+    <button class="dash-back" onclick="hideHeute()">← Zurück</button>
+    <div class="dash-title">🏠 Heute</div>
+    <div style="width:52px"></div>
+  </div>
+
+  <!-- Begrüssung -->
+  <div style="margin-bottom:20px">
+    <div id="heuteGruss" style="color:#fff;font-size:20px;font-weight:700;margin-bottom:2px"></div>
+    <div id="heuteDatum" style="color:rgba(255,255,255,0.4);font-size:12px;letter-spacing:0.05em"></div>
+  </div>
+
+  <!-- Laden-Indikator -->
+  <div id="heuteLaden" style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.4);font-size:13px">
+    <div style="font-size:24px;margin-bottom:8px">⏳</div>
+    Wird geladen…
+  </div>
+
+  <!-- Aufgaben-Liste -->
+  <div id="heuteAufgaben" style="display:none">
+    <div class="dash-section">Was heute wichtig ist</div>
+    <div id="heuteAufgabenListe" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px"></div>
+
+    <!-- Wörni-Block -->
+    <div style="background:rgba(181,98,42,0.12);border:1px solid rgba(181,98,42,0.3);border-radius:14px;padding:16px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:22px">🤖</span>
+        <div>
+          <div style="color:#fff;font-size:14px;font-weight:700">Wörni</div>
+          <div id="heuteWoerniSatz" style="color:rgba(255,255,255,0.55);font-size:12px;margin-top:1px"></div>
+        </div>
+      </div>
+      <button onclick="hideHeute();showWoerni();" style="width:100%;padding:11px;background:rgba(181,98,42,0.7);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Zu Wörni →</button>
+    </div>
+
+    <!-- Leer-Zustand -->
+    <div id="heuteLeer" style="display:none;text-align:center;padding:32px 20px;color:rgba(255,255,255,0.4)">
+      <div style="font-size:36px;margin-bottom:12px">✨</div>
+      <div style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:6px">Alles erledigt</div>
+      <div style="font-size:12px;line-height:1.6">Heute liegt nichts Offenes an.</div>
+    </div>
+  </div>
+</div>
+
 <!-- WÖRNI SCREEN -->
 <div id="woerniScreen" style="display:none;width:100%;max-width:420px">
   <div class="dash-header">
@@ -558,6 +604,11 @@ const B = 'https://mirjamwalenta-a11y.github.io';
 // Korrekte URLs aus den Repository-Namen
 const ALLE_APPS = [
   {
+    icon:'🏠', name:'Heute', desc:'Dein Morgen-Brief',
+    internal:true, action:'showHeute',
+    rollen:['chefin'], special:true
+  },
+  {
     icon:'✨', name:'Reichweite', desc:'Posts, Storys & Hooks',
     url:`${B}/moment.greathairday/`,
     rollen:['chefin']
@@ -618,6 +669,104 @@ const ALLE_APPS = [
     rollen:['chefin'], special:true
   }
 ];
+
+// ── Heute-Screen ─────────────────────────────────────────────────────────────
+function showHeute(){
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('heuteScreen').style.display='block';
+  heuteBegruessung();
+  heuteLaden();
+}
+function hideHeute(){
+  document.getElementById('heuteScreen').style.display='none';
+  showApp();
+}
+function heuteBegruessung(){
+  const stunde=new Date().getHours();
+  let gruss='Guten Morgen';
+  if(stunde>=12&&stunde<18)gruss='Guten Nachmittag';
+  else if(stunde>=18)gruss='Guten Abend';
+  document.getElementById('heuteGruss').textContent=gruss+', Mirjam 👋';
+  const tage=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const monate=['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const d=new Date();
+  document.getElementById('heuteDatum').textContent=tage[d.getDay()]+', '+d.getDate()+'. '+monate[d.getMonth()]+' '+d.getFullYear();
+}
+async function heuteLaden(){
+  document.getElementById('heuteLaden').style.display='block';
+  document.getElementById('heuteAufgaben').style.display='none';
+  const aufgaben=[];
+  // Belege os_aufgaben laden
+  try{
+    const r=await fetch(BELEGE_URL+'/rest/v1/os_aufgaben?status=eq.offen&order=prioritaet.asc,erstellt_am.desc&select=*',{
+      headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY,'Accept':'application/json'}
+    });
+    const d=await r.json();
+    if(Array.isArray(d))d.forEach(a=>aufgaben.push({...a,_quelle:'os'}));
+  }catch(e){console.warn('OS-Aufgaben Fehler:',e);}
+  // Wörni-Aufgaben laden (offen/in_arbeit)
+  try{
+    const r=await fetch(SUPA_URL+'/rest/v1/woerni_aufgaben?status=in.(offen,in_arbeit)&order=erstellt_am.desc&limit=5&select=id,typ,status,erstellt_am',{
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}
+    });
+    const d=await r.json();
+    if(Array.isArray(d)&&d.length>0){
+      aufgaben.push({
+        _quelle:'woerni',
+        bereich:'woerni',
+        titel:d.length===1?'1 Wörni-Auftrag läuft noch':d.length+' Wörni-Aufträge laufen noch',
+        prioritaet:'orange',
+        app_link:null
+      });
+    }
+  }catch(e){console.warn('Wörni-Aufgaben Fehler:',e);}
+  // Lernquiz-Fortschritt laden
+  try{
+    const r=await fetch(SUPA_URL+'/rest/v1/lernquiz_sessions?order=erstellt_am.desc&limit=1&select=score,total',{
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}
+    });
+    const d=await r.json();
+    if(Array.isArray(d)&&d.length>0){
+      const s=d[0];
+      const pct=s.total>0?Math.round((s.score/s.total)*100):null;
+      if(pct!==null&&pct<80){
+        aufgaben.push({
+          _quelle:'lernquiz',
+          bereich:'ausbildung',
+          titel:'Ronya: Lernquiz '+pct+' %',
+          prioritaet:'grau',
+          app_link:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/meisterin.html'
+        });
+      }
+    }
+  }catch(e){console.warn('Lernquiz Fehler:',e);}
+  document.getElementById('heuteLaden').style.display='none';
+  document.getElementById('heuteAufgaben').style.display='block';
+  const liste=document.getElementById('heuteAufgabenListe');
+  const leer=document.getElementById('heuteLeer');
+  const wSatz=document.getElementById('heuteWoerniSatz');
+  if(aufgaben.length===0){
+    liste.innerHTML='';
+    leer.style.display='block';
+    wSatz.textContent='Heute nichts Offenes — alles erledigt.';
+    return;
+  }
+  leer.style.display='none';
+  wSatz.textContent=aufgaben.length===1?'Ich habe 1 Ding gefunden, das heute wichtig ist.':'Ich habe '+aufgaben.length+' Dinge gefunden, die heute wichtig sind.';
+  const prioPunkt={'rot':'🔴','orange':'🟠','grau':'⚪'};
+  liste.innerHTML=aufgaben.map(a=>{
+    const pkt=prioPunkt[a.prioritaet]||'⚪';
+    const link=a.app_link?`onclick="window.open('${a.app_link}','_blank')"`:
+      a._quelle==='woerni'?`onclick="hideHeute();showWoerni();"`:'' ;
+    return `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent" ${link}>
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <span style="font-size:16px;flex-shrink:0">${pkt}</span>
+        <span style="color:#fff;font-size:13px;font-weight:600;line-height:1.4">${a.titel}</span>
+      </div>
+      <span style="color:rgba(255,255,255,0.3);font-size:16px;flex-shrink:0">›</span>
+    </div>`;
+  }).join('');
+}
 
 function showToast(msg, dauer=2500){
   const cont=document.getElementById('toastContainer');
