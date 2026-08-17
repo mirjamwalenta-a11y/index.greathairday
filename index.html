@@ -500,6 +500,20 @@
     <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('lerntoolErgebnisText').textContent);showToast('✓ Kopiert')" style="margin-top:10px">Kopieren</button>
   </div>
 
+  <!-- Checklisten Ergebnis -->
+  <div id="checkErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="checkErgebnisTitel">Checkliste</div>
+    <div id="checkErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('checkErgebnisText').textContent);showToast('✓ Checkliste kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
+  <!-- Innung Ergebnis -->
+  <div id="innungErgebnis" style="display:none;margin-top:16px" class="dcard">
+    <div class="dash-section" style="margin-top:0;padding-top:0" id="innungErgebnisTitel">Innung</div>
+    <div id="innungErgebnisText" class="woerni-ergebnis" style="white-space:pre-wrap"></div>
+    <button class="woerni-kopieren" onclick="navigator.clipboard.writeText(document.getElementById('innungErgebnisText').textContent);showToast('✓ Text kopiert')" style="margin-top:10px">Kopieren</button>
+  </div>
+
   <div class="dash-section" style="margin-top:24px">Alle Aufgaben</div>
   <div id="woerniAufgabenListe"></div>
 </div>
@@ -883,10 +897,10 @@ const WZ_APP_META = {
   team:            {label:'💬 Team',             chips:[{id:'team_besprechung',text:'📝 Besprechungsnotiz'}]},
   lerntool:        {label:'📖 Lerntool',         chips:[{id:'lerntool_fortschritt',text:'📊 Fortschritt Ronya'},{id:'lerntool_lernkarte',text:'🃏 Neue Lernkarte'}]},
   lernquiz:        {label:'✂️ Lernquiz',         chips:[{id:'quiz_frage_mc',text:'📝 MC-Frage erstellen'},{id:'quiz_frage_offen',text:'❓ Offene Frage erstellen'}]},
-  checklisten:     {label:'✅ Checklisten',       chips:[]},
+  checklisten:     {label:'✅ Checklisten',       chips:[{id:'check_tagesstart',text:'🌅 Tagesstart-Checkliste'},{id:'check_wochenende',text:'🌙 Wochenend-Abschluss'}]},
   lager:           {label:'📦 Lager',            chips:[{id:'lager_bestellung',text:'🛒 Bestellliste erstellen'},{id:'lager_inventur',text:'📋 Inventur vorbereiten'}]},
   mitarbeiterhandbuch:{label:'📒 Handbuch',      chips:[{id:'handbuch_neu',text:'📌 Neuen Eintrag erstellen'},{id:'handbuch_suche',text:'🔍 Eintrag suchen'}]},
-  innung:          {label:'🏫 Innung',           chips:[]},
+  innung:          {label:'🏫 Innung',           chips:[{id:'innung_einladung',text:'📨 Seminar-Einladung'},{id:'innung_bestaetigung',text:'✅ Trainer-Bestätigung'}]},
   schrank:         {label:'🗄 Schrank',          chips:[{id:'schrank_suche',text:'🔍 Dokument suchen'},{id:'schrank_ablage',text:'📁 Neue Ablage-Notiz'}]},
 };
 
@@ -1155,6 +1169,25 @@ async function azSenden(){
   if(azAktuelleAuswahl && azAktuelleAuswahl.id==='schrank_ablage'){
     sendBtn.textContent='Auftrag absenden'; azReset();
     await woerniSchrankAblage(); return;
+  }
+
+  // Checklisten
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='check_tagesstart'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniCheckTagesstart(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='check_wochenende'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniCheckWochenende(); return;
+  }
+  // Innung
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='innung_einladung'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniInnungEinladung(); return;
+  }
+  if(azAktuelleAuswahl && azAktuelleAuswahl.id==='innung_bestaetigung'){
+    sendBtn.textContent='Auftrag absenden'; azReset();
+    await woerniInnungBestaetigung(); return;
   }
 
   // Abwesenheit
@@ -1512,6 +1545,117 @@ function quizKopieren(){
   const text=document.getElementById('quizErgebnisText').textContent;
   navigator.clipboard.writeText(text);
   showToast('✓ Lernfrage kopiert');
+}
+
+// === CHECKLISTEN ===
+async function woerniCheckTagesstart(){
+  const div=document.getElementById('checkErgebnis');
+  const txt=document.getElementById('checkErgebnisText');
+  document.getElementById('checkErgebnisTitel').textContent='Tagesstart-Checkliste';
+  div.style.display='block';
+  const tag=new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});
+  txt.textContent=[
+    'Tagesstart — '+tag,
+    '─'.repeat(28),
+    '',
+    'SALON ÖFFNEN',
+    '☐ Eingangstür aufschließen',
+    '☐ Licht & Musik einschalten',
+    '☐ Temperatur prüfen',
+    '',
+    'ARBEITSPLÄTZE',
+    '☐ Spiegel & Stühle reinigen',
+    '☐ Werkzeug bereitlegen (Scheren, Kämme, Bürsten)',
+    '☐ Handtücher frisch bereitlegen',
+    '☐ Produkte auffüllen',
+    '',
+    'KASSE & TERMINE',
+    '☐ Kasse öffnen & Wechselgeld prüfen',
+    '☐ Terminplan für heute ansehen',
+    '☐ Team kurz informieren (besondere Kunden, Hinweise)',
+    '',
+    'HYGIENE',
+    '☐ Desinfektionsmittel aufgefüllt',
+    '☐ Waschbecken sauber',
+    '☐ Müll geleert',
+  ].join('\n');
+  showToast('✓ Tagesstart-Checkliste bereit');
+}
+
+async function woerniCheckWochenende(){
+  const div=document.getElementById('checkErgebnis');
+  const txt=document.getElementById('checkErgebnisText');
+  document.getElementById('checkErgebnisTitel').textContent='Wochenend-Abschluss';
+  div.style.display='block';
+  const tag=new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});
+  txt.textContent=[
+    'Wochenend-Abschluss — '+tag,
+    '─'.repeat(28),
+    '',
+    'ARBEITSPLÄTZE',
+    '☐ Alle Spiegel gereinigt',
+    '☐ Stühle & Böden sauber',
+    '☐ Werkzeug desinfiziert & weggeräumt',
+    '☐ Handtücher in die Wäsche',
+    '',
+    'PRODUKTE & LAGER',
+    '☐ Produkte aufgefüllt & aufgeräumt',
+    '☐ Fehlende Artikel notiert für Bestellung',
+    '☐ Ablaufdaten kurz geprüft',
+    '',
+    'KASSE & ABRECHNUNG',
+    '☐ Kasse abgeschlossen & abgerechnet',
+    '☐ Tageseinnahmen notiert',
+    '☐ Belege gesammelt',
+    '',
+    'SICHERHEIT',
+    '☐ Alle Geräte ausgeschaltet',
+    '☐ Fenster geschlossen',
+    '☐ Alarm aktiviert',
+    '☐ Türe abgesperrt',
+    '',
+    'Unterschrift: ________________',
+  ].join('\n');
+  showToast('✓ Wochenend-Checkliste bereit');
+}
+
+// === INNUNG ===
+async function woerniInnungEinladung(){
+  const thema=prompt('Seminar-Thema?\n(z.B. Neue Farbtechniken, Kundenberatung, Rechtliches...)');
+  if(!thema||!thema.trim())return;
+  const datum=prompt('Datum & Uhrzeit?\n(z.B. Dienstag, 2. September 2026, 14:00 Uhr)');
+  const ort=prompt('Ort?\n(z.B. WKO Wien, Wiedner Hauptstraße 63)');
+
+  const div=document.getElementById('innungErgebnis');
+  const txt=document.getElementById('innungErgebnisText');
+  document.getElementById('innungErgebnisTitel').textContent='Seminar-Einladung';
+  txt.textContent='Wörni formuliert Einladung...'; div.style.display='block';
+
+  try{
+    const p='Formuliere eine professionelle Seminar-Einladung auf Deutsch für Friseur-Fachkräfte in Wien. Thema: '+thema+(datum?'. Datum: '+datum:'')+(ort?'. Ort: '+ort:'')+'. Absenderin: Mirjam Walenta, Innungstrainerin. Ton: einladend, professionell, klar. Inkl. Bitte um Anmeldung. Kein "Sehr geehrte Damen und Herren", direkt beginnen.';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:p}]})});
+    const data=await res.json();
+    txt.textContent=data.content&&data.content[0]?data.content[0].text:'Fehler beim Generieren.';
+  }catch(e){txt.textContent='Fehler: '+e.message;}
+}
+
+async function woerniInnungBestaetigung(){
+  const name=prompt('Name des Trainers / der Trainerin?');
+  if(!name||!name.trim())return;
+  const thema=prompt('Seminar-Thema?');
+  const datum=prompt('Datum?\n(z.B. 2. September 2026)');
+
+  const div=document.getElementById('innungErgebnis');
+  const txt=document.getElementById('innungErgebnisText');
+  document.getElementById('innungErgebnisTitel').textContent='Trainer-Bestätigung';
+  txt.textContent='Wörni formuliert Bestätigung...'; div.style.display='block';
+
+  try{
+    const p='Formuliere eine kurze, formelle Trainer-Bestätigung auf Deutsch. Trainerin: '+name+(thema?'. Seminar: '+thema:'')+(datum?'. Datum: '+datum:'')+'. Ausstellerin: Mirjam Walenta, Innungstrainerin Wien. Format: kurzes Bestätigungsschreiben, max. 5 Sätze, mit Schlussformel.';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:p}]})});
+    const data=await res.json();
+    txt.textContent=data.content&&data.content[0]?data.content[0].text:'Fehler beim Generieren.';
+  }catch(e){txt.textContent='Fehler: '+e.message;}
 }
 
 // === ABWESENHEIT ===
