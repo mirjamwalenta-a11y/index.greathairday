@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Wörni · Great Hair Day OS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Wörni"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = {}</script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { background: #0f0f0f; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; }
+
+    /* Puls-Animation für kritische Aufgaben */
+    @keyframes kritisch-puls {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .kritisch-dot { animation: kritisch-puls 2s ease-in-out infinite; }
+
+    /* Einblenden beim Laden */
+    @keyframes einblenden {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .einblenden { animation: einblenden 0.3s ease both; }
+
+    /* Sanfter Übergang bei Aktionen */
+    .aufgabe-card { transition: opacity 0.2s ease, transform 0.2s ease; }
+    .aufgabe-card:active { transform: scale(0.98); opacity: 0.8; }
+
+    /* Scrollbar verstecken */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
+const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+
+async function sb(path, opts = {}) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": `Bearer ${SB_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": opts.prefer || "return=representation",
+      ...opts.headers
+    },
+    ...opts
+  });
+  const t = await r.text();
+  if (!r.ok) throw new Error(t);
+  return t ? JSON.parse(t) : null;
+}
+
+const api = {
+  getAufgaben: () => sb("ghd_aufgaben?status=neq.erledigt&order=prioritaet_rang.asc,faellig_am.asc.nullslast"),
+  getErledigt: () => sb("ghd_aufgaben?status=eq.erledigt&order=erledigt_am.desc&limit=5"),
+  updateAufgabe: (id, d) => sb(`ghd_aufgaben?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(d) }),
+  addAufgabe: (d) => sb("ghd_aufgaben", { method: "POST", body: JSON.stringify(d) }),
+  addVerlauf: (d) => sb("ghd_aufgaben_verlauf", { method: "POST", body: JSON.stringify(d) }),
+};
+
+// ─── KONSTANTEN ──────────────────────────────────────────────────────────────
+const PRIORITAETEN = {
+  "kritisch":      { rang: 0, label: "Kritisch",      farbe: "#ef4444", bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.3)" },
+  "heute":         { rang: 1, label: "Heute",          farbe: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.3)" },
+  "diese-woche":   { rang: 2, label: "Diese Woche",   farbe: "#6366f1", bg: "rgba(99,102,241,0.08)",   border: "rgba(99,102,241,0.25)" },
+  "wann-moeglich": { rang: 3, label: "Wann möglich",  farbe: "#6b7280", bg: "rgba(107,114,128,0.06)",  border: "rgba(107,114,128,0.2)" },
+};
+
+const TYPEN = {
+  "betrieb":        { icon: "⚙", label: "Betrieb" },
+  "entscheidung":   { icon: "◎", label: "Entscheidung" },
+  "bestellung":     { icon: "▦", label: "Bestellung" },
+  "lernen":         { icon: "◈", label: "Lernen" },
+  "kommunikation":  { icon: "◌", label: "Kommunikation" },
+};
+
+const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const MONATE = ["Jän","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+
+function heute() {
+  const d = new Date();
+  return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`;
+}
+
+function formatDatum(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return `${d.getDate()}. ${MONATE[d.getMonth()]}`;
+}
+
+// ─── NEUE AUFGABE MODAL ───────────────────────────────────────────────────────
+function NeueAufgabeModal({ onSave, onClose }) {
+  const [form, setForm] = useState({
+    typ: "betrieb",
+    titel: "",
+    naechster_schritt: "",
+    prioritaet: "heute",
+    faellig_am: "",
+    verantwortlich: "mirjam",
+  });
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const valid = form.titel.trim().length > 2;
+
+  async function speichern() {
+    if (!valid) return;
+    await onSave({
+      ...form,
+      faellig_am: form.faellig_am || null,
+      status: "neu",
+      erstellt_von: "mirjam",
+    });
+    onClose();
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:100, display:"flex", alignItems:"flex-end" }}
+         onClick={e => e.target===e.currentTarget && onClose()}>
+      <div style={{ background:"#1a1a1a", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid rgba(255,255,255,0.08)" }}
+           className="einblenden">
+
+        <div style={{ width:36, height:4, background:"rgba(255,255,255,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
+
+        <p style={{ color:"#fff", fontWeight:700, fontSize:17, marginBottom:20 }}>Neue Aufgabe</p>
+
+        {/* Titel */}
+        <input
+          value={form.titel}
+          onChange={e => set("titel", e.target.value)}
+          placeholder="Was muss erledigt werden?"
+          style={{ width:"100%", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:"12px 14px", color:"#fff", fontSize:15, outline:"none", marginBottom:12 }}
+        />
+
+        {/* Nächster Schritt */}
+        <input
+          value={form.naechster_schritt}
+          onChange={e => set("naechster_schritt", e.target.value)}
+          placeholder="Nächster konkreter Schritt (optional)"
+          style={{ width:"100%", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:"12px 14px", color:"rgba(255,255,255,0.7)", fontSize:14, outline:"none", marginBottom:16 }}
+        />
+
+        {/* Typ + Priorität */}
+        <div style={{ display:"flex", gap:10, marginBottom:12 }}>
+          <select value={form.typ} onChange={e => set("typ", e.target.value)}
+            style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 12px", color:"rgba(255,255,255,0.8)", fontSize:13, outline:"none" }}>
+            {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
+          </select>
+          <select value={form.prioritaet} onChange={e => set("prioritaet", e.target.value)}
+            style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 12px", color:"rgba(255,255,255,0.8)", fontSize:13, outline:"none" }}>
+            {Object.entries(PRIORITAETEN).map(([id, p]) => <option key={id} value={id}>{p.label}</option>)}
+          </select>
+        </div>
+
+        {/* Fälligkeit */}
+        <input type="date" value={form.faellig_am} onChange={e => set("faellig_am", e.target.value)}
+          style={{ width:"100%", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:"12px 14px", color:"rgba(255,255,255,0.7)", fontSize:14, outline:"none", marginBottom:20, colorScheme:"dark" }}
+        />
+
+        <button onClick={speichern} disabled={!valid}
+          style={{ width:"100%", background: valid ? "#fff" : "rgba(255,255,255,0.1)", color: valid ? "#0f0f0f" : "rgba(255,255,255,0.3)", border:"none", borderRadius:14, padding:"15px", fontSize:15, fontWeight:700, cursor: valid ? "pointer" : "default" }}>
+          Aufgabe erstellen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── AUFGABE DETAIL MODAL ────────────────────────────────────────────────────
+function AufgabeDetail({ aufgabe, onUpdate, onClose }) {
+  const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
+  const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
+
+  async function aktion(status, ergebnis_notiz = null) {
+    const update = { status };
+    if (status === "erledigt") {
+      update.erledigt_am = new Date().toISOString();
+      update.erledigt_von = "mirjam";
+      if (ergebnis_notiz) update.ergebnis_notiz = ergebnis_notiz;
+    }
+    await onUpdate(aufgabe.id, update);
+    onClose();
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:100, display:"flex", alignItems:"flex-end" }}
+         onClick={e => e.target===e.currentTarget && onClose()}>
+      <div style={{ background:"#1a1a1a", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid rgba(255,255,255,0.08)", maxHeight:"80vh", overflowY:"auto" }}
+           className="einblenden">
+
+        <div style={{ width:36, height:4, background:"rgba(255,255,255,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
+
+        {/* Typ + Priorität */}
+        <div style={{ display:"flex", gap:8, marginBottom:14, alignItems:"center" }}>
+          <span style={{ fontSize:11, fontWeight:700, color:p.farbe, background:p.bg, border:`1px solid ${p.border}`, borderRadius:6, padding:"3px 8px", letterSpacing:"0.05em" }}>
+            {p.label.toUpperCase()}
+          </span>
+          <span style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>{typ.icon} {typ.label}</span>
+          {aufgabe.faellig_am && <span style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginLeft:"auto" }}>bis {formatDatum(aufgabe.faellig_am)}</span>}
+        </div>
+
+        {/* Titel */}
+        <p style={{ color:"#fff", fontWeight:700, fontSize:18, marginBottom: aufgabe.naechster_schritt ? 12 : 24, lineHeight:1.3 }}>{aufgabe.titel}</p>
+
+        {/* Nächster Schritt */}
+        {aufgabe.naechster_schritt && (
+          <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"12px 14px", marginBottom:24 }}>
+            <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:700, marginBottom:4, letterSpacing:"0.06em" }}>NÄCHSTER SCHRITT</p>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.75)", lineHeight:1.4 }}>{aufgabe.naechster_schritt}</p>
+          </div>
+        )}
+
+        {/* App-Kontext */}
+        {aufgabe.app_kontext && (
+          <p style={{ fontSize:12, color:"rgba(255,255,255,0.3)", marginBottom:20 }}>Quelle: {aufgabe.app_kontext}</p>
+        )}
+
+        {/* Aktionen */}
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <button onClick={() => aktion("erledigt")}
+            style={{ background:"#fff", color:"#0f0f0f", border:"none", borderRadius:13, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer" }}>
+            ✓ Erledigt
+          </button>
+          {aufgabe.status !== "in-arbeit" && (
+            <button onClick={() => onUpdate(aufgabe.id, {status:"in-arbeit"}).then(onClose)}
+              style={{ background:"rgba(255,255,255,0.07)", color:"rgba(255,255,255,0.8)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+              In Arbeit setzen
+            </button>
+          )}
+          {aufgabe.status !== "wartet" && (
+            <button onClick={() => onUpdate(aufgabe.id, {status:"wartet"}).then(onClose)}
+              style={{ background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.5)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+              Wartet auf jemanden
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AUFGABEN-KARTE ───────────────────────────────────────────────────────────
+function AufgabeKarte({ aufgabe, onClick, delay = 0 }) {
+  const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
+  const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
+  const istKritisch = aufgabe.prioritaet === "kritisch";
+  const istWartet = aufgabe.status === "wartet";
+  const istInArbeit = aufgabe.status === "in-arbeit";
+
+  return (
+    <div className="aufgabe-card einblenden" onClick={onClick}
+      style={{
+        background: p.bg,
+        border: `1px solid ${p.border}`,
+        borderRadius: 14,
+        padding: "14px 16px",
+        cursor: "pointer",
+        animationDelay: `${delay}ms`,
+        position: "relative",
+        overflow: "hidden",
+      }}>
+
+      {/* Linker Akzentstreifen */}
+      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:p.farbe, borderRadius:"3px 0 0 3px", opacity: istKritisch ? 1 : 0.6 }}/>
+
+      <div style={{ paddingLeft: 8 }}>
+        {/* Status-Badge + Typ */}
+        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+          {istKritisch && <span className="kritisch-dot" style={{ width:6, height:6, borderRadius:"50%", background:"#ef4444", display:"inline-block" }}/>}
+          {istWartet && <span style={{ fontSize:10, color:"#f59e0b", fontWeight:700, letterSpacing:"0.06em" }}>WARTET</span>}
+          {istInArbeit && <span style={{ fontSize:10, color:"#6366f1", fontWeight:700, letterSpacing:"0.06em" }}>IN ARBEIT</span>}
+          <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", marginLeft:"auto" }}>
+            {typ.icon} {typ.label}
+            {aufgabe.faellig_am && ` · ${formatDatum(aufgabe.faellig_am)}`}
+          </span>
+        </div>
+
+        {/* Titel */}
+        <p style={{ color:"#fff", fontWeight:600, fontSize:15, lineHeight:1.35, marginBottom: aufgabe.naechster_schritt ? 8 : 0 }}>
+          {aufgabe.titel}
+        </p>
+
+        {/* Nächster Schritt */}
+        {aufgabe.naechster_schritt && (
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", lineHeight:1.4 }}>
+            → {aufgabe.naechster_schritt}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ABSCHNITT ────────────────────────────────────────────────────────────────
+function Abschnitt({ label, farbe, kinder, leer }) {
+  if (!kinder || kinder.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+        <span style={{ fontSize:11, fontWeight:800, color:farbe, letterSpacing:"0.1em" }}>{label.toUpperCase()}</span>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,0.2)", fontWeight:600 }}>{kinder.length}</span>
+        <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.05)" }}/>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {kinder}
+      </div>
+    </div>
+  );
+}
+
+// ─── HAUPTKOMPONENTE ──────────────────────────────────────────────────────────
+function Woerni() {
+  const [aufgaben, setAufgaben] = useState([]);
+  const [erledigt, setErledigt] = useState([]);
+  const [laden, setLaden] = useState(true);
+  const [fehler, setFehler] = useState(null);
+  const [ausgewaehlt, setAusgewaehlt] = useState(null);
+  const [neueAufgabe, setNeueAufgabe] = useState(false);
+  const [tab, setTab] = useState("heute"); // "heute" | "erledigt"
+
+  async function laden_() {
+    try {
+      setFehler(null);
+      const [a, e] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
+      setAufgaben(a || []);
+      setErledigt(e || []);
+    } catch(err) {
+      setFehler("Verbindung fehlgeschlagen — bitte prüfen");
+    } finally {
+      setLaden(false);
+    }
+  }
+
+  useEffect(() => { laden_(); }, []);
+
+  async function updateAufgabe(id, daten) {
+    await api.updateAufgabe(id, daten);
+    await api.addVerlauf({
+      aufgabe_id: id,
+      von: "mirjam",
+      aktion: daten.status === "erledigt" ? "erledigt" : "status-geaendert",
+      zu_status: daten.status,
+    });
+    await laden_();
+  }
+
+  async function addAufgabe(daten) {
+    const neu = await api.addAufgabe(daten);
+    await api.addVerlauf({
+      aufgabe_id: neu[0].id,
+      von: "mirjam",
+      aktion: "erstellt",
+      zu_status: "neu",
+    });
+    await laden_();
+  }
+
+  // Gruppieren nach Priorität
+  const gruppen = {
+    kritisch:      aufgaben.filter(a => a.prioritaet === "kritisch"),
+    heute:         aufgaben.filter(a => a.prioritaet === "heute"),
+    "diese-woche": aufgaben.filter(a => a.prioritaet === "diese-woche"),
+    "wann-moeglich": aufgaben.filter(a => a.prioritaet === "wann-moeglich"),
+  };
+
+  // Entscheidungen separat hervorheben
+  const entscheidungen = aufgaben.filter(a => a.typ === "entscheidung");
+
+  const offeneGesamt = aufgaben.length;
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#0f0f0f", paddingBottom:80 }}>
+
+      {/* HEADER */}
+      <div style={{ padding:"52px 20px 0", marginBottom:24 }}>
+        <p style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em", marginBottom:6 }}>
+          WÖRNI · {heute().toUpperCase()}
+        </p>
+        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
+          <div>
+            <h1 style={{ fontSize:30, fontWeight:800, color:"#fff", lineHeight:1.1, margin:0 }}>
+              {gruppen.kritisch.length > 0
+                ? <><span style={{ color:"#ef4444" }}>{gruppen.kritisch.length}</span> kritisch</>
+                : offeneGesamt === 0
+                  ? "Alles erledigt"
+                  : <><span style={{ color:"#f59e0b" }}>{offeneGesamt}</span> offen</>
+              }
+            </h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.35)", marginTop:4 }}>
+              {gruppen.kritisch.length > 0
+                ? `+ ${offeneGesamt - gruppen.kritisch.length} weitere Aufgaben`
+                : offeneGesamt === 0
+                  ? "Great Hair Day läuft."
+                  : `${entscheidungen.length > 0 ? `${entscheidungen.length} warten auf dich` : "Kein Handlungsbedarf"}`
+              }
+            </p>
+          </div>
+          <button onClick={() => setNeueAufgabe(true)}
+            style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"10px 16px", color:"rgba(255,255,255,0.8)", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+            + Aufgabe
+          </button>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{ display:"flex", gap:4, padding:"0 20px", marginBottom:24 }}>
+        {[["heute","Offen"], ["erledigt","Erledigt"]].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+            style={{ flex:1, padding:"9px", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600,
+              background: tab===id ? "rgba(255,255,255,0.1)" : "transparent",
+              color: tab===id ? "#fff" : "rgba(255,255,255,0.3)",
+            }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* INHALT */}
+      <div style={{ padding:"0 20px" }}>
+
+        {/* Fehler */}
+        {fehler && (
+          <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
+            <p style={{ color:"#ef4444", fontSize:14, fontWeight:600 }}>{fehler}</p>
+            <button onClick={laden_} style={{ marginTop:8, fontSize:13, color:"rgba(255,255,255,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
+        {/* Laden */}
+        {laden && (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {[...Array(3)].map((_,i) => (
+              <div key={i} style={{ background:"rgba(255,255,255,0.04)", borderRadius:14, height:80,
+                animation:"einblenden 0.4s ease both", animationDelay:`${i*80}ms` }}/>
+            ))}
+          </div>
+        )}
+
+        {/* OFFENE AUFGABEN */}
+        {!laden && tab === "heute" && (
+          <>
+            <Abschnitt label="Kritisch" farbe="#ef4444"
+              kinder={gruppen.kritisch.map((a,i) => (
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+              ))}
+            />
+            <Abschnitt label="Heute" farbe="#f59e0b"
+              kinder={gruppen.heute.map((a,i) => (
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+              ))}
+            />
+            <Abschnitt label="Diese Woche" farbe="#6366f1"
+              kinder={gruppen["diese-woche"].map((a,i) => (
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+              ))}
+            />
+            <Abschnitt label="Wann möglich" farbe="#6b7280"
+              kinder={gruppen["wann-moeglich"].map((a,i) => (
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+              ))}
+            />
+
+            {/* Leer-Zustand */}
+            {offeneGesamt === 0 && !fehler && (
+              <div style={{ textAlign:"center", paddingTop:60 }} className="einblenden">
+                <div style={{ fontSize:48, marginBottom:16 }}>✓</div>
+                <p style={{ color:"rgba(255,255,255,0.6)", fontSize:18, fontWeight:700 }}>Alles erledigt.</p>
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:14, marginTop:6 }}>Great Hair Day läuft.</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ERLEDIGT */}
+        {!laden && tab === "erledigt" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {erledigt.length === 0 && (
+              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:14, textAlign:"center", paddingTop:40 }}>
+                Noch nichts erledigt heute.
+              </p>
+            )}
+            {erledigt.map((a, i) => (
+              <div key={a.id} className="einblenden" style={{ animationDelay:`${i*50}ms`,
+                background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)",
+                borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ width:20, height:20, borderRadius:"50%", background:"rgba(255,255,255,0.08)",
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>✓</span>
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, textDecoration:"line-through", textDecorationColor:"rgba(255,255,255,0.15)" }}>{a.titel}</p>
+                  {a.erledigt_am && <p style={{ fontSize:11, color:"rgba(255,255,255,0.2)", marginTop:2 }}>{formatDatum(a.erledigt_am)}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* DETAIL MODAL */}
+      {ausgewaehlt && (
+        <AufgabeDetail
+          aufgabe={ausgewaehlt}
+          onUpdate={updateAufgabe}
+          onClose={() => setAusgewaehlt(null)}
+        />
+      )}
+
+      {/* NEUE AUFGABE MODAL */}
+      {neueAufgabe && (
+        <NeueAufgabeModal
+          onSave={addAufgabe}
+          onClose={() => setNeueAufgabe(false)}
+        />
+      )}
+
+      {/* REFRESH BUTTON (unten) */}
+      <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)" }}>
+        <button onClick={laden_}
+          style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"10px 20px", color:"rgba(255,255,255,0.4)", fontSize:12, fontWeight:600, cursor:"pointer", letterSpacing:"0.05em" }}>
+          ↻ Aktualisieren
+        </button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Woerni />);
+</script>
+</body>
+</html>
