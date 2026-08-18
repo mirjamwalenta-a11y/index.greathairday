@@ -344,7 +344,11 @@ function Woerni() {
     }
   }
 
-  useEffect(() => { laden_(); }, []);
+  useEffect(() => {
+    laden_();
+    const interval = setInterval(laden_, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function updateAufgabe(id, daten) {
     await api.updateAufgabe(id, daten);
