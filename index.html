@@ -461,7 +461,7 @@
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
     <div onclick="teamZuAbwesenheit()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📅</div><div style="color:rgba(255,255,255,0.55);font-size:11px;font-weight:600">Abwesenheiten</div></div>
     <div onclick="teamZuMitteilungen()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📢</div><div style="color:rgba(255,255,255,0.55);font-size:11px;font-weight:600">Mitteilungen</div></div>
-    <div onclick="teamZuLernquiz()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">✂️</div><div style="color:rgba(255,255,255,0.55);font-size:11px;font-weight:600">Lernquiz Ronya</div></div>
+    <div onclick="teamZuLernquiz()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">✂️</div><div style="color:rgba(255,255,255,0.55);font-size:11px;font-weight:600">Meister Englisch</div></div>
     <div onclick="teamZuFitCheck()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🔍</div><div style="color:rgba(255,255,255,0.55);font-size:11px;font-weight:600">Bewerbungen</div></div>
   </div>
 </div>
@@ -507,7 +507,7 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideSystem()">← Zurück</button>
     <div class="dash-title">⚙️ System</div>
-    <div style="font-size:10px;color:rgba(255,255,255,0.3);font-weight:600">↕ sortierbar</div>
+    <button onclick="sysSortToggle()" id="sysSortBtn" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600">↕ Sortieren</button>
   </div>
 
   <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:20px">
@@ -1778,7 +1778,7 @@ function sysOrderLaden(){ try{ return JSON.parse(localStorage.getItem(SYS_ORDER_
 function sysOrderSpeichern(o){ localStorage.setItem(SYS_ORDER_KEY,JSON.stringify(o)); }
 function sysUid(){ return 'a'+Math.random().toString(36).slice(2,8); }
 
-let sysSortModus = true;
+let sysSortModus = false;
 let sysDragSrc   = null;
 
 function systemRendern(){
@@ -1899,6 +1899,8 @@ function sysSaveOrder(){
 function sysSortToggle(){
   sysSortModus = !sysSortModus;
   systemRendern();
+  const btn = document.getElementById('sysSortBtn');
+  if(btn) btn.textContent = sysSortModus ? '✓ Fertig' : '↕ Sortieren';
   if(!sysSortModus) showToast('✓ Reihenfolge gespeichert');
 }
 
