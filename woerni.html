@@ -65,7 +65,7 @@ async function sb(path, opts = {}) {
 }
 
 const api = {
-  getAufgaben: () => sb("ghd_aufgaben?status=neq.erledigt&order=prioritaet_rang.asc,faellig_am.asc.nullslast"),
+  getAufgaben: () => sb("ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast,erstellt_am.asc"),
   getErledigt: () => sb("ghd_aufgaben?status=eq.erledigt&order=erledigt_am.desc&limit=5"),
   updateAufgabe: (id, d) => sb(`ghd_aufgaben?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(d) }),
   addAufgabe: (d) => sb("ghd_aufgaben", { method: "POST", body: JSON.stringify(d) }),
