@@ -45,8 +45,8 @@
 const { useState, useEffect, useCallback } = React;
 
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
-const SB_URL = "https://lpuxvvfrrcnbuzafscyk.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdXh2dmZycmNuYnV6YWZzY3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODIxNDcsImV4cCI6MjEwMDI1ODE0N30.6VZUmmXj_x3Q8J55s_tbOHcW5-U5OXllGoEBhypaVfI";
+const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
 
 async function sb(path, opts = {}) {
   const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
@@ -348,23 +348,27 @@ function Woerni() {
 
   async function updateAufgabe(id, daten) {
     await api.updateAufgabe(id, daten);
-    await api.addVerlauf({
-      aufgabe_id: id,
-      von: "mirjam",
-      aktion: daten.status === "erledigt" ? "erledigt" : "status-geaendert",
-      zu_status: daten.status,
-    });
+    try {
+      await api.addVerlauf({
+        aufgabe_id: id,
+        von: "mirjam",
+        aktion: daten.status === "erledigt" ? "erledigt" : "status-geaendert",
+        zu_status: daten.status,
+      });
+    } catch(e) { console.warn("Verlauf:", e.message); }
     await laden_();
   }
 
   async function addAufgabe(daten) {
     const neu = await api.addAufgabe(daten);
-    await api.addVerlauf({
-      aufgabe_id: neu[0].id,
-      von: "mirjam",
-      aktion: "erstellt",
-      zu_status: "neu",
-    });
+    try {
+      await api.addVerlauf({
+        aufgabe_id: neu[0].id,
+        von: "mirjam",
+        aktion: "erstellt",
+        zu_status: "neu",
+      });
+    } catch(e) { console.warn("Verlauf:", e.message); }
     await laden_();
   }
 
