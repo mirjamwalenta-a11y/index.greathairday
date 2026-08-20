@@ -3,558 +3,624 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Great Hair Day</title>
+  <title>A Great Hair Day · Mirjam Walenta</title>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-title" content="Wörni"/>
+  <meta name="apple-mobile-web-app-title" content="Great Hair Day"/>
   <meta name="theme-color" content="#F8F4EA"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = {}</script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    body { background: #F8F4EA; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; }
-
-    /* Puls-Animation für kritische Aufgaben */
-    @keyframes kritisch-puls {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+    :root {
+      --bg:           #F8F4EA;
+      --bg-soft:      #F0E9D8;
+      --card:         #FFFFFF;
+      --border:       #E4DBC5;
+      --text:         #211D17;
+      --text-soft:    #7C7565;
+      --accent:       #896C32;
+      --accent-dark:  #6E5527;
+      --accent-tint:  #EEE6CD;
+      --ok:           #4C7A5B;
+      --crit:         #B23A2E;
+      --crit-tint:    #F5DAD5;
+      --heute:        #A67A22;
+      --heute-tint:   #F1E4C4;
+      --woche:        #4E7288;
+      --woche-tint:   #DCE7EC;
+      --wann:         #8B8172;
+      --wann-tint:    #EAE3D6;
+      --radius:       14px;
     }
-    .kritisch-dot { animation: kritisch-puls 2s ease-in-out infinite; }
 
-    /* Einblenden beim Laden */
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .einblenden { animation: einblenden 0.3s ease both; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-    /* Sanfter Übergang bei Aktionen */
-    .aufgabe-card { transition: opacity 0.2s ease, transform 0.2s ease; }
-    .aufgabe-card:active { transform: scale(0.98); opacity: 0.8; }
+    /* ── Seiten ── */
+    .screen { display: none; min-height: 100vh; flex-direction: column; padding: 56px 20px 100px; animation: fade .18s ease; }
+    .screen.active { display: flex; }
 
-    /* Scrollbar verstecken */
-    ::-webkit-scrollbar { display: none; }
-    * { -ms-overflow-style: none; scrollbar-width: none; }
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      background: none; border: none; color: var(--text-soft);
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      font-family: inherit; padding: 6px 0;
+    }
+    .back-btn:hover { color: var(--accent-dark); }
+    .topbar-title { font-weight: 700; font-size: 15px; }
+    .icon-btn {
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); border-radius: 999px;
+      padding: 8px 14px; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; font-family: inherit;
+    }
+    .icon-btn:hover { border-color: var(--accent); }
+
+    /* ── PIN Screen ── */
+    #screen-pin {
+      align-items: center; text-align: center;
+      justify-content: center; padding-top: 80px;
+    }
+    .avatar-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); margin: 0 auto 20px;
+    }
+    .pin-name  { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+    .pin-brand { font-size: 11px; letter-spacing: .12em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 28px; }
+    .pin-label { font-size: 11px; letter-spacing: .1em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px; }
+    .pin-dots  { display: flex; gap: 16px; justify-content: center; margin-bottom: 32px; }
+    .pin-dots span {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--border); display: inline-block;
+      transition: all .15s;
+    }
+    .pin-dots span.filled { background: var(--accent); border-color: var(--accent); }
+    .keypad { display: grid; grid-template-columns: repeat(3, 68px); gap: 14px; justify-content: center; }
+    .key {
+      width: 68px; height: 68px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--card);
+      font-size: 22px; font-weight: 600; color: var(--text);
+      cursor: pointer; font-family: inherit; transition: background .12s;
+    }
+    .key:hover  { border-color: var(--accent); }
+    .key:active { background: var(--accent-tint); }
+    .team-btn {
+      margin-top: 28px; color: var(--text-soft); font-size: 13.5px;
+      background: none; border: none; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Home: Begrüßung ── */
+    .greet       { font-size: 22px; font-weight: 700; margin: 0; }
+    .greet-sub   { color: var(--text-soft); font-size: 13.5px; margin-top: 2px; margin-bottom: 20px; }
+    .home-pills  { display: flex; gap: 8px; }
+    .pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 8px 14px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; color: var(--text);
+    }
+    .pill:hover { border-color: var(--accent); }
+
+    /* ── Now-Card ── */
+    .now-card {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      color: #fff; border-radius: var(--radius);
+      padding: 20px; margin: 18px 0 20px;
+      box-shadow: 0 12px 28px rgba(137,108,50,0.30);
+    }
+    .now-tag   { font-size: 11px; letter-spacing: .14em; opacity: .9; font-weight: 700; }
+    .now-title { font-size: 19px; font-weight: 700; margin: 8px 0 16px; line-height: 1.35; }
+    .now-actions { display: flex; align-items: center; justify-content: space-between; }
+    .now-btn-primary {
+      background: #fff; color: var(--accent-dark); border: none;
+      border-radius: 999px; padding: 11px 18px;
+      font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit;
+    }
+    .now-btn-quiet {
+      background: none; border: none; color: #fff; opacity: .9;
+      font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit;
+    }
+
+    /* ── Prioritäten-Header ── */
+    .prio-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 4px 2px 10px;
+    }
+    .prio-header-label { font-size: 12px; font-weight: 700; color: var(--text-soft); letter-spacing: .04em; text-transform: uppercase; }
+    .prio-edit-btn {
+      background: none; border: none; color: var(--accent-dark);
+      font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Row-Karte (Prioritäten) ── */
+    .row-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 10px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .row-card:hover { border-color: var(--accent); }
+    .row-card:active { background: var(--bg-soft); }
+    .row-emoji { font-size: 22px; width: 36px; text-align: center; }
+    .row-title { font-weight: 700; font-size: 15px; }
+    .row-sub   { color: var(--text-soft); font-size: 12.5px; margin-top: 1px; }
+    .row-chev  { margin-left: auto; color: var(--text-soft); font-size: 18px; }
+
+    .prio-empty-hint { color: var(--text-soft); font-size: 13px; padding: 8px 2px; }
+
+    /* ── Footer Links ── */
+    .footer-links {
+      margin-top: auto; display: flex; gap: 10px;
+      justify-content: center; padding-top: 24px; flex-wrap: wrap;
+    }
+    .footer-links button {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-soft); border-radius: 999px;
+      padding: 8px 14px; font-size: 12.5px;
+      cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .footer-links button:hover { border-color: var(--accent); }
+
+    /* ── Apps Grid ── */
+    .apps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .app-tile {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 14px;
+      cursor: pointer; text-align: left; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .app-tile:hover  { border-color: var(--accent); }
+    .app-tile:active { background: var(--bg-soft); }
+    .app-tile .em  { font-size: 24px; }
+    .app-tile .nm  { font-weight: 700; font-size: 13.5px; margin-top: 8px; color: var(--text); }
+    .app-tile .sb  { color: var(--text-soft); font-size: 11px; margin-top: 2px; }
+    .manage-link {
+      margin-top: 16px; text-align: center; color: var(--text-soft);
+      font-size: 12.5px; background: none; border: none;
+      text-decoration: underline; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── System Screen ── */
+    .system-note {
+      background: var(--bg-soft); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      font-size: 13px; color: var(--text-soft); margin-bottom: 16px; line-height: 1.5;
+    }
+    .add-app {
+      border: 1.5px dashed var(--accent); color: var(--accent-dark);
+      background: var(--accent-tint); border-radius: var(--radius);
+      padding: 14px; text-align: center; font-weight: 700;
+      font-size: 13.5px; margin-bottom: 16px; cursor: pointer;
+    }
+    .sys-row {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+    }
+    .sys-row .em  { font-size: 20px; }
+    .sys-row .nm  { font-weight: 700; font-size: 14px; }
+    .sys-row .sb  { color: var(--text-soft); font-size: 11.5px; }
+    .sys-open {
+      margin-left: auto; border: 1px solid var(--border); background: #fff;
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .sys-open:hover { border-color: var(--accent); }
+
+    /* ── Sheet / Overlay ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(33,29,23,.45);
+      display: none; align-items: flex-end; z-index: 40;
+    }
+    .overlay.active { display: flex; }
+    .sheet {
+      background: var(--bg); width: 100%; border-radius: 22px 22px 0 0;
+      max-height: 88vh; display: flex; flex-direction: column;
+      animation: einblenden .2s ease;
+    }
+    .sheet-scroll { overflow-y: auto; padding: 10px 20px 6px; flex: 1; }
+    .sheet-handle {
+      width: 38px; height: 4px; background: var(--border);
+      border-radius: 99px; margin: 8px auto 18px;
+    }
+    .sheet h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+    .sheet-hint { font-size: 12px; color: var(--text-soft); margin: 0 0 16px; }
+    .sheet-actions {
+      display: flex; gap: 10px;
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+      background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .btn-save {
+      flex: 1; padding: 14px; border-radius: 12px; border: none;
+      background: var(--accent); color: #fff; font-weight: 700;
+      font-size: 14.5px; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-save:hover { background: var(--accent-dark); }
+
+    /* ── Prio-Rows im Sheet ── */
+    .prio-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .prio-row .em { font-size: 18px; width: 24px; text-align: center; }
+    .prio-row .nm { font-weight: 700; font-size: 13.5px; flex: 1; }
+    .prio-row .sb { color: var(--text-soft); font-size: 11px; }
+    .prio-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff;
+      font-size: 14px; cursor: pointer; font-family: inherit; color: var(--text);
+      transition: border-color .12s;
+    }
+    .prio-btn:disabled { opacity: .3; cursor: default; }
+    .prio-btn.remove { color: var(--crit); border-color: var(--crit-tint); }
+    .prio-btn.add    { color: var(--accent-dark); border-color: var(--accent-tint); background: var(--accent-tint); }
+    .prio-empty-hint { color: var(--text-soft); font-size: 12px; padding: 6px 2px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; left: 50%; bottom: 28px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: #fff;
+      padding: 11px 18px; border-radius: 12px; font-size: 13px;
+      font-weight: 600; max-width: 88%; text-align: center;
+      opacity: 0; transition: .25s; pointer-events: none; z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Field (sort sheet) ── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--text-soft); letter-spacing: .04em;
+      margin-bottom: 6px; text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useCallback } = React;
 
-// ─── SUPABASE ────────────────────────────────────────────────────────────────
-const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+<!-- PIN -->
+<div class="screen active" id="screen-pin">
+  <div class="avatar-dot"></div>
+  <div class="pin-name">Mirjam Walenta</div>
+  <div class="pin-brand">A Great Hair Day</div>
+  <div class="pin-label">PIN eingeben</div>
+  <div class="pin-dots" id="pinDots">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div class="keypad" id="keypad"></div>
+  <button class="team-btn" onclick="goHome()">Team-Login →</button>
+</div>
 
-async function sb(path, opts = {}) {
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-    headers: {
-      "apikey": SB_KEY,
-      "Authorization": `Bearer ${SB_KEY}`,
-      "Content-Type": "application/json",
-      "Prefer": opts.prefer || "return=representation",
-      ...opts.headers
-    },
-    ...opts
-  });
-  const t = await r.text();
-  if (!r.ok) throw new Error(t);
-  return t ? JSON.parse(t) : null;
-}
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <div class="topbar">
+    <div>
+      <div class="greet">A Great Hair Day</div>
+      <div class="greet-sub" id="greetSub">Guten Tag, Mirjam!</div>
+    </div>
+    <div class="home-pills">
+      <button class="pill" onclick="showScreen('screen-apps')">⊞ Apps</button>
+      <button class="pill" onclick="goWoerni()">🤖 Wörni</button>
+    </div>
+  </div>
 
-const api = {
-  getAufgaben: () => sb("ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast,erstellt_am.asc"),
-  getErledigt: () => sb("ghd_aufgaben?status=eq.erledigt&order=erledigt_am.desc&limit=5"),
-  updateAufgabe: (id, d) => sb(`ghd_aufgaben?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(d) }),
-  addAufgabe: (d) => sb("ghd_aufgaben", { method: "POST", body: JSON.stringify(d) }),
-  addVerlauf: (d) => sb("ghd_aufgaben_verlauf", { method: "POST", body: JSON.stringify(d) }),
+  <div class="now-card">
+    <div class="now-tag">JETZT</div>
+    <div class="now-title" id="nowTitle">Abschluss: Sind die Belege diesen Monat vollständig?</div>
+    <div class="now-actions">
+      <button class="now-btn-primary" onclick="toast('Öffnet Belege-App')">→ Belege prüfen</button>
+      <button class="now-btn-quiet" onclick="toast('Öffnet Belege-App')">Belege ordnen</button>
+    </div>
+  </div>
+
+  <div class="prio-header">
+    <span class="prio-header-label">Deine Prioritäten</span>
+    <button class="prio-edit-btn" onclick="openPrioSheet()">✏️ Bearbeiten</button>
+  </div>
+  <div id="priorityRows"></div>
+
+  <div class="footer-links">
+    <button onclick="toast('Zugangsdaten')">🔑 Zugangsdaten</button>
+    <button onclick="showScreen('screen-system')">⚙ System</button>
+    <button onclick="goPin()">↩ Abmelden</button>
+  </div>
+</div>
+
+<!-- APPS -->
+<div class="screen" id="screen-apps">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('screen-home')">← Start</button>
+    <div class="topbar-title">Apps</div>
+    <button class="icon-btn" onclick="openSortSheet()">↕ Sortieren</button>
+  </div>
+  <div class="apps-grid" id="appsGrid"></div>
+  <button class="manage-link" onclick="showScreen('screen-system')">Baukasten verwalten (Apps hinzufügen / bearbeiten)</button>
+</div>
+
+<!-- SYSTEM -->
+<div class="screen" id="screen-system">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('screen-apps')">← Apps</button>
+    <div class="topbar-title">⚙ System</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div class="system-note">Hier verwaltest du alle Apps als Baukasten — öffnen, bearbeiten, hinzufügen, löschen. Dies ist kein alltäglicher Einstieg, sondern dein Arbeitsraum für Pflege.</div>
+  <div class="add-app" onclick="toast('Neue App hinzufügen')">+ Neue App hinzufügen</div>
+  <div id="systemList"></div>
+</div>
+
+<!-- OVERLAY: Apps sortieren -->
+<div class="overlay" id="overlaySort" onclick="closeSortSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Apps sortieren</h2>
+      <p class="sheet-hint">Reihenfolge der Kacheln — mit den Pfeilen verschieben.</p>
+      <div id="sortList"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closeSortSheet()">Fertig</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: Prioritäten -->
+<div class="overlay" id="overlayPrio" onclick="closePrioSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Prioritäten anpassen</h2>
+      <p class="sheet-hint">Bis zu 3 Apps — die Reihenfolge bestimmt, was oben steht.</p>
+      <div class="field"><label>Ausgewählt</label><div id="prioSelectedList"></div></div>
+      <div class="field"><label>Weitere Apps</label><div id="prioAvailableList"></div></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closePrioSheet()">Fertig</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Daten ── */
+const apps = [
+  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht'},
+  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks'},
+  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche'},
+  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand'},
+  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen'},
+  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung'},
+  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen'},
+  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen'},
+  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards'},
+  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater'},
+  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben'},
+  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen'},
+];
+
+const cardCopy = {
+  'Reichweite':  {title:'Sichtbar werden',        sub:'Heute einen Anlass in Content'},
+  'Team':        {title:'Team führen',             sub:'Was meine Entscheidung braucht'},
+  'Belege':      {title:'Belege ordnen',           sub:'Ordnung und Abschluss'},
+  'Abwesenheit': {title:'Abwesenheiten steuern',   sub:'Urlaub & Krankenstand im Blick'},
+  'Lager':       {title:'Lager im Griff',          sub:'Bestand & Bestellungen'},
+  'Checklisten': {title:'Tag abschließen',         sub:'Checklisten & Standards'},
+  'Aufträge':    {title:'Aufträge steuern',        sub:'Tagesübersicht'},
+  'Lernquiz':    {title:'Prüfung vorbereiten',     sub:'Quiz & Fragen'},
+  'Lerntool':    {title:'Weiterbilden',            sub:'Lernkarten & Themen'},
+  'Handbuch':    {title:'Standards nachschlagen',  sub:'Richtlinien'},
+  'Innung':      {title:'Seminare planen',         sub:'Trainer:innen & Termine'},
 };
 
-// ─── KONSTANTEN ──────────────────────────────────────────────────────────────
-const PRIORITAETEN = {
-  "kritisch":      { rang: 0, label: "Kritisch",      farbe: "#ef4444", bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.3)" },
-  "heute":         { rang: 1, label: "Heute",          farbe: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.3)" },
-  "diese-woche":   { rang: 2, label: "Diese Woche",   farbe: "#6366f1", bg: "rgba(99,102,241,0.08)",   border: "rgba(99,102,241,0.25)" },
-  "wann-moeglich": { rang: 3, label: "Wann möglich",  farbe: "#6b7280", bg: "rgba(107,114,128,0.06)",  border: "rgba(107,114,128,0.2)" },
-};
+const appsByName = Object.fromEntries(apps.map(a => [a.nm, a]));
+let priorities = ['Reichweite', 'Team', 'Belege'];
+let appOrder   = apps.map(a => a.nm);
 
-const TYPEN = {
-  "betrieb":        { icon: "⚙", label: "Betrieb" },
-  "entscheidung":   { icon: "◎", label: "Entscheidung" },
-  "bestellung":     { icon: "▦", label: "Bestellung" },
-  "lernen":         { icon: "◈", label: "Lernen" },
-  "kommunikation":  { icon: "◌", label: "Kommunikation" },
-};
+function orderedApps() { return appOrder.map(n => appsByName[n]); }
 
-const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
-const MONATE = ["Jän","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
-
-function heute() {
-  const d = new Date();
-  return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`;
+/* ── Begrüßung ── */
+function updateGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+  document.getElementById('greetSub').textContent = `${greet}, Mirjam!`;
 }
 
-function formatDatum(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return `${d.getDate()}. ${MONATE[d.getMonth()]}`;
+/* ── Now-Card: rotiert täglich ── */
+const nowCards = [
+  {title:'Abschluss: Sind die Belege diesen Monat vollständig?',   btn:'→ Belege prüfen',         quiet:'Belege ordnen',    app:'Belege'},
+  {title:'Reichweite: Gibt es heute einen Anlass für einen Post?', btn:'→ Post erstellen',        quiet:'Ideen sammeln',    app:'Reichweite'},
+  {title:'Team: Steht etwas Wichtiges für heute auf dem Plan?',    btn:'→ Checkliste öffnen',     quiet:'Später erledigen', app:'Checklisten'},
+  {title:'Wörni: Welche Aufgabe wartet schon länger auf dich?',    btn:'→ Aufgaben ansehen',      quiet:'Überspringen',     app:'Wörni'},
+];
+function renderNowCard() {
+  const nc = nowCards[new Date().getDay() % nowCards.length];
+  document.getElementById('nowTitle').textContent = nc.title;
+  const btns = document.querySelectorAll('.now-btn-primary, .now-btn-quiet');
+  btns[0].textContent = nc.btn;
+  btns[0].onclick = () => { if(nc.app==='Wörni') goWoerni(); else toast('Öffnet ' + nc.app); };
+  btns[1].textContent = nc.quiet;
+  btns[1].onclick = () => toast('Öffnet ' + nc.app);
 }
 
-// ─── NEUE AUFGABE MODAL ───────────────────────────────────────────────────────
-function NeueAufgabeModal({ onSave, onClose }) {
-  const [form, setForm] = useState({
-    typ: "betrieb",
-    titel: "",
-    naechster_schritt: "",
-    prioritaet: "heute",
-    faellig_am: "",
-    verantwortlich: "mirjam",
-  });
-
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
-  const valid = form.titel.trim().length > 2;
-
-  async function speichern() {
-    if (!valid) return;
-    await onSave({
-      ...form,
-      faellig_am: form.faellig_am || null,
-      status: "neu",
-      erstellt_von: "mirjam",
-    });
-    onClose();
+/* ── Home: Prioritäten ── */
+function renderHome() {
+  const el = document.getElementById('priorityRows');
+  if (priorities.length === 0) {
+    el.innerHTML = `<div class="prio-empty-hint">Keine Priorität — tippe oben auf "Bearbeiten".</div>`;
+    return;
   }
-
-  return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:100, display:"flex", alignItems:"flex-end" }}
-         onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid #E4DBC5" }}
-           className="einblenden">
-
-        <div style={{ width:36, height:4, background:"rgba(33,29,23,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
-
-        <p style={{ color:"#211D17", fontWeight:700, fontSize:17, marginBottom:20 }}>Neue Aufgabe</p>
-
-        {/* Titel */}
-        <input
-          value={form.titel}
-          onChange={e => set("titel", e.target.value)}
-          placeholder="Was muss erledigt werden?"
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"#211D17", fontSize:15, outline:"none", marginBottom:12 }}
-        />
-
-        {/* Nächster Schritt */}
-        <input
-          value={form.naechster_schritt}
-          onChange={e => set("naechster_schritt", e.target.value)}
-          placeholder="Nächster konkreter Schritt (optional)"
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"rgba(33,29,23,0.7)", fontSize:14, outline:"none", marginBottom:16 }}
-        />
-
-        {/* Typ + Priorität */}
-        <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-          <select value={form.typ} onChange={e => set("typ", e.target.value)}
-            style={{ flex:1, background:"#fff", border:"1px solid #E4DBC5", borderRadius:10, padding:"10px 12px", color:"rgba(33,29,23,0.8)", fontSize:13, outline:"none" }}>
-            {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
-          </select>
-          <select value={form.prioritaet} onChange={e => set("prioritaet", e.target.value)}
-            style={{ flex:1, background:"#fff", border:"1px solid #E4DBC5", borderRadius:10, padding:"10px 12px", color:"rgba(33,29,23,0.8)", fontSize:13, outline:"none" }}>
-            {Object.entries(PRIORITAETEN).map(([id, p]) => <option key={id} value={id}>{p.label}</option>)}
-          </select>
+  el.innerHTML = priorities.map(name => {
+    const a = appsByName[name];
+    const c = cardCopy[name] || {title: name, sub: a.sb};
+    const dest = name === 'Wörni' ? "goWoerni()" : `toast('Öffnet ${name}')`;
+    return `
+      <div class="row-card" onclick="${dest}">
+        <div class="row-emoji">${a.em}</div>
+        <div>
+          <div class="row-title">${c.title}</div>
+          <div class="row-sub">${c.sub}</div>
         </div>
-
-        {/* Fälligkeit */}
-        <input type="date" value={form.faellig_am} onChange={e => set("faellig_am", e.target.value)}
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"rgba(33,29,23,0.7)", fontSize:14, outline:"none", marginBottom:20, colorScheme:"light" }}
-        />
-
-        <button onClick={speichern} disabled={!valid}
-          style={{ width:"100%", background: valid ? "#896C32" : "#F0E9D8", color: valid ? "#fff" : "rgba(33,29,23,0.3)", border:"none", borderRadius:14, padding:"15px", fontSize:15, fontWeight:700, cursor: valid ? "pointer" : "default" }}>
-          Aufgabe erstellen
-        </button>
-      </div>
-    </div>
-  );
+        <div class="row-chev">›</div>
+      </div>`;
+  }).join('');
 }
 
-// ─── AUFGABE DETAIL MODAL ────────────────────────────────────────────────────
-function AufgabeDetail({ aufgabe, onUpdate, onClose }) {
-  const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
-  const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
-
-  async function aktion(status, ergebnis_notiz = null) {
-    const update = { status };
-    if (status === "erledigt") {
-      update.erledigt_am = new Date().toISOString();
-      update.erledigt_von = "mirjam";
-      if (ergebnis_notiz) update.ergebnis_notiz = ergebnis_notiz;
-    }
-    await onUpdate(aufgabe.id, update);
-    onClose();
-  }
-
-  return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:100, display:"flex", alignItems:"flex-end" }}
-         onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid #E4DBC5", maxHeight:"80vh", overflowY:"auto" }}
-           className="einblenden">
-
-        <div style={{ width:36, height:4, background:"rgba(33,29,23,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
-
-        {/* Typ + Priorität */}
-        <div style={{ display:"flex", gap:8, marginBottom:14, alignItems:"center" }}>
-          <span style={{ fontSize:11, fontWeight:700, color:p.farbe, background:p.bg, border:`1px solid ${p.border}`, borderRadius:6, padding:"3px 8px", letterSpacing:"0.05em" }}>
-            {p.label.toUpperCase()}
-          </span>
-          <span style={{ fontSize:12, color:"rgba(33,29,23,0.4)" }}>{typ.icon} {typ.label}</span>
-          {aufgabe.faellig_am && <span style={{ fontSize:12, color:"rgba(33,29,23,0.35)", marginLeft:"auto" }}>bis {formatDatum(aufgabe.faellig_am)}</span>}
-        </div>
-
-        {/* Titel */}
-        <p style={{ color:"#211D17", fontWeight:700, fontSize:18, marginBottom: aufgabe.naechster_schritt ? 12 : 24, lineHeight:1.3 }}>{aufgabe.titel}</p>
-
-        {/* Nächster Schritt */}
-        {aufgabe.naechster_schritt && (
-          <div style={{ background:"#F0E9D8", border:"1px solid #E4DBC5", borderRadius:10, padding:"12px 14px", marginBottom:24 }}>
-            <p style={{ fontSize:11, color:"rgba(33,29,23,0.35)", fontWeight:700, marginBottom:4, letterSpacing:"0.06em" }}>NÄCHSTER SCHRITT</p>
-            <p style={{ fontSize:14, color:"rgba(33,29,23,0.75)", lineHeight:1.4 }}>{aufgabe.naechster_schritt}</p>
-          </div>
-        )}
-
-        {/* App-Kontext */}
-        {aufgabe.app_kontext && (
-          <p style={{ fontSize:12, color:"rgba(33,29,23,0.3)", marginBottom:20 }}>Quelle: {aufgabe.app_kontext}</p>
-        )}
-
-        {/* Aktionen */}
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          <button onClick={() => aktion("erledigt")}
-            style={{ background:"#896C32", color:"#211D17", border:"none", borderRadius:13, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer" }}>
-            ✓ Erledigt
-          </button>
-          {aufgabe.status !== "in-arbeit" && (
-            <button onClick={() => onUpdate(aufgabe.id, {status:"in-arbeit"}).then(onClose)}
-              style={{ background:"#fff", color:"rgba(33,29,23,0.8)", border:"1px solid #E4DBC5", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
-              In Arbeit setzen
-            </button>
-          )}
-          {aufgabe.status !== "wartet" && (
-            <button onClick={() => onUpdate(aufgabe.id, {status:"wartet"}).then(onClose)}
-              style={{ background:"#fff", color:"rgba(33,29,23,0.5)", border:"1px solid #E4DBC5", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
-              Wartet auf jemanden
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+/* ── Apps ── */
+function renderApps() {
+  document.getElementById('appsGrid').innerHTML = orderedApps().map(a => `
+    <button class="app-tile" onclick="${a.nm==='Wörni' ? 'goWoerni()' : `toast('Öffnet ${a.nm}')`}">
+      <div class="em">${a.em}</div>
+      <div class="nm">${a.nm}</div>
+      <div class="sb">${a.sb}</div>
+    </button>`).join('');
 }
 
-// ─── AUFGABEN-KARTE ───────────────────────────────────────────────────────────
-function AufgabeKarte({ aufgabe, onClick, delay = 0 }) {
-  const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
-  const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
-  const istKritisch = aufgabe.prioritaet === "kritisch";
-  const istWartet = aufgabe.status === "wartet";
-  const istInArbeit = aufgabe.status === "in-arbeit";
-
-  return (
-    <div className="aufgabe-card einblenden" onClick={onClick}
-      style={{
-        background: "#fff",
-        border: "1px solid #E4DBC5",
-        boxShadow: "0 1px 3px rgba(33,29,23,0.04)",
-        borderRadius: 14,
-        padding: "14px 16px",
-        cursor: "pointer",
-        animationDelay: `${delay}ms`,
-        position: "relative",
-        overflow: "hidden",
-      }}>
-
-      {/* Linker Akzentstreifen */}
-      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:p.farbe, borderRadius:"3px 0 0 3px", opacity: istKritisch ? 1 : 0.6 }}/>
-
-      <div style={{ paddingLeft: 8 }}>
-        {/* Prioritäts-Badge + Status + Typ */}
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8, flexWrap:"wrap" }}>
-          <span style={{ fontSize:10, fontWeight:700, color:p.farbe, background:p.bg, border:`1px solid ${p.border}`, borderRadius:6, padding:"2px 7px", letterSpacing:"0.05em" }}>
-            {p.label.toUpperCase()}
-          </span>
-          {istKritisch && <span className="kritisch-dot" style={{ width:6, height:6, borderRadius:"50%", background:"#ef4444", display:"inline-block" }}/>}
-          {istWartet && <span style={{ fontSize:10, color:"#f59e0b", fontWeight:700, letterSpacing:"0.06em" }}>WARTET</span>}
-          {istInArbeit && <span style={{ fontSize:10, color:"#6366f1", fontWeight:700, letterSpacing:"0.06em" }}>IN ARBEIT</span>}
-          <span style={{ fontSize:11, color:"rgba(33,29,23,0.4)", marginLeft:"auto" }}>
-            {typ.icon} {typ.label}
-            {aufgabe.faellig_am && ` · ${formatDatum(aufgabe.faellig_am)}`}
-          </span>
-        </div>
-
-        {/* Titel */}
-        <p style={{ color:"#211D17", fontWeight:600, fontSize:15, lineHeight:1.35, marginBottom: aufgabe.naechster_schritt ? 8 : 0 }}>
-          {aufgabe.titel}
-        </p>
-
-        {/* Nächster Schritt */}
-        {aufgabe.naechster_schritt && (
-          <p style={{ fontSize:13, color:"rgba(33,29,23,0.55)", lineHeight:1.4 }}>
-            → {aufgabe.naechster_schritt}
-          </p>
-        )}
-      </div>
-    </div>
-  );
+function renderSystem() {
+  document.getElementById('systemList').innerHTML = orderedApps().map(a => `
+    <div class="sys-row">
+      <div class="em">${a.em}</div>
+      <div><div class="nm">${a.nm}</div><div class="sb">${a.sb}</div></div>
+      <button class="sys-open" onclick="toast('Öffnet ${a.nm}')">Öffnen</button>
+    </div>`).join('');
 }
 
-// ─── ABSCHNITT ────────────────────────────────────────────────────────────────
-function Abschnitt({ label, farbe, kinder, leer }) {
-  if (!kinder || kinder.length === 0) return null;
-  return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-        <span style={{ fontSize:11, fontWeight:800, color:farbe, letterSpacing:"0.1em" }}>{label.toUpperCase()}</span>
-        <span style={{ fontSize:11, color:"rgba(33,29,23,0.2)", fontWeight:600 }}>{kinder.length}</span>
-        <div style={{ flex:1, height:1, background:"rgba(33,29,23,0.05)" }}/>
-      </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {kinder}
-      </div>
-    </div>
-  );
+/* ── Navigation ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-home')   { renderHome(); }
+  if (id === 'screen-apps')   { renderApps(); }
+  if (id === 'screen-system') { renderSystem(); }
+}
+function goHome() { showScreen('screen-home'); }
+function goPin()  { pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
+function goWoerni() { window.location.href = 'woerni.html'; }
+
+/* ── PIN ── */
+let pinCount = 0;
+function buildKeypad() {
+  const kp = document.getElementById('keypad');
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  kp.innerHTML = keys.map(k => {
+    if (k === '') return '<div></div>';
+    return `<button class="key" onclick="pinPress('${k}')">${k}</button>`;
+  }).join('');
+}
+function pinPress(k) {
+  if (k === '⌫') { if (pinCount > 0) pinCount--; renderPinDots(); return; }
+  if (pinCount < 4) { pinCount++; renderPinDots(); }
+  if (pinCount === 4) { setTimeout(goHome, 220); }
+}
+function renderPinDots() {
+  document.querySelectorAll('#pinDots span').forEach((d,i) => d.classList.toggle('filled', i < pinCount));
 }
 
-// ─── HAUPTKOMPONENTE ──────────────────────────────────────────────────────────
-function Woerni() {
-  const [aufgaben, setAufgaben] = useState([]);
-  const [erledigt, setErledigt] = useState([]);
-  const [laden, setLaden] = useState(true);
-  const [fehler, setFehler] = useState(null);
-  const [ausgewaehlt, setAusgewaehlt] = useState(null);
-  const [neueAufgabe, setNeueAufgabe] = useState(false);
-  const [tab, setTab] = useState("heute"); // "heute" | "erledigt"
-
-  async function laden_() {
-    try {
-      setFehler(null);
-      const [a, e] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
-      setAufgaben(a || []);
-      setErledigt(e || []);
-    } catch(err) {
-      setFehler("Verbindung fehlgeschlagen — bitte prüfen");
-    } finally {
-      setLaden(false);
-    }
-  }
-
-  useEffect(() => {
-    laden_();
-    const interval = setInterval(laden_, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  async function updateAufgabe(id, daten) {
-    await api.updateAufgabe(id, daten);
-    await api.addVerlauf({
-      aufgabe_id: id,
-      von: "mirjam",
-      aktion: daten.status === "erledigt" ? "erledigt" : "status-geaendert",
-      zu_status: daten.status,
-    });
-    await laden_();
-  }
-
-  async function addAufgabe(daten) {
-    const neu = await api.addAufgabe(daten);
-    await api.addVerlauf({
-      aufgabe_id: neu[0].id,
-      von: "mirjam",
-      aktion: "erstellt",
-      zu_status: "neu",
-    });
-    await laden_();
-  }
-
-  // Gruppieren nach Priorität
-  const gruppen = {
-    kritisch:      aufgaben.filter(a => a.prioritaet === "kritisch"),
-    heute:         aufgaben.filter(a => a.prioritaet === "heute"),
-    "diese-woche": aufgaben.filter(a => a.prioritaet === "diese-woche"),
-    "wann-moeglich": aufgaben.filter(a => a.prioritaet === "wann-moeglich"),
-  };
-
-  // Entscheidungen separat hervorheben
-  const entscheidungen = aufgaben.filter(a => a.typ === "entscheidung");
-
-  const offeneGesamt = aufgaben.length;
-
-  return (
-    <div style={{ minHeight:"100vh", background:"#F8F4EA", paddingBottom:80 }}>
-
-      {/* HEADER */}
-      <div style={{ padding:"52px 20px 0", marginBottom:24 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:"rgba(33,29,23,0.3)", letterSpacing:"0.12em", marginBottom:6 }}>
-          WÖRNI · {heute().toUpperCase()}
-        </p>
-        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
-          <div>
-            <h1 style={{ fontSize:30, fontWeight:800, color:"#211D17", lineHeight:1.1, margin:0 }}>
-              {gruppen.kritisch.length > 0
-                ? <><span style={{ color:"#ef4444" }}>{gruppen.kritisch.length}</span> kritisch</>
-                : offeneGesamt === 0
-                  ? "Alles erledigt"
-                  : <><span style={{ color:"#f59e0b" }}>{offeneGesamt}</span> offen</>
-              }
-            </h1>
-            <p style={{ fontSize:13, color:"rgba(33,29,23,0.35)", marginTop:4 }}>
-              {gruppen.kritisch.length > 0
-                ? `+ ${offeneGesamt - gruppen.kritisch.length} weitere Aufgaben`
-                : offeneGesamt === 0
-                  ? "Great Hair Day läuft."
-                  : `${entscheidungen.length > 0 ? `${entscheidungen.length} warten auf dich` : "Kein Handlungsbedarf"}`
-              }
-            </p>
-          </div>
-          <div style={{ display:"flex", gap:8 }}>
-            <button onClick={() => window.location.href='apps.html'}
-              style={{ background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"10px 14px", color:"rgba(33,29,23,0.5)", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-              ⊞ Apps
-            </button>
-            <button onClick={() => setNeueAufgabe(true)}
-              style={{ background:"rgba(137,108,50,0.15)", border:"1px solid rgba(137,108,50,0.35)", borderRadius:12, padding:"10px 16px", color:"#6E5527", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-              + Aufgabe
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* TABS */}
-      <div style={{ display:"flex", gap:4, padding:"0 20px", marginBottom:24 }}>
-        {[["heute","Offen"], ["erledigt","Erledigt"]].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)}
-            style={{ flex:1, padding:"9px", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600,
-              background: tab===id ? "rgba(137,108,50,0.15)" : "transparent",
-              color: tab===id ? "#211D17" : "rgba(33,29,23,0.35)",
-            }}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* INHALT */}
-      <div style={{ padding:"0 20px" }}>
-
-        {/* Fehler */}
-        {fehler && (
-          <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
-            <p style={{ color:"#ef4444", fontSize:14, fontWeight:600 }}>{fehler}</p>
-            <button onClick={laden_} style={{ marginTop:8, fontSize:13, color:"rgba(33,29,23,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>
-              Erneut versuchen
-            </button>
-          </div>
-        )}
-
-        {/* Laden */}
-        {laden && (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {[...Array(3)].map((_,i) => (
-              <div key={i} style={{ background:"#F0E9D8", borderRadius:14, height:80,
-                animation:"einblenden 0.4s ease both", animationDelay:`${i*80}ms` }}/>
-            ))}
-          </div>
-        )}
-
-        {/* OFFENE AUFGABEN */}
-        {!laden && tab === "heute" && (
-          <>
-            <Abschnitt label="Kritisch" farbe="#ef4444"
-              kinder={gruppen.kritisch.map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
-              ))}
-            />
-            <Abschnitt label="Heute" farbe="#f59e0b"
-              kinder={gruppen.heute.map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
-              ))}
-            />
-            <Abschnitt label="Diese Woche" farbe="#6366f1"
-              kinder={gruppen["diese-woche"].map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
-              ))}
-            />
-            <Abschnitt label="Wann möglich" farbe="#6b7280"
-              kinder={gruppen["wann-moeglich"].map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
-              ))}
-            />
-
-            {/* Leer-Zustand */}
-            {offeneGesamt === 0 && !fehler && (
-              <div style={{ textAlign:"center", paddingTop:60 }} className="einblenden">
-                <div style={{ fontSize:48, marginBottom:16 }}>✓</div>
-                <p style={{ color:"rgba(33,29,23,0.6)", fontSize:18, fontWeight:700 }}>Alles erledigt.</p>
-                <p style={{ color:"rgba(33,29,23,0.3)", fontSize:14, marginTop:6 }}>Great Hair Day läuft.</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ERLEDIGT */}
-        {!laden && tab === "erledigt" && (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {erledigt.length === 0 && (
-              <p style={{ color:"rgba(33,29,23,0.3)", fontSize:14, textAlign:"center", paddingTop:40 }}>
-                Noch nichts erledigt heute.
-              </p>
-            )}
-            {erledigt.map((a, i) => (
-              <div key={a.id} className="einblenden" style={{ animationDelay:`${i*50}ms`,
-                background:"#fff", border:"1px solid #E4DBC5",
-                borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ width:20, height:20, borderRadius:"50%", background:"#F0E9D8",
-                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <span style={{ fontSize:11, color:"rgba(33,29,23,0.4)" }}>✓</span>
-                </div>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:"rgba(33,29,23,0.45)", fontSize:14, fontWeight:600, textDecoration:"line-through", textDecorationColor:"rgba(33,29,23,0.15)" }}>{a.titel}</p>
-                  {a.erledigt_am && <p style={{ fontSize:11, color:"rgba(33,29,23,0.2)", marginTop:2 }}>{formatDatum(a.erledigt_am)}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* DETAIL MODAL */}
-      {ausgewaehlt && (
-        <AufgabeDetail
-          aufgabe={ausgewaehlt}
-          onUpdate={updateAufgabe}
-          onClose={() => setAusgewaehlt(null)}
-        />
-      )}
-
-      {/* NEUE AUFGABE MODAL */}
-      {neueAufgabe && (
-        <NeueAufgabeModal
-          onSave={addAufgabe}
-          onClose={() => setNeueAufgabe(false)}
-        />
-      )}
-
-      {/* REFRESH BUTTON (unten) */}
-      <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)" }}>
-        <button onClick={laden_}
-          style={{ background:"#fff", border:"1px solid #E4DBC5", borderRadius:20, padding:"10px 20px", color:"rgba(33,29,23,0.4)", fontSize:12, fontWeight:600, cursor:"pointer", letterSpacing:"0.05em" }}>
-          ↻ Aktualisieren
-        </button>
-      </div>
-    </div>
-  );
+/* ── Sortieren Sheet ── */
+function openSortSheet()  { renderSortList(); document.getElementById('overlaySort').classList.add('active'); }
+function closeSortSheet() { document.getElementById('overlaySort').classList.remove('active'); renderApps(); renderSystem(); }
+function closeSortSheetBg(e) { if (e.target.id === 'overlaySort') closeSortSheet(); }
+function renderSortList() {
+  document.getElementById('sortList').innerHTML = appOrder.map((name,i) => {
+    const a = appsByName[name];
+    return `<div class="prio-row">
+      <div class="em">${a.em}</div>
+      <div class="nm">${name}</div>
+      <button class="prio-btn" ${i===0?'disabled':''} onclick="moveAppOrder('${name}',-1)">↑</button>
+      <button class="prio-btn" ${i===appOrder.length-1?'disabled':''} onclick="moveAppOrder('${name}',1)">↓</button>
+    </div>`;
+  }).join('');
+}
+function moveAppOrder(name, dir) {
+  const i = appOrder.indexOf(name), j = i + dir;
+  if (j < 0 || j >= appOrder.length) return;
+  [appOrder[i], appOrder[j]] = [appOrder[j], appOrder[i]];
+  renderSortList();
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<Woerni />);
+/* ── Prioritäten Sheet ── */
+function openPrioSheet()  { renderPrioSheet(); document.getElementById('overlayPrio').classList.add('active'); }
+function closePrioSheet() { document.getElementById('overlayPrio').classList.remove('active'); renderHome(); }
+function closePrioSheetBg(e) { if (e.target.id === 'overlayPrio') closePrioSheet(); }
+function renderPrioSheet() {
+  const selEl   = document.getElementById('prioSelectedList');
+  const availEl = document.getElementById('prioAvailableList');
+  selEl.innerHTML = priorities.length === 0
+    ? `<div class="prio-empty-hint">Noch keine Priorität gewählt.</div>`
+    : priorities.map((name,i) => {
+        const a = appsByName[name];
+        return `<div class="prio-row">
+          <div class="em">${a.em}</div>
+          <div class="nm">${name}</div>
+          <button class="prio-btn" ${i===0?'disabled':''} onclick="movePriority('${name}',-1)">↑</button>
+          <button class="prio-btn" ${i===priorities.length-1?'disabled':''} onclick="movePriority('${name}',1)">↓</button>
+          <button class="prio-btn remove" onclick="removePriority('${name}')">✕</button>
+        </div>`;
+      }).join('');
+  const available = orderedApps().filter(a => a.nm !== 'Wörni' && !priorities.includes(a.nm));
+  availEl.innerHTML = available.length === 0
+    ? `<div class="prio-empty-hint">Alle Apps sind bereits ausgewählt.</div>`
+    : available.map(a => `<div class="prio-row">
+        <div class="em">${a.em}</div>
+        <div class="nm">${a.nm}</div>
+        <div class="sb">${a.sb}</div>
+        <button class="prio-btn add" onclick="addPriority('${a.nm}')" ${priorities.length>=3?'disabled title="Maximal 3"':''}>+</button>
+      </div>`).join('');
+}
+function addPriority(name)    { if (priorities.length >= 3) { toast('Maximal 3 — zuerst eine entfernen'); return; } priorities.push(name); renderPrioSheet(); }
+function removePriority(name) { priorities = priorities.filter(n => n !== name); renderPrioSheet(); }
+function movePriority(name, dir) {
+  const i = priorities.indexOf(name), j = i + dir;
+  if (j < 0 || j >= priorities.length) return;
+  [priorities[i], priorities[j]] = [priorities[j], priorities[i]];
+  renderPrioSheet();
+}
+
+/* ── Toast ── */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ── Init ── */
+buildKeypad();
+renderPinDots();
+updateGreeting();
+renderNowCard();
+renderHome();
 </script>
 </body>
 </html>
