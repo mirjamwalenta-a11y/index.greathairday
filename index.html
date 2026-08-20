@@ -188,12 +188,13 @@
     .footer-links button:hover { border-color: var(--accent); }
 
     /* ── Apps Grid ── */
-    .apps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .apps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; grid-auto-rows: 1fr; }
     .app-tile {
       background: var(--card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 16px 14px;
       cursor: pointer; text-align: left; font-family: inherit;
       transition: border-color .15s;
+      min-height: 110px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
     }
     .app-tile:hover  { border-color: var(--accent); }
     .app-tile:active { background: var(--bg-soft); }
@@ -306,7 +307,7 @@
     }
 
     /* ── App-Badges ── */
-    .app-tile-wrap { position: relative; }
+    .app-tile-wrap { position: relative; display: flex; }
     .app-badge {
       position: absolute;
       top: -6px; right: -6px;
