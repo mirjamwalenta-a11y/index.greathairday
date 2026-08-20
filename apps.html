@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--navy:#F8F4EA;--copper:#896C32;--slate:#F0F2F5;--white:#fff;--muted:#6B7684;--border:#D6DAE0;--error:#C0392B;}
+  :root{--navy:#F8F4EA;--copper:#896C32;--copper-dark:#6E5527;--slate:#F0F2F5;--white:#fff;--muted:#6B7684;--border:#E4DBC5;--error:#B23A2E;--bg-soft:#F0E9D8;--card:#fff;--accent-tint:#EEE6CD;--crit:#B23A2E;--crit-tint:#F5DAD5;--heute:#A67A22;--heute-tint:#F1E4C4;--woche:#4E7288;--woche-tint:#DCE7EC;--wann:#8B8172;--wann-tint:#EAE3D6;--ok:#4C7A5B;--ok-tint:#DCEEE1;}
   body{font-family:'Poppins',system-ui,-apple-system,sans-serif;background:var(--navy);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
   #loginScreen{width:100%;max-width:340px;text-align:center}
   .logo-dot{width:14px;height:14px;border-radius:50%;background:var(--copper);margin:0 auto 20px}
@@ -21,11 +21,11 @@
   .logo-sub{color:rgba(33,29,23,0.45);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:40px}
   .pin-label{color:rgba(33,29,23,0.6);font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px}
   .pin-dots{display:flex;gap:16px;justify-content:center;margin-bottom:32px}
-  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(33,29,23,0.3);background:transparent;transition:all 0.15s}
+  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all 0.15s}
   .pin-dot.filled{background:var(--copper);border-color:var(--copper)}
   .pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:240px;margin:0 auto 20px}
-  .pin-btn{aspect-ratio:1;border-radius:50%;border:none;background:rgba(33,29,23,0.1);color:#211D17;font-size:22px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:inherit}
-  .pin-btn:active{background:rgba(33,29,23,0.25)}
+  .pin-btn{aspect-ratio:1;border-radius:50%;border:1px solid var(--border);background:#fff;color:#211D17;font-size:22px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:inherit}
+  .pin-btn:active{background:var(--accent-tint)}
   .pin-btn.empty{background:transparent;cursor:default;pointer-events:none}
   .pin-error{color:#B23A2E;font-size:13px;min-height:20px;margin-bottom:8px}
   #appScreen{display:none;width:100%;max-width:420px}
@@ -36,21 +36,21 @@
   .app-sub{color:rgba(33,29,23,0.4);font-size:11px;letter-spacing:0.08em;text-transform:uppercase}
   .app-greeting{color:rgba(33,29,23,0.7);font-size:13px;margin-top:8px}
   .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-  .app-card{background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.1);border-radius:14px;padding:18px 16px;cursor:pointer;text-decoration:none;display:block;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
-  .app-card:active{background:rgba(33,29,23,0.14);transform:scale(0.97)}
+  .app-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 16px;cursor:pointer;text-decoration:none;display:block;transition:all 0.15s;-webkit-tap-highlight-color:transparent;box-shadow:0 1px 3px rgba(33,29,23,0.04)}
+  .app-card:active{background:var(--bg-soft);transform:scale(0.97)}
   .app-card-icon{font-size:28px;margin-bottom:10px}
   .app-card-name{color:#211D17;font-size:14px;font-weight:700;margin-bottom:3px}
   .app-card-desc{color:rgba(33,29,23,0.45);font-size:11px;line-height:1.4}
-  .app-card.special{background:rgba(137,108,50,0.15);border-color:rgba(137,108,50,0.3)}
+  .app-card.special{background:var(--accent-tint);border-color:rgba(137,108,50,0.35)}
   .app-card.dragging{opacity:0.3;transform:scale(0.95)}
-  .app-card.drag-over{border-color:rgba(137,108,50,0.8);background:rgba(137,108,50,0.12)}
+  .app-card.drag-over{border-color:var(--copper);background:var(--accent-tint)}
   .apps-grid-edit .app-card::before{content:'⠿';position:absolute;top:6px;right:8px;color:rgba(33,29,23,0.2);font-size:14px}
   .app-card{position:relative}
-  .app-edit-btn{display:block;width:100%;padding:10px;background:rgba(33,29,23,0.06);border:1px dashed rgba(33,29,23,0.2);border-radius:10px;color:rgba(33,29,23,0.5);font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:10px;text-align:center}
-  .app-edit-btn:active{background:rgba(33,29,23,0.1)}
-  .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(33,29,23,0.15);border-radius:10px;color:rgba(33,29,23,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
-  .logout-btn:active{background:rgba(33,29,23,0.05)}
-  .dash-btn{display:block;width:100%;padding:12px;background:rgba(137,108,50,0.15);border:1px solid rgba(137,108,50,0.35);border-radius:10px;color:#6E5527;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px}
+  .app-edit-btn{display:block;width:100%;padding:10px;background:var(--accent-tint);border:1.5px dashed var(--copper);border-radius:10px;color:#6E5527;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:10px;text-align:center}
+  .app-edit-btn:active{background:rgba(137,108,50,0.25)}
+  .logout-btn{display:block;width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:10px;color:rgba(33,29,23,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .logout-btn:active{background:var(--bg-soft)}
+  .dash-btn{display:block;width:100%;padding:12px;background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:10px;color:#6E5527;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px}
   .dash-btn:active{background:rgba(137,108,50,0.28)}
 
   /* Dashboard Screen */
@@ -59,77 +59,78 @@
   .dash-back{background:none;border:none;color:rgba(33,29,23,0.5);font-size:14px;cursor:pointer;font-family:inherit;padding:0}
   .dash-title{color:#211D17;font-size:18px;font-weight:700;flex:1;text-align:center}
   .dash-section{font-size:10px;font-weight:700;color:rgba(33,29,23,0.35);text-transform:uppercase;letter-spacing:0.12em;margin:18px 0 8px}
-  .dcard{background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.1);border-radius:12px;overflow:hidden;margin-bottom:8px}
+  .dcard{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:0 1px 3px rgba(33,29,23,0.04)}
   .dcard-head{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .dcard-head:active{background:rgba(33,29,23,0.1)}
+  .dcard-head:active{background:var(--bg-soft)}
   .dcard-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
   .dcard-name{flex:1;color:#211D17;font-size:14px;font-weight:600}
   .dchev{color:rgba(33,29,23,0.35);font-size:16px;transition:transform 0.2s}
   .dchev.open{transform:rotate(90deg)}
-  .dcard-body{display:none;border-top:1px solid rgba(33,29,23,0.08);padding:12px 14px}
+  .dcard-body{display:none;border-top:1px solid var(--border);padding:12px 14px}
   .dcard-body.open{display:block}
   .drow{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
   .drow:last-child{margin-bottom:0}
   .dlabel{font-size:10px;font-weight:600;color:rgba(33,29,23,0.35);text-transform:uppercase;letter-spacing:0.07em;min-width:68px;padding-top:3px;flex-shrink:0}
   .dval{flex:1;font-size:13px;color:rgba(33,29,23,0.85);word-break:break-all}
   .dval a{color:#1565C0;text-decoration:none;font-size:13px}
-  .dpill{display:inline-block;font-family:'SF Mono','Fira Code',monospace;font-size:11px;background:rgba(33,29,23,0.1);border:1px solid rgba(33,29,23,0.15);border-radius:5px;padding:2px 6px;margin:1px 3px 1px 0;color:rgba(33,29,23,0.9)}
-  .dopen{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#6E5527;background:rgba(137,108,50,0.2);border:1px solid rgba(137,108,50,0.4);border-radius:6px;padding:5px 12px;text-decoration:none;margin-top:8px}
+  .dpill{display:inline-block;font-family:'SF Mono','Fira Code',monospace;font-size:11px;background:var(--bg-soft);border:1px solid var(--border);border-radius:5px;padding:2px 6px;margin:1px 3px 1px 0;color:rgba(33,29,23,0.9)}
+  .dopen{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#6E5527;background:var(--accent-tint);border:1px solid rgba(137,108,50,0.4);border-radius:6px;padding:5px 12px;text-decoration:none;margin-top:8px}
   .dpin-grid{display:flex;flex-wrap:wrap;gap:6px}
-  .dpin{font-size:12px;font-family:'SF Mono','Fira Code',monospace;background:rgba(33,29,23,0.08);border:1px solid rgba(33,29,23,0.12);border-radius:20px;padding:4px 12px;color:rgba(33,29,23,0.8)}
-  .dapikey{font-family:'SF Mono','Fira Code',monospace;font-size:9px;background:rgba(33,29,23,0.06);border:1px solid rgba(33,29,23,0.1);border-radius:6px;padding:7px 9px;word-break:break-all;color:rgba(33,29,23,0.45);line-height:1.6;margin-top:4px;display:block}
-  .dflow{background:rgba(33,29,23,0.05);border-radius:8px;padding:10px 12px;margin-top:6px}
+  .dpin{font-size:12px;font-family:'SF Mono','Fira Code',monospace;background:var(--bg-soft);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:rgba(33,29,23,0.8)}
+  .dapikey{font-family:'SF Mono','Fira Code',monospace;font-size:9px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;padding:7px 9px;word-break:break-all;color:rgba(33,29,23,0.45);line-height:1.6;margin-top:4px;display:block}
+  .dflow{background:var(--bg-soft);border-radius:8px;padding:10px 12px;margin-top:6px}
   .dfstep{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
   .dfstep:last-child{margin-bottom:0}
-  .dfnum{width:20px;height:20px;border-radius:50%;background:rgba(137,108,50,0.3);border:1px solid rgba(137,108,50,0.5);color:#6E5527;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .dfnum{width:20px;height:20px;border-radius:50%;background:var(--accent-tint);border:1px solid rgba(137,108,50,0.5);color:#6E5527;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
   .dftext{font-size:12px;color:rgba(33,29,23,0.7);line-height:1.5}
-  .dcode{font-family:'SF Mono','Fira Code',monospace;font-size:12px;background:rgba(46,160,67,0.2);border:1px solid rgba(46,160,67,0.4);color:#1E7A45;border-radius:4px;padding:1px 6px;font-weight:700}
+  .dcode{font-family:'SF Mono','Fira Code',monospace;font-size:12px;background:#E3F3E7;border:1px solid rgba(30,122,69,0.3);color:#1E7A45;border-radius:4px;padding:1px 6px;font-weight:700}
   .team-login{margin-top:16px}
-  .team-btn{display:block;width:100%;padding:12px;background:none;border:1px solid rgba(33,29,23,0.15);border-radius:10px;color:rgba(33,29,23,0.4);font-size:13px;cursor:pointer;font-family:inherit}
+  .team-btn{display:block;width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:10px;color:rgba(33,29,23,0.4);font-size:13px;cursor:pointer;font-family:inherit}
   #teamLoginScreen{display:none;width:100%;max-width:340px}
   .back-link{color:rgba(33,29,23,0.4);font-size:12px;cursor:pointer;margin-bottom:24px;display:inline-block}
-  .inp{width:100%;padding:12px 14px;border:none;border-radius:10px;font-size:15px;font-family:inherit;background:rgba(33,29,23,0.1);color:#211D17;outline:none;margin-bottom:10px}
+  .inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:#211D17;outline:none;margin-bottom:10px}
   .inp::placeholder{color:rgba(33,29,23,0.35)}
   .login-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--copper);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px}
+  .login-btn:active{background:var(--copper-dark)}
   .inp-err{color:#B23A2E;font-size:12px;text-align:center;min-height:18px;margin-bottom:8px}
   .woerni-liste{display:flex;flex-direction:column;gap:8px;margin:16px 0}
-  .woerni-chip{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid rgba(33,29,23,0.15);background:rgba(33,29,23,0.05);color:#211D17;font-size:14px;cursor:pointer;width:100%;font-family:inherit}
-  .woerni-chip.aktiv{border-color:var(--copper);background:rgba(137,108,50,0.2);font-weight:600}
+  .woerni-chip{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;color:#211D17;font-size:14px;cursor:pointer;width:100%;font-family:inherit}
+  .woerni-chip.aktiv{border-color:var(--copper);background:var(--accent-tint);font-weight:600}
   .woerni-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--copper);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:16px;font-family:inherit}
-  .woerni-btn:disabled{background:rgba(33,29,23,0.15);color:rgba(33,29,23,0.4);cursor:not-allowed}
+  .woerni-btn:disabled{background:var(--bg-soft);color:rgba(33,29,23,0.35);cursor:not-allowed}
   .woerni-status{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700}
-  .woerni-status.offen{background:rgba(33,29,23,0.12);color:rgba(33,29,23,0.6)}
-  .woerni-status.in_arbeit{background:rgba(230,180,80,0.2);color:#8A5A00}
-  .woerni-status.erledigt{background:rgba(90,200,120,0.2);color:#1E7A45}
-  .woerni-status.fehlgeschlagen{background:rgba(220,90,90,0.2);color:#B23A2E}
+  .woerni-status.offen{background:var(--bg-soft);color:rgba(33,29,23,0.6)}
+  .woerni-status.in_arbeit{background:var(--heute-tint);color:var(--heute)}
+  .woerni-status.erledigt{background:var(--ok-tint);color:var(--ok)}
+  .woerni-status.fehlgeschlagen{background:var(--crit-tint);color:var(--crit)}
   .woerni-ergebnis{white-space:pre-wrap;font-size:13px;line-height:1.5;color:rgba(33,29,23,0.85);margin-top:8px}
-  .woerni-kopieren{background:none;border:1px solid var(--copper);color:#6E5527;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
+  .woerni-kopieren{background:#fff;border:1px solid var(--copper);color:#6E5527;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
   .woerni-loeschen{background:none;border:none;color:rgba(33,29,23,0.3);font-size:14px;cursor:pointer;padding:2px 5px;line-height:1}
-  .woerni-textarea{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(33,29,23,0.15);background:rgba(33,29,23,0.05);color:#211D17;font-size:14px;font-family:inherit;margin-bottom:10px;min-height:90px;resize:vertical}
-  .woerni-select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(33,29,23,0.15);background:rgba(33,29,23,0.05);color:#211D17;font-size:14px;font-family:inherit;margin-bottom:10px}
-  .woerni-link-btn{display:block;width:100%;padding:10px;background:none;border:1px solid rgba(33,29,23,0.15);border-radius:10px;color:rgba(33,29,23,0.6);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:16px;text-align:center}
+  .woerni-textarea{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:#211D17;font-size:14px;font-family:inherit;margin-bottom:10px;min-height:90px;resize:vertical}
+  .woerni-select{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:#211D17;font-size:14px;font-family:inherit;margin-bottom:10px}
+  .woerni-link-btn{display:block;width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;color:rgba(33,29,23,0.6);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:16px;text-align:center}
 
   /* Aufgaben-Zentrale */
   .az-app-block{margin-bottom:8px}
   .az-app-label{color:rgba(33,29,23,0.45);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
   .az-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
-  .az-chip{background:rgba(33,29,23,0.08);border:1px solid rgba(33,29,23,0.12);border-radius:20px;color:rgba(33,29,23,0.8);font-size:12px;padding:6px 14px;cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:left}
-  .az-chip:active,.az-chip.aktiv{background:rgba(137,108,50,0.3);border-color:rgba(137,108,50,0.6);color:#211D17}
-  .az-divider{border:none;border-top:1px solid rgba(33,29,23,0.08);margin:16px 0}
+  .az-chip{background:#fff;border:1px solid var(--border);border-radius:20px;color:rgba(33,29,23,0.8);font-size:12px;padding:6px 14px;cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:left}
+  .az-chip:active,.az-chip.aktiv{background:var(--accent-tint);border-color:var(--copper);color:#211D17}
+  .az-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
   .az-freitext-label{color:rgba(33,29,23,0.45);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
-  .az-textarea{width:100%;background:rgba(33,29,23,0.06);border:1px solid rgba(33,29,23,0.12);border-radius:12px;color:#211D17;font-size:14px;padding:12px 14px;font-family:inherit;resize:none;min-height:80px;margin-bottom:10px}
+  .az-textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:12px;color:#211D17;font-size:14px;padding:12px 14px;font-family:inherit;resize:none;min-height:80px;margin-bottom:10px}
   .az-textarea::placeholder{color:rgba(33,29,23,0.3)}
-  .az-textarea:focus{outline:none;border-color:rgba(137,108,50,0.5);background:rgba(33,29,23,0.08)}
-  .az-send-btn{display:block;width:100%;padding:13px;background:rgba(137,108,50,0.8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
-  .az-send-btn:active{background:rgba(137,108,50,1)}
+  .az-textarea:focus{outline:none;border-color:var(--copper);background:#fff}
+  .az-send-btn{display:block;width:100%;padding:13px;background:var(--copper);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .az-send-btn:active{background:var(--copper-dark)}
   .az-send-btn:disabled{opacity:0.4;cursor:default}
-  .az-vorschau{background:rgba(137,108,50,0.12);border:1px solid rgba(137,108,50,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;color:rgba(33,29,23,0.85);font-size:13px;line-height:1.5;display:none}
-  .az-vorschau strong{color:#211D17;display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(137,108,50,0.9)}
+  .az-vorschau{background:var(--accent-tint);border:1px solid rgba(137,108,50,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;color:rgba(33,29,23,0.85);font-size:13px;line-height:1.5;display:none}
+  .az-vorschau strong{color:#6E5527;display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em}
 
   /* Wörni Zentrale — eine Seite */
-  .wz-app-block{background:rgba(33,29,23,0.05);border:1px solid rgba(33,29,23,0.1);border-radius:14px;margin-bottom:10px;overflow:hidden;cursor:grab;user-select:none}
-  .wz-app-block.dragging{opacity:0.4;border-color:rgba(137,108,50,0.5)}
-  .wz-app-block.drag-over{border-color:rgba(137,108,50,0.8);background:rgba(137,108,50,0.08)}
+  .wz-app-block{background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;cursor:grab;user-select:none;box-shadow:0 1px 3px rgba(33,29,23,0.04)}
+  .wz-app-block.dragging{opacity:0.4;border-color:var(--copper)}
+  .wz-app-block.drag-over{border-color:var(--copper);background:var(--accent-tint)}
   .wz-app-head{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;gap:10px}
   .wz-app-head-left{display:flex;align-items:center;gap:10px}
   .wz-app-drag{color:rgba(33,29,23,0.2);font-size:16px;cursor:grab;padding:0 4px}
@@ -140,11 +141,11 @@
   .wz-app-body{display:none;padding:0 14px 14px}
   .wz-app-body.open{display:block}
   .wz-chip-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
-  .wz-vorlage-card{background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.08);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .wz-vorlage-card{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
   .wz-vorlage-titel{color:rgba(33,29,23,0.6);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
   .wz-vorlage-text{color:rgba(33,29,23,0.8);font-size:13px;line-height:1.5;white-space:pre-wrap}
   .wz-vorlage-actions{display:flex;gap:6px;margin-top:8px}
-  .wz-chip-aktiv{background:rgba(137,108,50,0.3)!important;border-color:rgba(137,108,50,0.6)!important;color:#211D17!important}
+  .wz-chip-aktiv{background:var(--accent-tint)!important;border-color:var(--copper)!important;color:#211D17!important}
   /* Toast System */
   #toastContainer{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
   .toast{background:#211D17;color:#fff;padding:11px 20px;border-radius:10px;border-left:4px solid rgba(137,108,50,0.9);box-shadow:0 4px 16px rgba(0,0,0,0.35);font-size:13px;opacity:0;transform:translateY(10px);transition:opacity 0.25s ease,transform 0.25s ease;white-space:nowrap}
@@ -153,19 +154,19 @@
   /* ── Zugangsdaten Gate-Screen ── */
   #zgGateScreen{display:none;width:100%;max-width:340px;text-align:center}
   .zg-steps{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px}
-  .zg-step{width:26px;height:26px;border-radius:50%;border:2px solid rgba(33,29,23,0.2);color:rgba(33,29,23,0.3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
-  .zg-step.aktiv{border-color:#896C32;background:rgba(137,108,50,0.2);color:#6E5527}
-  .zg-step.done{border-color:rgba(90,200,120,0.6);background:rgba(90,200,120,0.15);color:#1E7A45}
-  .zg-step-linie{width:28px;height:2px;background:rgba(33,29,23,0.1);border-radius:1px}
+  .zg-step{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);color:rgba(33,29,23,0.3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
+  .zg-step.aktiv{border-color:#896C32;background:var(--accent-tint);color:#6E5527}
+  .zg-step.done{border-color:var(--ok);background:var(--ok-tint);color:var(--ok)}
+  .zg-step-linie{width:28px;height:2px;background:var(--border);border-radius:1px}
   .zg-label{color:rgba(33,29,23,0.5);font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:14px}
-  .zg-pw-input{width:100%;padding:13px 16px;border:1px solid rgba(33,29,23,0.15);border-radius:12px;background:rgba(33,29,23,0.07);color:#211D17;font-size:16px;font-family:inherit;outline:none;text-align:center;letter-spacing:0.06em;margin-bottom:10px;transition:border-color 0.2s}
+  .zg-pw-input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:12px;background:#fff;color:#211D17;font-size:16px;font-family:inherit;outline:none;text-align:center;letter-spacing:0.06em;margin-bottom:10px;transition:border-color 0.2s}
   .zg-pw-input::placeholder{color:rgba(33,29,23,0.25);letter-spacing:0}
-  .zg-pw-input:focus{border-color:rgba(137,108,50,0.5)}
-  .zg-pw-input.zg-fehler{border-color:rgba(220,80,80,0.5);animation:zgSchütteln 0.35s ease}
+  .zg-pw-input:focus{border-color:var(--copper)}
+  .zg-pw-input.zg-fehler{border-color:var(--crit);animation:zgSchütteln 0.35s ease}
   @keyframes zgSchütteln{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
   .zg-weiter-btn{width:100%;padding:13px;border:none;border-radius:12px;background:#896C32;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px}
-  .zg-weiter-btn:active{background:#9a4e20}
-  .zg-abbruch-btn{display:block;width:100%;padding:10px;background:none;border:1px solid rgba(33,29,23,0.12);border-radius:10px;color:rgba(33,29,23,0.4);font-size:13px;cursor:pointer;font-family:inherit}
+  .zg-weiter-btn:active{background:var(--copper-dark)}
+  .zg-abbruch-btn{display:block;width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;color:rgba(33,29,23,0.4);font-size:13px;cursor:pointer;font-family:inherit}
   .zg-fehler-text{color:#B23A2E;font-size:12px;min-height:18px;margin-bottom:8px}
 
   /* ── TASK 3: Jiggle-Animation im Sortiermodus ── */
@@ -196,15 +197,15 @@
   /* Diktat-Button */
   .ghd-dikt-btn {
     display:inline-flex;align-items:center;gap:7px;
-    padding:8px 14px;border-radius:20px;border:1px solid rgba(33,29,23,0.18);
-    background:rgba(33,29,23,0.07);color:rgba(33,29,23,0.7);
+    padding:8px 14px;border-radius:20px;border:1px solid var(--border);
+    background:#fff;color:rgba(33,29,23,0.7);
     font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
     transition:all 0.2s;margin-bottom:8px;
   }
-  .ghd-dikt-btn:active { background:rgba(33,29,23,0.14); }
+  .ghd-dikt-btn:active { background:var(--bg-soft); }
   .ghd-dikt-btn.aufnahme {
-    background:rgba(220,60,60,0.18);border-color:rgba(220,60,60,0.5);
-    color:#B23A2E;animation:ghd-pulse-ring 1.2s ease-in-out infinite;
+    background:var(--crit-tint);border-color:var(--crit);
+    color:var(--crit);animation:ghd-pulse-ring 1.2s ease-in-out infinite;
   }
   @keyframes ghd-pulse-ring {
     0%,100% { box-shadow: 0 0 0 0 rgba(220,60,60,0.35); }
@@ -213,17 +214,17 @@
   /* WhatsApp-Button */
   .ghd-wa-btn {
     display:inline-flex;align-items:center;gap:7px;
-    padding:8px 14px;border-radius:20px;border:1px solid rgba(37,211,102,0.35);
-    background:rgba(37,211,102,0.1);color:#128C4A;
+    padding:8px 14px;border-radius:20px;border:1px solid rgba(37,211,102,0.4);
+    background:#E9F9EF;color:#128C4A;
     font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
     transition:all 0.2s;margin-top:8px;
   }
-  .ghd-wa-btn:active { background:rgba(37,211,102,0.2); }
+  .ghd-wa-btn:active { background:#D3F3DD; }
   /* Lade-Spinner */
   .ghd-spinner {
     display:inline-block;width:16px;height:16px;
-    border:2px solid rgba(33,29,23,0.2);
-    border-top-color:rgba(137,108,50,0.9);
+    border:2px solid var(--border);
+    border-top-color:var(--copper);
     border-radius:50%;animation:ghd-spin 0.7s linear infinite;
     flex-shrink:0;
   }
@@ -241,25 +242,26 @@
   }
   .heute-section-label:first-child { margin-top:0; }
   .heute-aufgabe-card {
-    background:rgba(33,29,23,0.06);border:1px solid rgba(33,29,23,0.1);
+    background:#fff;border:1px solid var(--border);
     border-radius:12px;padding:14px 16px;
     display:flex;align-items:center;justify-content:space-between;
     gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;
     transition:background 0.15s;margin-bottom:8px;
+    box-shadow:0 1px 3px rgba(33,29,23,0.04);
   }
-  .heute-aufgabe-card:active { background:rgba(33,29,23,0.11); }
+  .heute-aufgabe-card:active { background:var(--bg-soft); }
   .heute-aufgabe-card.erledigt { opacity:0.45; }
   .heute-aufgabe-card.erledigt .heute-aufgabe-titel {
     text-decoration:line-through;color:rgba(33,29,23,0.4);
   }
   .heute-check-btn {
-    width:22px;height:22px;border-radius:50%;border:2px solid rgba(33,29,23,0.25);
+    width:22px;height:22px;border-radius:50%;border:2px solid var(--border);
     background:transparent;cursor:pointer;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;transition:all 0.2s;
   }
   .heute-check-btn.done {
-    background:rgba(90,200,120,0.3);border-color:rgba(90,200,120,0.6);
-    color:#1E7A45;font-size:12px;
+    background:var(--ok);border-color:var(--ok);
+    color:#fff;font-size:12px;
   }
   .heute-aufgabe-titel { color:#211D17;font-size:13px;font-weight:600;line-height:1.4;flex:1; }
   .heute-aufgabe-prio { font-size:14px;flex-shrink:0; }
@@ -321,7 +323,7 @@
     <!-- Wörni + Aufträge — immer sichtbar, immer oben rechts -->
     <button onclick="window.location.href='index.html'" style="
       display:flex;align-items:center;gap:6px;
-      background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.12);
+      background:#fff;border:1px solid var(--border);
       border-radius:20px;padding:7px 13px;cursor:pointer;font-family:inherit;
       color:rgba(33,29,23,0.7);font-size:12px;font-weight:600;
       -webkit-tap-highlight-color:transparent;transition:background 0.15s;
@@ -334,22 +336,22 @@
 
   <!-- ══ IMPULSKARTE — der eine Haupteinstieg ══ -->
   <div id="impulsKarte" onclick="impulsAktion()" style="
-    background:linear-gradient(135deg,rgba(137,108,50,0.22) 0%,rgba(137,108,50,0.1) 100%);
-    border:1px solid rgba(137,108,50,0.45);
+    background:linear-gradient(135deg,#896C32 0%,#6E5527 100%);
+    border:none;box-shadow:0 12px 24px rgba(137,108,50,0.30);
     border-radius:18px;padding:22px 20px 18px;
     margin-bottom:24px;cursor:pointer;
     -webkit-tap-highlight-color:transparent;
     transition:background 0.15s;
   ">
-    <div style="font-size:10px;font-weight:700;color:rgba(137,108,50,0.7);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px">Jetzt</div>
-    <div id="impulsText" style="color:#211D17;font-size:18px;font-weight:700;line-height:1.4;margin-bottom:14px">Lade…</div>
+    <div style="font-size:11px;font-weight:700;color:#fff;opacity:0.9;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px">Jetzt</div>
+    <div id="impulsText" style="color:#fff;font-size:18px;font-weight:700;line-height:1.4;margin-bottom:16px">Lade…</div>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div id="impulsAktionLabel" style="
-        display:inline-block;background:rgba(137,108,50,0.6);
-        color:#fff;font-size:13px;font-weight:700;
-        border-radius:20px;padding:7px 16px;
+        display:inline-block;background:#fff;
+        color:#6E5527;font-size:13px;font-weight:700;
+        border-radius:999px;padding:9px 18px;
       ">→</div>
-      <div id="impulsBereich" style="font-size:11px;color:rgba(33,29,23,0.25)"></div>
+      <div id="impulsBereich" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
     </div>
   </div>
 
@@ -359,57 +361,57 @@
     <!-- Sichtbar werden -->
     <div onclick="showSichtbar()" style="
       display:flex;align-items:center;gap:14px;
-      background:rgba(33,29,23,0.055);border:1px solid rgba(33,29,23,0.09);
+      background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:13px 16px;cursor:pointer;
       -webkit-tap-highlight-color:transparent;transition:background 0.15s;
     ">
       <span style="font-size:18px;flex-shrink:0">✨</span>
       <div style="flex:1">
-        <div style="color:rgba(33,29,23,0.85);font-size:13px;font-weight:600">Sichtbar werden</div>
-        <div style="color:rgba(33,29,23,0.3);font-size:11px;margin-top:1px">Heute einen Anlass in Content</div>
+        <div style="color:#211D17;font-size:13px;font-weight:600">Sichtbar werden</div>
+        <div style="color:rgba(33,29,23,0.45);font-size:11px;margin-top:1px">Heute einen Anlass in Content</div>
       </div>
-      <div style="color:rgba(33,29,23,0.2);font-size:16px">›</div>
+      <div style="color:rgba(33,29,23,0.25);font-size:16px">›</div>
     </div>
 
     <!-- Team führen -->
     <div onclick="showTeamFuehren()" style="
       display:flex;align-items:center;gap:14px;
-      background:rgba(33,29,23,0.055);border:1px solid rgba(33,29,23,0.09);
+      background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:13px 16px;cursor:pointer;
       -webkit-tap-highlight-color:transparent;transition:background 0.15s;
     ">
       <span style="font-size:18px;flex-shrink:0">👥</span>
       <div style="flex:1">
-        <div style="color:rgba(33,29,23,0.85);font-size:13px;font-weight:600">Team führen</div>
-        <div id="teamFuehrenSub" style="color:rgba(33,29,23,0.3);font-size:11px;margin-top:1px">Was meine Entscheidung braucht</div>
+        <div style="color:#211D17;font-size:13px;font-weight:600">Team führen</div>
+        <div id="teamFuehrenSub" style="color:rgba(33,29,23,0.45);font-size:11px;margin-top:1px">Was meine Entscheidung braucht</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div id="teamBadge" style="display:none;background:#e05a3a;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;min-width:18px;text-align:center"></div>
-        <div style="color:rgba(33,29,23,0.2);font-size:16px">›</div>
+        <div style="color:rgba(33,29,23,0.25);font-size:16px">›</div>
       </div>
     </div>
 
     <!-- Belege ordnen -->
     <div onclick="showBelegeOrdnen()" style="
       display:flex;align-items:center;gap:14px;
-      background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);
+      background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:11px 16px;cursor:pointer;
       -webkit-tap-highlight-color:transparent;transition:background 0.15s;
     ">
       <span style="font-size:16px;flex-shrink:0">🧾</span>
       <div style="flex:1">
-        <div style="color:rgba(33,29,23,0.65);font-size:12px;font-weight:600">Belege ordnen</div>
-        <div id="belegeSub" style="color:rgba(33,29,23,0.25);font-size:11px;margin-top:1px">Ordnung und Abschluss</div>
+        <div style="color:#211D17;font-size:12px;font-weight:600">Belege ordnen</div>
+        <div id="belegeSub" style="color:rgba(33,29,23,0.45);font-size:11px;margin-top:1px">Ordnung und Abschluss</div>
       </div>
-      <div style="color:rgba(33,29,23,0.15);font-size:16px">›</div>
+      <div style="color:rgba(33,29,23,0.25);font-size:16px">›</div>
     </div>
   </div>
 
   <!-- ══ MEHR — sehr klein, sehr ruhig ══ -->
   <div style="display:flex;gap:6px;justify-content:center">
-    <button onclick="showDash()" style="padding:7px 12px;background:none;border:1px solid rgba(33,29,23,0.08);border-radius:8px;color:rgba(33,29,23,0.25);font-size:10px;cursor:pointer;font-family:inherit">🗝 Zugangsdaten</button>
-    <button onclick="showSystem()" style="padding:7px 12px;background:none;border:1px solid rgba(33,29,23,0.08);border-radius:8px;color:rgba(33,29,23,0.2);font-size:10px;cursor:pointer;font-family:inherit">⚙️ System</button>
-    <button onclick="doLogout()" style="padding:7px 12px;background:none;border:1px solid rgba(33,29,23,0.08);border-radius:8px;color:rgba(33,29,23,0.2);font-size:10px;cursor:pointer;font-family:inherit">↩ Abmelden</button>
+    <button onclick="showDash()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">🗝 Zugangsdaten</button>
+    <button onclick="showSystem()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">⚙️ System</button>
+    <button onclick="doLogout()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">↩ Abmelden</button>
   </div>
 
 </div>
@@ -419,11 +421,11 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideSichtbar()">← Zurück</button>
     <div class="dash-title">✨ Sichtbar werden</div>
-    <button onclick="window.location.href='index.html'" style="background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Primärer Einstieg -->
-  <div onclick="sichtbarAnlass()" style="background:rgba(33,29,23,0.09);border:1px solid rgba(33,29,23,0.16);border-radius:16px;padding:22px 20px;margin-bottom:18px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s">
+  <div onclick="sichtbarAnlass()" style="background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:16px;padding:22px 20px;margin-bottom:18px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s">
     <div style="font-size:24px;margin-bottom:10px">💡</div>
     <div style="color:#211D17;font-size:17px;font-weight:700;margin-bottom:6px">Ich habe heute einen Anlass</div>
     <div style="color:rgba(33,29,23,0.45);font-size:12px;line-height:1.6">Ein Moment, ein Ergebnis, ein Team-Augenblick — sofort sichtbar gemacht.</div>
@@ -431,7 +433,7 @@
   </div>
 
   <!-- Sekundär -->
-  <div onclick="sichtbarTermine()" style="display:flex;align-items:center;gap:12px;background:rgba(33,29,23,0.05);border:1px solid rgba(33,29,23,0.08);border-radius:13px;padding:13px 16px;margin-bottom:16px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+  <div onclick="sichtbarTermine()" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 16px;margin-bottom:16px;cursor:pointer;-webkit-tap-highlight-color:transparent">
     <span style="font-size:16px">📅</span>
     <div style="flex:1"><div style="color:rgba(33,29,23,0.75);font-size:13px;font-weight:600">Freie Termine füllen</div><div style="color:rgba(33,29,23,0.3);font-size:11px;margin-top:1px">Story, Post und WhatsApp sofort</div></div>
     <div style="color:rgba(33,29,23,0.2);font-size:16px">›</div>
@@ -440,10 +442,10 @@
   <!-- Tiefer -->
   <div style="font-size:10px;font-weight:700;color:rgba(33,29,23,0.2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;padding-left:2px">Weitere Möglichkeiten</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-    <div onclick="sichtbarKampagne()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📆</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">7-Tage Kampagne</div></div>
-    <div onclick="sichtbarRecruiting()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🔍</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Recruiting</div></div>
-    <div onclick="sichtbarKundenbindung()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🤝</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Kundenbindung</div></div>
-    <div onclick="sichtbarRahmen()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🖼</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Goldrahmen</div></div>
+    <div onclick="sichtbarKampagne()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📆</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">7-Tage Kampagne</div></div>
+    <div onclick="sichtbarRecruiting()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🔍</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Recruiting</div></div>
+    <div onclick="sichtbarKundenbindung()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🤝</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Kundenbindung</div></div>
+    <div onclick="sichtbarRahmen()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🖼</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Goldrahmen</div></div>
   </div>
 </div>
 
@@ -452,7 +454,7 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideTeamFuehren()">← Zurück</button>
     <div class="dash-title">👥 Team führen</div>
-    <button onclick="window.location.href='index.html'" style="background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Primär: nur was Entscheidung braucht -->
@@ -462,10 +464,10 @@
   <!-- Sekundär: Navigation -->
   <div style="font-size:10px;font-weight:700;color:rgba(33,29,23,0.2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;padding-left:2px">Weitere Bereiche</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-    <div onclick="teamZuAbwesenheit()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📅</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Abwesenheiten</div></div>
-    <div onclick="teamZuMitteilungen()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📢</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Mitteilungen</div></div>
-    <div onclick="teamZuLernquiz()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">✂️</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Meister Englisch</div></div>
-    <div onclick="teamZuFitCheck()" style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.07);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🔍</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Bewerbungen</div></div>
+    <div onclick="teamZuAbwesenheit()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📅</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Abwesenheiten</div></div>
+    <div onclick="teamZuMitteilungen()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">📢</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Mitteilungen</div></div>
+    <div onclick="teamZuLernquiz()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">✂️</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Meister Englisch</div></div>
+    <div onclick="teamZuFitCheck()" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="font-size:14px;margin-bottom:4px">🔍</div><div style="color:rgba(33,29,23,0.55);font-size:11px;font-weight:600">Bewerbungen</div></div>
   </div>
 </div>
 
@@ -474,17 +476,17 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideBelegeOrdnen()">← Zurück</button>
     <div class="dash-title">🧾 Belege ordnen</div>
-    <button onclick="window.location.href='index.html'" style="background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Status-Karte -->
-  <div id="belegeStatusKarte" style="border-radius:14px;padding:16px 18px;margin-bottom:16px;background:rgba(33,29,23,0.06);border:1px solid rgba(33,29,23,0.1)">
+  <div id="belegeStatusKarte" style="border-radius:14px;padding:16px 18px;margin-bottom:16px;background:#fff;border:1px solid var(--border)">
     <div style="font-size:10px;font-weight:700;color:rgba(33,29,23,0.3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Monatsstatus</div>
     <div id="belegeStatusText" style="color:#211D17;font-size:15px;font-weight:600;line-height:1.5">Wird geladen…</div>
   </div>
 
   <!-- Primär: Ist alles fertig -->
-  <div onclick="belegeZuApp('fertig')" style="background:rgba(33,29,23,0.09);border:1px solid rgba(33,29,23,0.16);border-radius:16px;padding:18px 20px;margin-bottom:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s">
+  <div onclick="belegeZuApp('fertig')" style="background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:16px;padding:18px 20px;margin-bottom:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s">
     <div style="display:flex;align-items:center;gap:12px">
       <span style="font-size:22px">✅</span>
       <div style="flex:1"><div style="color:#211D17;font-size:15px;font-weight:700">Ist alles fertig?</div><div style="color:rgba(33,29,23,0.4);font-size:11px;margin-top:3px">Monat prüfen und abschließen</div></div>
@@ -493,12 +495,12 @@
   </div>
 
   <!-- Sekundär -->
-  <div onclick="belegeZuApp('klaeren')" style="display:flex;align-items:center;gap:12px;background:rgba(33,29,23,0.05);border:1px solid rgba(33,29,23,0.08);border-radius:13px;padding:13px 16px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+  <div onclick="belegeZuApp('klaeren')" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 16px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent">
     <span style="font-size:16px">🔍</span>
     <div style="flex:1"><div style="color:rgba(33,29,23,0.7);font-size:13px;font-weight:600">Braucht etwas Klärung?</div></div>
     <div style="color:rgba(33,29,23,0.15);font-size:16px">›</div>
   </div>
-  <div onclick="belegeZuApp('neu')" style="display:flex;align-items:center;gap:12px;background:rgba(33,29,23,0.05);border:1px solid rgba(33,29,23,0.08);border-radius:13px;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+  <div onclick="belegeZuApp('neu')" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent">
     <span style="font-size:16px">➕</span>
     <div style="flex:1"><div style="color:rgba(33,29,23,0.7);font-size:13px;font-weight:600">Neu dazu</div></div>
     <div style="color:rgba(33,29,23,0.15);font-size:16px">›</div>
@@ -510,10 +512,10 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideSystem()">← Zurück</button>
     <div class="dash-title">⚙️ System</div>
-    <button onclick="sysSortToggle()" id="sysSortBtn" style="background:rgba(33,29,23,0.07);border:1px solid rgba(33,29,23,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">↕ Sortieren</button>
+    <button onclick="sysSortToggle()" id="sysSortBtn" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">↕ Sortieren</button>
   </div>
 
-  <div style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.08);border-radius:12px;padding:12px 14px;margin-bottom:20px">
+  <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px">
     <div style="color:rgba(33,29,23,0.5);font-size:12px;line-height:1.6">Hier verwaltest du alle Apps als Baukasten — öffnen, bearbeiten, hinzufügen, löschen. Dieser Bereich ist kein normaler Einstieg, sondern dein Arbeitsraum für Pflege und Weiterentwicklung.</div>
   </div>
 
@@ -607,7 +609,7 @@
     <span style="color:#6E5527;font-size:12px;font-weight:700">✏️ Bearbeitungs-Modus</span>
     <div style="display:flex;gap:8px">
       <button onclick="zgModalSektionOeffnen()" style="background:rgba(137,108,50,0.6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit">+ Bereich</button>
-      <button onclick="zgAdminToggle()" style="background:rgba(33,29,23,0.1);border:none;border-radius:8px;color:rgba(33,29,23,0.6);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit">Fertig</button>
+      <button onclick="zgAdminToggle()" style="background:#fff;border:1px solid var(--border);border-radius:8px;color:rgba(33,29,23,0.6);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit">Fertig</button>
     </div>
   </div>
 
@@ -615,18 +617,18 @@
   <div id="zgInhalt"></div>
 
   <!-- Bearbeiten-Button -->
-  <button id="zgEditBtn" onclick="zgAdminToggle()" style="display:block;width:100%;padding:10px;background:rgba(33,29,23,0.04);border:1px dashed rgba(33,29,23,0.15);border-radius:10px;color:rgba(33,29,23,0.35);font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px;margin-bottom:24px">
+  <button id="zgEditBtn" onclick="zgAdminToggle()" style="display:block;width:100%;padding:10px;background:var(--bg-soft);border:1.5px dashed var(--border);border-radius:10px;color:rgba(33,29,23,0.4);font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px;margin-bottom:24px">
     ✏️ Zugangsdaten bearbeiten
   </button>
 </div>
 
 <!-- MODAL: Neue Zeile -->
 <div id="zgModalZeile" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;padding:0">
-  <div style="background:#F8F4EA;border:1px solid rgba(33,29,23,0.15);border-radius:18px 18px 0 0;padding:24px 20px 36px;width:100%;max-width:480px">
+  <div style="background:#F8F4EA;border:1px solid var(--border);border-radius:18px 18px 0 0;padding:24px 20px 36px;width:100%;max-width:480px">
     <div style="color:#211D17;font-size:15px;font-weight:700;margin-bottom:14px">Neue Zeile hinzufügen</div>
-    <select id="zgZeileSektionSel" style="width:100%;padding:11px 14px;border:1px solid rgba(33,29,23,0.15);border-radius:10px;background:rgba(33,29,23,0.07);color:#211D17;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px"></select>
+    <select id="zgZeileSektionSel" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:#211D17;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px"></select>
     <input id="zgZeileLabel" class="inp" placeholder="Bezeichnung (z.B. Passwort, Link, PIN)" style="margin-bottom:10px">
-    <select id="zgZeileTyp" onchange="zgZeileTypWechseln()" style="width:100%;padding:11px 14px;border:1px solid rgba(33,29,23,0.15);border-radius:10px;background:rgba(33,29,23,0.07);color:#211D17;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px">
+    <select id="zgZeileTyp" onchange="zgZeileTypWechseln()" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:#211D17;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px">
       <option value="pill">🔑 PIN / Code (Pill)</option>
       <option value="link">🌐 URL / Link</option>
       <option value="text">📝 Text / Hinweis</option>
@@ -661,8 +663,8 @@
   </div>
 
   <!-- Tab-Leiste: Aufträge | Neuer Auftrag -->
-  <div style="display:flex;gap:6px;margin-bottom:20px;background:rgba(33,29,23,0.05);border-radius:12px;padding:4px">
-    <button id="tabAuftraege" onclick="wörniTabWechseln('auftraege')" style="flex:1;padding:9px;border:none;border-radius:9px;background:rgba(33,29,23,0.12);color:#211D17;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s">
+  <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--bg-soft);border-radius:12px;padding:4px">
+    <button id="tabAuftraege" onclick="wörniTabWechseln('auftraege')" style="flex:1;padding:9px;border:none;border-radius:9px;background:#211D17;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s">
       Aufträge <span id="auftragTabBadge" style="display:none;background:#e05a3a;border-radius:999px;padding:1px 6px;font-size:10px;margin-left:4px"></span>
     </button>
     <button id="tabNeuer" onclick="wörniTabWechseln('neuer')" style="flex:1;padding:9px;border:none;border-radius:9px;background:none;color:rgba(33,29,23,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s">
@@ -1834,17 +1836,17 @@ function systemRendern(){
       const upDis    = isFirst ? 'disabled' : '';
       const dnDis    = isLast  ? 'disabled' : '';
       buttons = '<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">'
-        + '<button onclick="sysMoveUp(\'' + app.name + '\')" ' + upDis + ' style="background:rgba(33,29,23,0.12);border:none;border-radius:6px;color:' + upColor + ';font-size:16px;width:34px;height:30px;cursor:' + upCursor + ';line-height:1;font-weight:700">↑</button>'
-        + '<button onclick="sysMoveDown(\'' + app.name + '\')" ' + dnDis + ' style="background:rgba(33,29,23,0.12);border:none;border-radius:6px;color:' + dnColor + ';font-size:16px;width:34px;height:30px;cursor:' + dnCursor + ';line-height:1;font-weight:700">↓</button>'
+        + '<button onclick="sysMoveUp(\'' + app.name + '\')" ' + upDis + ' style="background:#fff;border:1px solid var(--border);border-radius:6px;color:' + upColor + ';font-size:16px;width:34px;height:30px;cursor:' + upCursor + ';line-height:1;font-weight:700">↑</button>'
+        + '<button onclick="sysMoveDown(\'' + app.name + '\')" ' + dnDis + ' style="background:#fff;border:1px solid var(--border);border-radius:6px;color:' + dnColor + ';font-size:16px;width:34px;height:30px;cursor:' + dnCursor + ';line-height:1;font-weight:700">↓</button>'
         + '</div>';
     } else {
       buttons = '<div style="display:flex;gap:6px;flex-shrink:0">';
-      if(url)    buttons += '<button onclick="window.open(\'' + url + '\',\'_blank\')" style="background:rgba(33,29,23,0.08);border:1px solid rgba(33,29,23,0.12);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗ Öffnen</button>';
-      if(action) buttons += '<button onclick="' + action + '()" style="background:rgba(33,29,23,0.08);border:1px solid rgba(33,29,23,0.12);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗ Öffnen</button>';
+      if(url)    buttons += '<button onclick="window.open(\'' + url + '\',\'_blank\')" style="background:#fff;border:1px solid var(--border);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗ Öffnen</button>';
+      if(action) buttons += '<button onclick="' + action + '()" style="background:#fff;border:1px solid var(--border);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗ Öffnen</button>';
       buttons += '</div>';
     }
 
-    html += '<div class="sys-row" data-sysname="' + app.name + '" style="background:rgba(33,29,23,0.055);border:1px solid rgba(33,29,23,0.09);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px">'
+    html += '<div class="sys-row" data-sysname="' + app.name + '" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px">'
       + '<span style="font-size:20px;flex-shrink:0">' + app.icon + '</span>'
       + '<div style="flex:1;min-width:0"><div style="color:#211D17;font-size:13px;font-weight:600">' + app.name + '</div><div style="color:rgba(33,29,23,0.35);font-size:11px;margin-top:1px">' + (app.desc||'') + '</div></div>'
       + buttons
@@ -1861,8 +1863,8 @@ function systemRendern(){
           <div style="color:rgba(33,29,23,0.35);font-size:11px;margin-top:1px">${app.desc||''}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
-          ${app.url ? `<button onclick="window.open('${app.url}','_blank')" style="background:rgba(33,29,23,0.08);border:1px solid rgba(33,29,23,0.12);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗</button>` : ''}
-          <button onclick="systemBearbeitenEigen('${app.id}')" style="background:none;border:1px solid rgba(33,29,23,0.1);border-radius:8px;color:rgba(33,29,23,0.35);font-size:11px;padding:5px 10px;cursor:pointer;font-family:inherit">✏️</button>
+          ${app.url ? `<button onclick="window.open('${app.url}','_blank')" style="background:#fff;border:1px solid var(--border);border-radius:8px;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit">↗</button>` : ''}
+          <button onclick="systemBearbeitenEigen('${app.id}')" style="background:none;border:1px solid var(--border);border-radius:8px;color:rgba(33,29,23,0.35);font-size:11px;padding:5px 10px;cursor:pointer;font-family:inherit">✏️</button>
           <button onclick="systemLoeschen('${app.id}')" style="background:none;border:none;color:rgba(178,58,46,0.8);font-size:14px;padding:5px 8px;cursor:pointer;line-height:1">✕</button>
         </div>
       </div>`;
@@ -2119,8 +2121,8 @@ async function teamEntscheidungRendern(){
   }catch(e){
     // Kein Supabase-Zugriff — ruhige Fallback-Ansicht
     liste.innerHTML=`
-      <div style="background:rgba(33,29,23,0.04);border:1px solid rgba(33,29,23,0.08);border-radius:12px;padding:16px;text-align:center">
-        <div style="color:rgba(33,29,23,0.3);font-size:13px">Verbindung prüfen oder direkt in die App</div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+        <div style="color:rgba(33,29,23,0.4);font-size:13px">Verbindung prüfen oder direkt in die App</div>
       </div>`;
   }
 }
@@ -2203,11 +2205,11 @@ function wörniTabWechseln(tab){
   const panA=document.getElementById('panelAuftraege');
   const panN=document.getElementById('panelNeuer');
   if(tab==='auftraege'){
-    btnA.style.background='rgba(33,29,23,0.12)';btnA.style.color='#fff';
+    btnA.style.background='#211D17';btnA.style.color='#fff';
     btnN.style.background='none';btnN.style.color='rgba(33,29,23,0.5)';
     panA.style.display='block';panN.style.display='none';
   } else {
-    btnN.style.background='rgba(33,29,23,0.12)';btnN.style.color='#fff';
+    btnN.style.background='#211D17';btnN.style.color='#fff';
     btnA.style.background='none';btnA.style.color='rgba(33,29,23,0.5)';
     panN.style.display='block';panA.style.display='none';
   }
