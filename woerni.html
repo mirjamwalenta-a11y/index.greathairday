@@ -798,58 +798,71 @@ function Woerni() {
         {/* TAB: VORLAGEN */}
         {!laden && tab==="vorlagen" && (
           <div>
-            {["taeglich","woechentlich","monatlich","spontan"].map(rhythmus => {
-              const gruppe = vorlagen.filter(v => v.rhythmus===rhythmus);
-              if (gruppe.length===0) return null;
-              const r = RHYTHMEN[rhythmus];
-              return (
-                <div key={rhythmus} style={{marginBottom:24}}>
-                  <div className="abschnitt-header">
-                    <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>{r.label}</span>
-                    <span className="abschnitt-count">{gruppe.length}</span>
-                    <div className="abschnitt-line"/>
-                  </div>
-                  {gruppe.map(v => (
-                    <div key={v.id} className={`vorlage-card ${!v.aktiv?'inaktiv':''}`}
-                      style={{flexDirection:'column',alignItems:'stretch',gap:8}}
-                      onClick={() => setBearbVorlage(v)}>
-                      <div style={{display:'flex',alignItems:'center',gap:12}}>
-                        <span className={`vorlage-rhythmus ${r.cls}`}>{r.label}</span>
-                        <div style={{flex:1}}>
-                          <p style={{margin:0,fontWeight:600,fontSize:14,color:'var(--text)'}}>{v.titel}</p>
-                          {v.naechster_schritt && <p style={{margin:'2px 0 0',fontSize:12,color:'var(--text-soft)'}}>{v.naechster_schritt}</p>}
-                        </div>
-                        <span className={`badge ${(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).badgeCls}`} style={{fontSize:9}}>
-                          {(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).label}
-                        </span>
-                        <span style={{color:'var(--text-soft)',fontSize:18}}>›</span>
-                      </div>
-                      {v.rhythmus === 'spontan' && v.aktiv && (
-                        <button
-                          onClick={async e => {
-                            e.stopPropagation();
-                            await addAufgabe({
-                              titel: v.titel,
-                              naechster_schritt: v.naechster_schritt||'',
-                              prioritaet: v.prioritaet,
-                              typ: v.typ,
-                            });
-                            toast('✓ Aufgabe aus Vorlage erstellt');
-                          }}
-                          style={{
-                            background:'var(--accent)',color:'#fff',border:'none',
-                            borderRadius:10,padding:'9px 14px',fontWeight:700,
-                            fontSize:13,cursor:'pointer',fontFamily:'inherit',
-                            width:'100%',marginTop:2
-                          }}>
-                          ▶ Jetzt als Aufgabe erstellen
-                        </button>
-                      )}
+            {(() => {
+              // Nach App gruppieren
+              const apps = [...new Set(vorlagen.map(v => v.app||'Sonstige'))].sort();
+              const appIcons = {
+                'Aufträge':'🏠','Reichweite':'✨','Checklisten':'✅','Abwesenheit':'📅',
+                'Team':'💬','Lernquiz':'✂️','Lerntool':'📖','Lager':'📦',
+                'Handbuch':'📒','Belege':'🧾','Wörni':'🤖','Innung':'🏫','Sonstige':'📋'
+              };
+              return apps.map(app => {
+                const gruppe = vorlagen.filter(v => (v.app||'Sonstige')===app);
+                if (gruppe.length===0) return null;
+                return (
+                  <div key={app} style={{marginBottom:28}}>
+                    <div className="abschnitt-header">
+                      <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>
+                        {appIcons[app]||'📋'} {app}
+                      </span>
+                      <span className="abschnitt-count">{gruppe.length}</span>
+                      <div className="abschnitt-line"/>
                     </div>
-                  ))}
-                </div>
-              );
-            })}
+                    {gruppe.map(v => {
+                      const r = RHYTHMEN[v.rhythmus]||RHYTHMEN['spontan'];
+                      return (
+                        <div key={v.id} className={`vorlage-card ${!v.aktiv?'inaktiv':''}`}
+                          style={{flexDirection:'column',alignItems:'stretch',gap:8}}
+                          onClick={() => setBearbVorlage(v)}>
+                          <div style={{display:'flex',alignItems:'center',gap:12}}>
+                            <span className={`vorlage-rhythmus ${r.cls}`}>{r.label}</span>
+                            <div style={{flex:1}}>
+                              <p style={{margin:0,fontWeight:600,fontSize:14,color:'var(--text)'}}>{v.titel}</p>
+                              {v.naechster_schritt && <p style={{margin:'2px 0 0',fontSize:12,color:'var(--text-soft)'}}>{v.naechster_schritt}</p>}
+                            </div>
+                            <span className={`badge ${(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).badgeCls}`} style={{fontSize:9}}>
+                              {(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).label}
+                            </span>
+                            <span style={{color:'var(--text-soft)',fontSize:18}}>›</span>
+                          </div>
+                          {v.aktiv && (
+                            <button
+                              onClick={async e => {
+                                e.stopPropagation();
+                                await addAufgabe({
+                                  titel: v.titel,
+                                  naechster_schritt: v.naechster_schritt||'',
+                                  prioritaet: v.prioritaet,
+                                  typ: v.typ,
+                                });
+                                toast('✓ Aufgabe erstellt — jetzt in Offen');
+                              }}
+                              style={{
+                                background:'var(--accent)',color:'#fff',border:'none',
+                                borderRadius:10,padding:'9px 14px',fontWeight:700,
+                                fontSize:13,cursor:'pointer',fontFamily:'inherit',
+                                width:'100%',marginTop:2
+                              }}>
+                              ▶ Jetzt als Aufgabe erstellen
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              });
+            })()}
             {vorlagen.length===0 && (
               <div className="empty-state einblenden">
                 <div className="empty-icon">📋</div>
