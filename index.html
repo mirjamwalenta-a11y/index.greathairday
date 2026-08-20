@@ -330,7 +330,7 @@
     </div>
     <div class="home-pills">
       <button class="pill" onclick="showScreen('screen-apps')">⊞ Apps</button>
-      <button class="pill" onclick="goWoerni()">🤖 Wörni</button>
+      <button class="pill" onclick="goApp('Wörni')">🤖 Wörni</button>
     </div>
   </div>
 
@@ -338,8 +338,8 @@
     <div class="now-tag">JETZT</div>
     <div class="now-title" id="nowTitle">Abschluss: Sind die Belege diesen Monat vollständig?</div>
     <div class="now-actions">
-      <button class="now-btn-primary" onclick="toast('Öffnet Belege-App')">→ Belege prüfen</button>
-      <button class="now-btn-quiet" onclick="toast('Öffnet Belege-App')">Belege ordnen</button>
+      <button class="now-btn-primary" onclick="goApp('Belege')">→ Belege prüfen</button>
+      <button class="now-btn-quiet" onclick="goApp('Belege')">Belege ordnen</button>
     </div>
   </div>
 
@@ -415,18 +415,18 @@
 <script>
 /* ── Daten ── */
 const apps = [
-  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht'},
-  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks'},
-  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche'},
-  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand'},
-  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen'},
-  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung'},
-  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen'},
-  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen'},
-  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards'},
-  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater'},
-  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben'},
-  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen'},
+  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'woerni.html'},
+  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks',             url:'https://mirjamwalenta-a11y.github.io/moment.greathairday/'},
+  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/'},
+  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/'},
+  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/'},
+  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/'},
+  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lerntool.index.html/'},
+  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/'},
+  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/'},
+  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
+  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'woerni.html'},
+  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/'},
 ];
 
 const cardCopy = {
@@ -468,9 +468,9 @@ function renderNowCard() {
   document.getElementById('nowTitle').textContent = nc.title;
   const btns = document.querySelectorAll('.now-btn-primary, .now-btn-quiet');
   btns[0].textContent = nc.btn;
-  btns[0].onclick = () => { if(nc.app==='Wörni') goWoerni(); else toast('Öffnet ' + nc.app); };
+  btns[0].onclick = () => goApp(nc.app);
   btns[1].textContent = nc.quiet;
-  btns[1].onclick = () => toast('Öffnet ' + nc.app);
+  btns[1].onclick = () => goApp(nc.app);
 }
 
 /* ── Home: Prioritäten ── */
@@ -483,7 +483,7 @@ function renderHome() {
   el.innerHTML = priorities.map(name => {
     const a = appsByName[name];
     const c = cardCopy[name] || {title: name, sub: a.sb};
-    const dest = name === 'Wörni' ? "goWoerni()" : `toast('Öffnet ${name}')`;
+    const dest = `goApp('${name}')`;
     return `
       <div class="row-card" onclick="${dest}">
         <div class="row-emoji">${a.em}</div>
@@ -499,7 +499,7 @@ function renderHome() {
 /* ── Apps ── */
 function renderApps() {
   document.getElementById('appsGrid').innerHTML = orderedApps().map(a => `
-    <button class="app-tile" onclick="${a.nm==='Wörni' ? 'goWoerni()' : `toast('Öffnet ${a.nm}')`}">
+    <button class="app-tile" onclick="goApp('${a.nm}')">
       <div class="em">${a.em}</div>
       <div class="nm">${a.nm}</div>
       <div class="sb">${a.sb}</div>
@@ -511,7 +511,7 @@ function renderSystem() {
     <div class="sys-row">
       <div class="em">${a.em}</div>
       <div><div class="nm">${a.nm}</div><div class="sb">${a.sb}</div></div>
-      <button class="sys-open" onclick="toast('Öffnet ${a.nm}')">Öffnen</button>
+      <button class="sys-open" onclick="goApp('${a.nm}')">Öffnen</button>
     </div>`).join('');
 }
 
@@ -526,6 +526,11 @@ function showScreen(id) {
 function goHome() { showScreen('screen-home'); }
 function goPin()  { pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
 function goWoerni() { window.location.href = 'woerni.html'; }
+function goApp(name) {
+  const a = appsByName[name];
+  if (a && a.url) { window.location.href = a.url; }
+  else { toast('App nicht gefunden'); }
+}
 
 /* ── PIN ── */
 let pinCount = 0;
