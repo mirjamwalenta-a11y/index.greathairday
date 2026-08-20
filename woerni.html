@@ -3,46 +3,562 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Wörni · Great Hair Day OS</title>
+  <title>Wörni · Great Hair Day</title>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="Wörni"/>
   <meta name="theme-color" content="#F8F4EA"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    body { background: #F8F4EA; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; }
-
-    /* Puls-Animation für kritische Aufgaben */
-    @keyframes kritisch-puls {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+    :root {
+      --bg:           #F8F4EA;
+      --bg-soft:      #F0E9D8;
+      --card:         #FFFFFF;
+      --border:       #E4DBC5;
+      --text:         #211D17;
+      --text-soft:    #7C7565;
+      --accent:       #896C32;
+      --accent-dark:  #6E5527;
+      --accent-tint:  #EEE6CD;
+      --ok:           #4C7A5B;
+      --crit:         #B23A2E;
+      --crit-tint:    #F5DAD5;
+      --heute:        #A67A22;
+      --heute-tint:   #F1E4C4;
+      --woche:        #4E7288;
+      --woche-tint:   #DCE7EC;
+      --wann:         #8B8172;
+      --wann-tint:    #EAE3D6;
+      --radius:       14px;
+      --shadow:       0 10px 30px rgba(33,29,23,0.08);
     }
-    .kritisch-dot { animation: kritisch-puls 2s ease-in-out infinite; }
 
-    /* Einblenden beim Laden */
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Animationen ── */
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .einblenden { animation: einblenden 0.3s ease both; }
+    @keyframes kritisch-puls {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-4px); }
+      75%     { transform: translateX(4px); }
+    }
 
-    /* Sanfter Übergang bei Aktionen */
-    .aufgabe-card { transition: opacity 0.2s ease, transform 0.2s ease; }
+    .einblenden { animation: einblenden 0.3s ease both; }
+    .kritisch-dot { animation: kritisch-puls 2s ease-in-out infinite; }
+
+    /* ── Aufgaben-Karte ── */
+    .aufgabe-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 14px 13px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.2s, opacity 0.2s;
+    }
+    .aufgabe-card:hover  { border-color: var(--accent); }
     .aufgabe-card:active { transform: scale(0.98); opacity: 0.8; }
 
-    /* Scrollbar verstecken */
-    ::-webkit-scrollbar { display: none; }
-    * { -ms-overflow-style: none; scrollbar-width: none; }
+    /* linker Akzentstreifen */
+    .aufgabe-stripe {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    .badge-krit  { background: var(--crit-tint);  color: var(--crit);  border: 1px solid rgba(178,58,46,.2); }
+    .badge-heute { background: var(--heute-tint); color: var(--heute); border: 1px solid rgba(166,122,34,.2); }
+    .badge-woche { background: var(--woche-tint); color: var(--woche); border: 1px solid rgba(78,114,136,.2); }
+    .badge-wann  { background: var(--wann-tint);  color: var(--wann);  border: 1px solid rgba(139,129,114,.2); }
+    .badge-typ   { background: var(--bg-soft);     color: var(--text-soft); border: 1px solid var(--border); }
+    .badge-status { background: var(--bg-soft); color: var(--text-soft); border: 1px solid var(--border); }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text-soft);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .tab.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    /* ── Abschnitts-Header ── */
+    .abschnitt-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .abschnitt-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .abschnitt-count {
+      font-size: 10.5px;
+      color: rgba(33,29,23,0.25);
+      font-weight: 600;
+    }
+    .abschnitt-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(33,29,23,0.06);
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 56px 20px 0;
+      margin-bottom: 24px;
+    }
+    .header-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(33,29,23,0.3);
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .header-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .header-h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+      margin: 0;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: rgba(33,29,23,0.35);
+      margin-top: 4px;
+    }
+
+    /* ── + Aufgabe Button (Header) ── */
+    .btn-add-header {
+      background: var(--accent-tint);
+      border: 1px solid rgba(137,108,50,0.35);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .btn-add-header:hover { background: var(--border); }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 28px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 8px 20px rgba(137,108,50,0.40);
+      cursor: pointer;
+      font-family: inherit;
+      z-index: 20;
+      transition: background 0.15s;
+    }
+    .fab:hover  { background: var(--accent-dark); }
+    .fab:active { transform: scale(0.96); }
+
+    /* ── Refresh ── */
+    .refresh-btn {
+      display: block;
+      margin: 0 auto 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 20px;
+      color: var(--text-soft);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      transition: border-color 0.15s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: var(--bg-soft);
+      border-radius: var(--radius);
+      height: 80px;
+      animation: einblenden 0.4s ease both;
+    }
+
+    /* ── Fehler-Box ── */
+    .fehler-box {
+      background: var(--crit-tint);
+      border: 1px solid rgba(178,58,46,0.25);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Erledigt-Karte ── */
+    .done-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .done-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--bg-soft);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Modal / Sheet ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(33,29,23,0.6);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+    }
+    .sheet {
+      background: var(--bg);
+      width: 100%;
+      border-radius: 22px 22px 0 0;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      animation: einblenden 0.22s ease;
+    }
+    .sheet-scroll {
+      overflow-y: auto;
+      padding: 10px 20px 6px;
+      flex: 1;
+    }
+    .sheet-handle {
+      width: 38px; height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      margin: 8px auto 18px;
+    }
+    .sheet h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 4px;
+    }
+    .sheet-hint {
+      font-size: 12px;
+      color: var(--text-soft);
+      margin: 0 0 16px;
+    }
+    .sheet-actions {
+      display: flex;
+      gap: 10px;
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .btn-primary-save {
+      flex: 1.6;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-primary-save:hover    { background: var(--accent-dark); }
+    .btn-primary-save:disabled { background: var(--bg-soft); color: rgba(33,29,23,0.3); cursor: default; }
+    .btn-primary-save:active   { transform: scale(0.98); }
+
+    /* ── Detail-Modal Aktionen ── */
+    .detail-action-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 13px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 10px;
+      transition: background 0.15s;
+    }
+    .detail-action-primary:hover { background: var(--accent-dark); }
+    .detail-action-secondary {
+      width: 100%;
+      background: var(--card);
+      color: rgba(33,29,23,0.8);
+      border: 1.5px solid var(--border);
+      border-radius: 13px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 8px;
+      transition: border-color 0.15s;
+    }
+    .detail-action-secondary:hover { border-color: var(--accent); }
+
+    /* ── Formularfelder ── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-soft);
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .field input[type=text],
+    .field input[type=date],
+    .field select {
+      width: 100%;
+      padding: 13px 12px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-size: 15px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus,
+    .field select:focus { border-color: var(--accent); }
+    .field input.shake { border-color: var(--crit); animation: shake 0.3s; }
+    .two-col { display: flex; gap: 10px; }
+    .two-col .field { flex: 1; }
+
+    /* ── Priorität-Optionen ── */
+    .prio-options { display: flex; gap: 6px; flex-wrap: wrap; }
+    .prio-opt {
+      flex: 1; min-width: 72px;
+      text-align: center;
+      padding: 10px 4px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      color: var(--text-soft);
+      background: var(--card);
+      font-family: inherit;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .prio-opt.sel-krit  { border-color: var(--crit);  background: var(--crit-tint);  color: var(--crit); }
+    .prio-opt.sel-heute { border-color: var(--heute); background: var(--heute-tint); color: var(--heute); }
+    .prio-opt.sel-woche { border-color: var(--woche); background: var(--woche-tint); color: var(--woche); }
+    .prio-opt.sel-wann  { border-color: var(--wann);  background: var(--wann-tint);  color: var(--wann); }
+
+    /* ── Mehr Details ── */
+    .more-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--accent-dark);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 2px 14px;
+      font-family: inherit;
+    }
+    .more-details { display: none; }
+    .more-details.open { display: block; }
+
+    /* ── Toggle / Switch ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+    .toggle-lab  { font-size: 13.5px; font-weight: 600; }
+    .toggle-desc { font-size: 11.5px; color: var(--text-soft); margin-top: 2px; }
+    .switch {
+      width: 42px; height: 24px;
+      border-radius: 99px;
+      background: var(--border);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .switch.on { background: var(--accent); }
+    .switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      transition: left 0.15s;
+    }
+    .switch.on::after { left: 20px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      max-width: 88%;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Nächster-Schritt Box ── */
+    .next-step-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+    .next-step-label {
+      font-size: 10px;
+      color: rgba(33,29,23,0.35);
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .next-step-text {
+      font-size: 14px;
+      color: rgba(33,29,23,0.75);
+      line-height: 1.4;
+    }
+
+    /* ── Leer-Zustand ── */
+    .empty-state {
+      text-align: center;
+      padding-top: 60px;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-title { color: rgba(33,29,23,0.6); font-size: 18px; font-weight: 700; }
+    .empty-sub   { color: rgba(33,29,23,0.3); font-size: 14px; margin-top: 6px; }
   </style>
 </head>
 <body>
 <div id="root"></div>
+<div class="toast" id="ghd-toast"></div>
+
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect, useRef } = React;
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('ghd-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
 
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
 const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
@@ -74,18 +590,18 @@ const api = {
 
 // ─── KONSTANTEN ──────────────────────────────────────────────────────────────
 const PRIORITAETEN = {
-  "kritisch":      { rang: 0, label: "Kritisch",      farbe: "#ef4444", bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.3)" },
-  "heute":         { rang: 1, label: "Heute",          farbe: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.3)" },
-  "diese-woche":   { rang: 2, label: "Diese Woche",   farbe: "#6366f1", bg: "rgba(99,102,241,0.08)",   border: "rgba(99,102,241,0.25)" },
-  "wann-moeglich": { rang: 3, label: "Wann möglich",  farbe: "#6b7280", bg: "rgba(107,114,128,0.06)",  border: "rgba(107,114,128,0.2)" },
+  "kritisch":      { rang: 0, label: "Kritisch",     badgeCls: "badge-krit",  prioCls: "sel-krit",  stripeColor: "#B23A2E" },
+  "heute":         { rang: 1, label: "Heute",         badgeCls: "badge-heute", prioCls: "sel-heute", stripeColor: "#A67A22" },
+  "diese-woche":   { rang: 2, label: "Diese Woche",  badgeCls: "badge-woche", prioCls: "sel-woche", stripeColor: "#4E7288" },
+  "wann-moeglich": { rang: 3, label: "Wann möglich", badgeCls: "badge-wann",  prioCls: "sel-wann",  stripeColor: "#8B8172" },
 };
 
 const TYPEN = {
-  "betrieb":        { icon: "⚙", label: "Betrieb" },
-  "entscheidung":   { icon: "◎", label: "Entscheidung" },
-  "bestellung":     { icon: "▦", label: "Bestellung" },
-  "lernen":         { icon: "◈", label: "Lernen" },
-  "kommunikation":  { icon: "◌", label: "Kommunikation" },
+  "betrieb":       { icon: "⚙",  label: "Betrieb" },
+  "entscheidung":  { icon: "◎",  label: "Entscheidung" },
+  "bestellung":    { icon: "▦",  label: "Bestellung" },
+  "lernen":        { icon: "◈",  label: "Lernen" },
+  "kommunikation": { icon: "◌",  label: "Kommunikation" },
 };
 
 const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
@@ -95,11 +611,25 @@ function heute() {
   const d = new Date();
   return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`;
 }
-
 function formatDatum(iso) {
   if (!iso) return null;
   const d = new Date(iso);
   return `${d.getDate()}. ${MONATE[d.getMonth()]}`;
+}
+
+// ─── PRIORITÄT-OPTIONEN ───────────────────────────────────────────────────────
+function PrioOptions({ selected, onChange }) {
+  return (
+    <div className="prio-options">
+      {Object.entries(PRIORITAETEN).map(([key, p]) => (
+        <button key={key}
+          className={`prio-opt ${selected === key ? p.prioCls : ''}`}
+          onClick={() => onChange(key)}>
+          {p.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 // ─── NEUE AUFGABE MODAL ───────────────────────────────────────────────────────
@@ -112,137 +642,177 @@ function NeueAufgabeModal({ onSave, onClose }) {
     faellig_am: "",
     verantwortlich: "mirjam",
   });
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [fixOn, setFixOn] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const titelRef = useRef(null);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const valid = form.titel.trim().length > 2;
 
   async function speichern() {
-    if (!valid) return;
+    if (!valid) {
+      setShaking(true);
+      setTimeout(() => setShaking(false), 400);
+      toast('Bitte einen Titel eingeben');
+      return;
+    }
     await onSave({
       ...form,
       faellig_am: form.faellig_am || null,
       status: "neu",
       erstellt_von: "mirjam",
     });
+    toast('Aufgabe erstellt');
     onClose();
   }
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:100, display:"flex", alignItems:"flex-end" }}
-         onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid #E4DBC5" }}
-           className="einblenden">
+    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-scroll">
+          <div className="sheet-handle"/>
+          <h2>Neue Aufgabe</h2>
+          <p className="sheet-hint">Titel reicht — Rest ist optional.</p>
 
-        <div style={{ width:36, height:4, background:"rgba(33,29,23,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
+          <div className="field">
+            <input
+              ref={titelRef}
+              type="text"
+              className={shaking ? 'shake' : ''}
+              value={form.titel}
+              onChange={e => set("titel", e.target.value)}
+              placeholder="Was ist zu tun?"
+              style={{ fontSize: 16, padding: '14px 13px' }}
+            />
+          </div>
 
-        <p style={{ color:"#211D17", fontWeight:700, fontSize:17, marginBottom:20 }}>Neue Aufgabe</p>
+          <div className="field">
+            <label>Priorität</label>
+            <PrioOptions selected={form.prioritaet} onChange={v => set("prioritaet", v)} />
+          </div>
 
-        {/* Titel */}
-        <input
-          value={form.titel}
-          onChange={e => set("titel", e.target.value)}
-          placeholder="Was muss erledigt werden?"
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"#211D17", fontSize:15, outline:"none", marginBottom:12 }}
-        />
+          <button className="more-toggle" onClick={() => setMoreOpen(o => !o)}>
+            {moreOpen ? '－ Weniger Details' : '＋ Mehr Details (Typ, Datum, fix)'}
+          </button>
 
-        {/* Nächster Schritt */}
-        <input
-          value={form.naechster_schritt}
-          onChange={e => set("naechster_schritt", e.target.value)}
-          placeholder="Nächster konkreter Schritt (optional)"
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"rgba(33,29,23,0.7)", fontSize:14, outline:"none", marginBottom:16 }}
-        />
+          <div className={`more-details ${moreOpen ? 'open' : ''}`}>
+            <div className="field">
+              <label>Nächster Schritt</label>
+              <input
+                type="text"
+                value={form.naechster_schritt}
+                onChange={e => set("naechster_schritt", e.target.value)}
+                placeholder="Konkreter nächster Schritt (optional)"
+              />
+            </div>
 
-        {/* Typ + Priorität */}
-        <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-          <select value={form.typ} onChange={e => set("typ", e.target.value)}
-            style={{ flex:1, background:"#fff", border:"1px solid #E4DBC5", borderRadius:10, padding:"10px 12px", color:"rgba(33,29,23,0.8)", fontSize:13, outline:"none" }}>
-            {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
-          </select>
-          <select value={form.prioritaet} onChange={e => set("prioritaet", e.target.value)}
-            style={{ flex:1, background:"#fff", border:"1px solid #E4DBC5", borderRadius:10, padding:"10px 12px", color:"rgba(33,29,23,0.8)", fontSize:13, outline:"none" }}>
-            {Object.entries(PRIORITAETEN).map(([id, p]) => <option key={id} value={id}>{p.label}</option>)}
-          </select>
+            <div className="two-col">
+              <div className="field">
+                <label>Typ</label>
+                <select value={form.typ} onChange={e => set("typ", e.target.value)}>
+                  {Object.entries(TYPEN).map(([id, t]) => (
+                    <option key={id} value={id}>{t.icon} {t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Fällig am</label>
+                <input
+                  type="date"
+                  value={form.faellig_am}
+                  onChange={e => set("faellig_am", e.target.value)}
+                  style={{ colorScheme: 'light' }}
+                />
+              </div>
+            </div>
+
+            <div className="toggle-row" onClick={() => setFixOn(f => !f)}>
+              <div>
+                <div className="toggle-lab">Fixe Aufgabe</div>
+                <div className="toggle-desc">Wiederkehrend — wird nach Erledigung zurückgesetzt</div>
+              </div>
+              <div className={`switch ${fixOn ? 'on' : ''}`}/>
+            </div>
+          </div>
         </div>
 
-        {/* Fälligkeit */}
-        <input type="date" value={form.faellig_am} onChange={e => set("faellig_am", e.target.value)}
-          style={{ width:"100%", background:"#fff", border:"1px solid #E4DBC5", borderRadius:12, padding:"12px 14px", color:"rgba(33,29,23,0.7)", fontSize:14, outline:"none", marginBottom:20, colorScheme:"light" }}
-        />
-
-        <button onClick={speichern} disabled={!valid}
-          style={{ width:"100%", background: valid ? "#896C32" : "#F0E9D8", color: valid ? "#fff" : "rgba(33,29,23,0.3)", border:"none", borderRadius:14, padding:"15px", fontSize:15, fontWeight:700, cursor: valid ? "pointer" : "default" }}>
-          Aufgabe erstellen
-        </button>
+        <div className="sheet-actions">
+          <button className="btn-secondary" onClick={onClose}>Abbrechen</button>
+          <button className="btn-primary-save" onClick={speichern} disabled={!valid}>
+            Aufgabe erstellen
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── AUFGABE DETAIL MODAL ────────────────────────────────────────────────────
+// ─── AUFGABE DETAIL MODAL ─────────────────────────────────────────────────────
 function AufgabeDetail({ aufgabe, onUpdate, onClose }) {
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
 
-  async function aktion(status, ergebnis_notiz = null) {
+  async function aktion(status) {
     const update = { status };
     if (status === "erledigt") {
       update.erledigt_am = new Date().toISOString();
       update.erledigt_von = "mirjam";
-      if (ergebnis_notiz) update.ergebnis_notiz = ergebnis_notiz;
     }
     await onUpdate(aufgabe.id, update);
+    toast(status === "erledigt" ? '✓ Erledigt' : 'Status aktualisiert');
     onClose();
   }
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:100, display:"flex", alignItems:"flex-end" }}
-         onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", width:"100%", padding:"24px 20px 40px", border:"1px solid #E4DBC5", maxHeight:"80vh", overflowY:"auto" }}
-           className="einblenden">
+    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-scroll">
+          <div className="sheet-handle"/>
 
-        <div style={{ width:36, height:4, background:"rgba(33,29,23,0.15)", borderRadius:2, margin:"0 auto 24px" }}/>
-
-        {/* Typ + Priorität */}
-        <div style={{ display:"flex", gap:8, marginBottom:14, alignItems:"center" }}>
-          <span style={{ fontSize:11, fontWeight:700, color:p.farbe, background:p.bg, border:`1px solid ${p.border}`, borderRadius:6, padding:"3px 8px", letterSpacing:"0.05em" }}>
-            {p.label.toUpperCase()}
-          </span>
-          <span style={{ fontSize:12, color:"rgba(33,29,23,0.4)" }}>{typ.icon} {typ.label}</span>
-          {aufgabe.faellig_am && <span style={{ fontSize:12, color:"rgba(33,29,23,0.35)", marginLeft:"auto" }}>bis {formatDatum(aufgabe.faellig_am)}</span>}
-        </div>
-
-        {/* Titel */}
-        <p style={{ color:"#211D17", fontWeight:700, fontSize:18, marginBottom: aufgabe.naechster_schritt ? 12 : 24, lineHeight:1.3 }}>{aufgabe.titel}</p>
-
-        {/* Nächster Schritt */}
-        {aufgabe.naechster_schritt && (
-          <div style={{ background:"#F0E9D8", border:"1px solid #E4DBC5", borderRadius:10, padding:"12px 14px", marginBottom:24 }}>
-            <p style={{ fontSize:11, color:"rgba(33,29,23,0.35)", fontWeight:700, marginBottom:4, letterSpacing:"0.06em" }}>NÄCHSTER SCHRITT</p>
-            <p style={{ fontSize:14, color:"rgba(33,29,23,0.75)", lineHeight:1.4 }}>{aufgabe.naechster_schritt}</p>
+          {/* Badges */}
+          <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:14, flexWrap:'wrap' }}>
+            <span className={`badge ${p.badgeCls}`}>{p.label.toUpperCase()}</span>
+            <span className="badge badge-typ">{typ.icon} {typ.label}</span>
+            {aufgabe.faellig_am && (
+              <span style={{ fontSize:12, color:'rgba(33,29,23,0.35)', marginLeft:'auto' }}>
+                bis {formatDatum(aufgabe.faellig_am)}
+              </span>
+            )}
           </div>
-        )}
 
-        {/* App-Kontext */}
-        {aufgabe.app_kontext && (
-          <p style={{ fontSize:12, color:"rgba(33,29,23,0.3)", marginBottom:20 }}>Quelle: {aufgabe.app_kontext}</p>
-        )}
+          {/* Titel */}
+          <p style={{ color:'#211D17', fontWeight:700, fontSize:18, marginBottom:aufgabe.naechster_schritt ? 12 : 24, lineHeight:1.3 }}>
+            {aufgabe.titel}
+          </p>
 
-        {/* Aktionen */}
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          <button onClick={() => aktion("erledigt")}
-            style={{ background:"#896C32", color:"#fff", border:"none", borderRadius:13, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer" }}>
+          {/* Nächster Schritt */}
+          {aufgabe.naechster_schritt && (
+            <div className="next-step-box">
+              <div className="next-step-label">Nächster Schritt</div>
+              <div className="next-step-text">{aufgabe.naechster_schritt}</div>
+            </div>
+          )}
+
+          {aufgabe.app_kontext && (
+            <p style={{ fontSize:12, color:'rgba(33,29,23,0.3)', marginBottom:20 }}>
+              Quelle: {aufgabe.app_kontext}
+            </p>
+          )}
+
+          {/* Aktionen */}
+          <button className="detail-action-primary" onClick={() => aktion("erledigt")}>
             ✓ Erledigt
           </button>
           {aufgabe.status !== "in-arbeit" && (
-            <button onClick={() => onUpdate(aufgabe.id, {status:"in-arbeit"}).then(onClose)}
-              style={{ background:"#fff", color:"rgba(33,29,23,0.8)", border:"1px solid #E4DBC5", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+            <button className="detail-action-secondary"
+              onClick={() => onUpdate(aufgabe.id, {status:"in-arbeit"}).then(() => { toast('In Arbeit gesetzt'); onClose(); })}>
               In Arbeit setzen
             </button>
           )}
           {aufgabe.status !== "wartet" && (
-            <button onClick={() => onUpdate(aufgabe.id, {status:"wartet"}).then(onClose)}
-              style={{ background:"#fff", color:"rgba(33,29,23,0.5)", border:"1px solid #E4DBC5", borderRadius:13, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+            <button className="detail-action-secondary"
+              onClick={() => onUpdate(aufgabe.id, {status:"wartet"}).then(() => { toast('Wartet auf jemanden'); onClose(); })}>
               Wartet auf jemanden
             </button>
           )}
@@ -257,49 +827,42 @@ function AufgabeKarte({ aufgabe, onClick, delay = 0 }) {
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon: "◎", label: aufgabe.typ };
   const istKritisch = aufgabe.prioritaet === "kritisch";
-  const istWartet = aufgabe.status === "wartet";
+  const istWartet   = aufgabe.status === "wartet";
   const istInArbeit = aufgabe.status === "in-arbeit";
 
   return (
     <div className="aufgabe-card einblenden" onClick={onClick}
-      style={{
-        background: "#fff",
-        border: "1px solid #E4DBC5",
-        boxShadow: "0 1px 3px rgba(33,29,23,0.04)",
-        borderRadius: 14,
-        padding: "14px 16px",
-        cursor: "pointer",
-        animationDelay: `${delay}ms`,
-        position: "relative",
-        overflow: "hidden",
-      }}>
+      style={{ animationDelay: `${delay}ms` }}>
 
       {/* Linker Akzentstreifen */}
-      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:p.farbe, borderRadius:"3px 0 0 3px", opacity: istKritisch ? 1 : 0.6 }}/>
+      <div className="aufgabe-stripe"
+        style={{ background: p.stripeColor, opacity: istKritisch ? 1 : 0.55 }}/>
 
-      <div style={{ paddingLeft: 8 }}>
-        {/* Prioritäts-Badge + Status + Typ */}
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8, flexWrap:"wrap" }}>
-          <span style={{ fontSize:10, fontWeight:700, color:p.farbe, background:p.bg, border:`1px solid ${p.border}`, borderRadius:6, padding:"2px 7px", letterSpacing:"0.05em" }}>
-            {p.label.toUpperCase()}
-          </span>
-          {istKritisch && <span className="kritisch-dot" style={{ width:6, height:6, borderRadius:"50%", background:"#ef4444", display:"inline-block" }}/>}
-          {istWartet && <span style={{ fontSize:10, color:"#f59e0b", fontWeight:700, letterSpacing:"0.06em" }}>WARTET</span>}
-          {istInArbeit && <span style={{ fontSize:10, color:"#6366f1", fontWeight:700, letterSpacing:"0.06em" }}>IN ARBEIT</span>}
-          <span style={{ fontSize:11, color:"rgba(33,29,23,0.4)", marginLeft:"auto" }}>
+      <div style={{ paddingLeft: 10 }}>
+        {/* Badges + Status */}
+        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, flexWrap:'wrap' }}>
+          <span className={`badge ${p.badgeCls}`}>{p.label.toUpperCase()}</span>
+          {istKritisch && (
+            <span className="kritisch-dot"
+              style={{ width:6, height:6, borderRadius:'50%', background:'#B23A2E', display:'inline-block' }}/>
+          )}
+          {istWartet   && <span className="badge badge-status">WARTET</span>}
+          {istInArbeit && <span className="badge badge-status">IN ARBEIT</span>}
+          <span style={{ fontSize:11, color:'rgba(33,29,23,0.4)', marginLeft:'auto' }}>
             {typ.icon} {typ.label}
             {aufgabe.faellig_am && ` · ${formatDatum(aufgabe.faellig_am)}`}
           </span>
         </div>
 
         {/* Titel */}
-        <p style={{ color:"#211D17", fontWeight:600, fontSize:15, lineHeight:1.35, marginBottom: aufgabe.naechster_schritt ? 8 : 0 }}>
+        <p style={{ color:'#211D17', fontWeight:600, fontSize:15, lineHeight:1.35,
+          marginBottom: aufgabe.naechster_schritt ? 8 : 0 }}>
           {aufgabe.titel}
         </p>
 
         {/* Nächster Schritt */}
         {aufgabe.naechster_schritt && (
-          <p style={{ fontSize:13, color:"rgba(33,29,23,0.55)", lineHeight:1.4 }}>
+          <p style={{ fontSize:13, color:'rgba(33,29,23,0.55)', lineHeight:1.4 }}>
             → {aufgabe.naechster_schritt}
           </p>
         )}
@@ -309,35 +872,34 @@ function AufgabeKarte({ aufgabe, onClick, delay = 0 }) {
 }
 
 // ─── ABSCHNITT ────────────────────────────────────────────────────────────────
-function Abschnitt({ label, farbe, kinder, leer }) {
+function Abschnitt({ label, stripeColor, kinder }) {
   if (!kinder || kinder.length === 0) return null;
   return (
     <div style={{ marginBottom: 28 }}>
-      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-        <span style={{ fontSize:11, fontWeight:800, color:farbe, letterSpacing:"0.1em" }}>{label.toUpperCase()}</span>
-        <span style={{ fontSize:11, color:"rgba(33,29,23,0.2)", fontWeight:600 }}>{kinder.length}</span>
-        <div style={{ flex:1, height:1, background:"rgba(33,29,23,0.05)" }}/>
+      <div className="abschnitt-header">
+        <span className="abschnitt-label" style={{ color: stripeColor }}>{label}</span>
+        <span className="abschnitt-count">{kinder.length}</span>
+        <div className="abschnitt-line"/>
       </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {kinder}
-      </div>
+      <div>{kinder}</div>
     </div>
   );
 }
 
 // ─── HAUPTKOMPONENTE ──────────────────────────────────────────────────────────
 function Woerni() {
-  const [aufgaben, setAufgaben] = useState([]);
-  const [erledigt, setErledigt] = useState([]);
-  const [laden, setLaden] = useState(true);
-  const [fehler, setFehler] = useState(null);
+  const [aufgaben, setAufgaben]     = useState([]);
+  const [erledigt, setErledigt]     = useState([]);
+  const [laden, setLaden]           = useState(true);
+  const [fehler, setFehler]         = useState(null);
   const [ausgewaehlt, setAusgewaehlt] = useState(null);
   const [neueAufgabe, setNeueAufgabe] = useState(false);
-  const [tab, setTab] = useState("heute"); // "heute" | "erledigt"
+  const [tab, setTab]               = useState("heute"); // "heute" | "erledigt"
 
   async function laden_() {
     try {
       setFehler(null);
+      setLaden(true);
       const [a, e] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
       setAufgaben(a || []);
       setErledigt(e || []);
@@ -378,83 +940,78 @@ function Woerni() {
 
   // Gruppieren nach Priorität
   const gruppen = {
-    kritisch:      aufgaben.filter(a => a.prioritaet === "kritisch"),
-    heute:         aufgaben.filter(a => a.prioritaet === "heute"),
-    "diese-woche": aufgaben.filter(a => a.prioritaet === "diese-woche"),
+    kritisch:        aufgaben.filter(a => a.prioritaet === "kritisch"),
+    heute:           aufgaben.filter(a => a.prioritaet === "heute"),
+    "diese-woche":   aufgaben.filter(a => a.prioritaet === "diese-woche"),
     "wann-moeglich": aufgaben.filter(a => a.prioritaet === "wann-moeglich"),
   };
-
-  // Entscheidungen separat hervorheben
   const entscheidungen = aufgaben.filter(a => a.typ === "entscheidung");
-
-  const offeneGesamt = aufgaben.length;
+  const offeneGesamt   = aufgaben.length;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#F8F4EA", paddingBottom:80 }}>
+    <div style={{ minHeight:'100vh', background:'var(--bg)', paddingBottom: 100 }}>
 
       {/* HEADER */}
-      <div style={{ padding:"52px 20px 0", marginBottom:24 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:"rgba(33,29,23,0.3)", letterSpacing:"0.12em", marginBottom:6 }}>
-          WÖRNI · {heute().toUpperCase()}
-        </p>
-        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
+      <div className="header">
+        <div className="header-eyebrow">WÖRNI · {heute().toUpperCase()}</div>
+        <div className="header-row">
           <div>
-            <h1 style={{ fontSize:30, fontWeight:800, color:"#211D17", lineHeight:1.1, margin:0 }}>
+            <h1 className="header-h1">
               {gruppen.kritisch.length > 0
-                ? <><span style={{ color:"#ef4444" }}>{gruppen.kritisch.length}</span> kritisch</>
+                ? <><span style={{ color:'var(--crit)' }}>{gruppen.kritisch.length}</span> kritisch</>
                 : offeneGesamt === 0
                   ? "Alles erledigt"
-                  : <><span style={{ color:"#f59e0b" }}>{offeneGesamt}</span> offen</>
+                  : <><span style={{ color:'var(--heute)' }}>{offeneGesamt}</span> offen</>
               }
             </h1>
-            <p style={{ fontSize:13, color:"rgba(33,29,23,0.35)", marginTop:4 }}>
+            <p className="header-sub">
               {gruppen.kritisch.length > 0
                 ? `+ ${offeneGesamt - gruppen.kritisch.length} weitere Aufgaben`
                 : offeneGesamt === 0
                   ? "Great Hair Day läuft."
-                  : `${entscheidungen.length > 0 ? `${entscheidungen.length} warten auf dich` : "Kein Handlungsbedarf"}`
+                  : entscheidungen.length > 0
+                    ? `${entscheidungen.length} Entscheidungen warten auf dich`
+                    : "Kein unmittelbarer Handlungsbedarf"
               }
             </p>
           </div>
-          <button onClick={() => setNeueAufgabe(true)}
-            style={{ background:"rgba(137,108,50,0.15)", border:"1px solid rgba(137,108,50,0.35)", borderRadius:12, padding:"10px 16px", color:"#6E5527", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+          <button className="btn-add-header" onClick={() => setNeueAufgabe(true)}>
             + Aufgabe
           </button>
         </div>
       </div>
 
       {/* TABS */}
-      <div style={{ display:"flex", gap:4, padding:"0 20px", marginBottom:24 }}>
-        {[["heute","Offen"], ["erledigt","Erledigt"]].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)}
-            style={{ flex:1, padding:"9px", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600,
-              background: tab===id ? "rgba(137,108,50,0.15)" : "transparent",
-              color: tab===id ? "#211D17" : "rgba(33,29,23,0.35)",
-            }}>
-            {label}
-          </button>
-        ))}
+      <div style={{ padding: '0 20px' }}>
+        <div className="tabs">
+          {[["heute","Offen"], ["erledigt","Erledigt"]].map(([id, label]) => (
+            <button key={id} className={`tab ${tab === id ? 'active' : ''}`}
+              onClick={() => setTab(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* INHALT */}
-      <div style={{ padding:"0 20px" }}>
+      <div style={{ padding: '0 20px' }}>
 
         {/* Fehler */}
         {fehler && (
-          <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
-            <p style={{ color:"#ef4444", fontSize:14, fontWeight:600 }}>{fehler}</p>
-            <button onClick={laden_} style={{ marginTop:8, fontSize:13, color:"rgba(33,29,23,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>
+          <div className="fehler-box">
+            <p style={{ color:'var(--crit)', fontSize:14, fontWeight:600, margin:0 }}>{fehler}</p>
+            <button onClick={laden_}
+              style={{ marginTop:8, fontSize:13, color:'rgba(33,29,23,0.5)', background:'none', border:'none', cursor:'pointer', padding:0, textDecoration:'underline', fontFamily:'inherit' }}>
               Erneut versuchen
             </button>
           </div>
         )}
 
-        {/* Laden */}
+        {/* Skelett */}
         {laden && (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {[...Array(3)].map((_,i) => (
-              <div key={i} style={{ background:"#F0E9D8", borderRadius:14, height:80,
-                animation:"einblenden 0.4s ease both", animationDelay:`${i*80}ms` }}/>
+              <div key={i} className="skeleton" style={{ animationDelay:`${i*80}ms` }}/>
             ))}
           </div>
         )}
@@ -462,33 +1019,32 @@ function Woerni() {
         {/* OFFENE AUFGABEN */}
         {!laden && tab === "heute" && (
           <>
-            <Abschnitt label="Kritisch" farbe="#ef4444"
+            <Abschnitt label="Kritisch"     stripeColor="var(--crit)"
               kinder={gruppen.kritisch.map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)} />
               ))}
             />
-            <Abschnitt label="Heute" farbe="#f59e0b"
+            <Abschnitt label="Heute"        stripeColor="var(--heute)"
               kinder={gruppen.heute.map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)} />
               ))}
             />
-            <Abschnitt label="Diese Woche" farbe="#6366f1"
+            <Abschnitt label="Diese Woche"  stripeColor="var(--woche)"
               kinder={gruppen["diese-woche"].map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)} />
               ))}
             />
-            <Abschnitt label="Wann möglich" farbe="#6b7280"
+            <Abschnitt label="Wann möglich" stripeColor="var(--wann)"
               kinder={gruppen["wann-moeglich"].map((a,i) => (
-                <AufgabeKarte key={a.id} aufgabe={a} delay={i*60} onClick={() => setAusgewaehlt(a)} />
+                <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)} />
               ))}
             />
 
-            {/* Leer-Zustand */}
             {offeneGesamt === 0 && !fehler && (
-              <div style={{ textAlign:"center", paddingTop:60 }} className="einblenden">
-                <div style={{ fontSize:48, marginBottom:16 }}>✓</div>
-                <p style={{ color:"rgba(33,29,23,0.6)", fontSize:18, fontWeight:700 }}>Alles erledigt.</p>
-                <p style={{ color:"rgba(33,29,23,0.3)", fontSize:14, marginTop:6 }}>Great Hair Day läuft.</p>
+              <div className="empty-state einblenden">
+                <div className="empty-icon">✓</div>
+                <p className="empty-title">Alles erledigt.</p>
+                <p className="empty-sub">Great Hair Day läuft.</p>
               </div>
             )}
           </>
@@ -496,29 +1052,41 @@ function Woerni() {
 
         {/* ERLEDIGT */}
         {!laden && tab === "erledigt" && (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <div>
             {erledigt.length === 0 && (
-              <p style={{ color:"rgba(33,29,23,0.3)", fontSize:14, textAlign:"center", paddingTop:40 }}>
-                Noch nichts erledigt heute.
+              <p style={{ color:'rgba(33,29,23,0.3)', fontSize:14, textAlign:'center', paddingTop:40 }}>
+                Noch nichts erledigt.
               </p>
             )}
             {erledigt.map((a, i) => (
-              <div key={a.id} className="einblenden" style={{ animationDelay:`${i*50}ms`,
-                background:"#fff", border:"1px solid #E4DBC5",
-                borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ width:20, height:20, borderRadius:"50%", background:"#F0E9D8",
-                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <span style={{ fontSize:11, color:"rgba(33,29,23,0.4)" }}>✓</span>
+              <div key={a.id} className="done-card einblenden" style={{ animationDelay:`${i*50}ms` }}>
+                <div className="done-check">
+                  <span style={{ fontSize:10, color:'rgba(33,29,23,0.4)' }}>✓</span>
                 </div>
                 <div style={{ flex:1 }}>
-                  <p style={{ color:"rgba(33,29,23,0.45)", fontSize:14, fontWeight:600, textDecoration:"line-through", textDecorationColor:"rgba(33,29,23,0.15)" }}>{a.titel}</p>
-                  {a.erledigt_am && <p style={{ fontSize:11, color:"rgba(33,29,23,0.2)", marginTop:2 }}>{formatDatum(a.erledigt_am)}</p>}
+                  <p style={{ color:'rgba(33,29,23,0.45)', fontSize:14, fontWeight:600,
+                    textDecoration:'line-through', textDecorationColor:'rgba(33,29,23,0.15)', margin:0 }}>
+                    {a.titel}
+                  </p>
+                  {a.erledigt_am && (
+                    <p style={{ fontSize:11, color:'rgba(33,29,23,0.2)', marginTop:2 }}>
+                      {formatDatum(a.erledigt_am)}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* REFRESH */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <button className="refresh-btn" onClick={laden_}>↻ Aktualisieren</button>
+      </div>
+
+      {/* FAB */}
+      <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
 
       {/* DETAIL MODAL */}
       {ausgewaehlt && (
@@ -536,14 +1104,6 @@ function Woerni() {
           onClose={() => setNeueAufgabe(false)}
         />
       )}
-
-      {/* REFRESH BUTTON (unten) */}
-      <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)" }}>
-        <button onClick={laden_}
-          style={{ background:"#fff", border:"1px solid #E4DBC5", borderRadius:20, padding:"10px 20px", color:"rgba(33,29,23,0.4)", fontSize:12, fontWeight:600, cursor:"pointer", letterSpacing:"0.05em" }}>
-          ↻ Aktualisieren
-        </button>
-      </div>
     </div>
   );
 }
