@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Wörni · Great Hair Day</title>
+  <title>Wörni · Schaltzentrale</title>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="Wörni"/>
   <meta name="theme-color" content="#F8F4EA"/>
@@ -18,7 +18,8 @@
       --bg:#F8F4EA; --bg-soft:#F0E9D8; --card:#FFFFFF; --border:#E4DBC5;
       --text:#211D17; --text-soft:#7C7565;
       --accent:#896C32; --accent-dark:#6E5527; --accent-tint:#EEE6CD;
-      --ok:#4C7A5B; --crit:#B23A2E; --crit-tint:#F5DAD5;
+      --ok:#4C7A5B; --ok-tint:#DCEEE1;
+      --crit:#B23A2E; --crit-tint:#F5DAD5;
       --heute:#A67A22; --heute-tint:#F1E4C4;
       --woche:#4E7288; --woche-tint:#DCE7EC;
       --wann:#8B8172; --wann-tint:#EAE3D6;
@@ -34,77 +35,89 @@
     .einblenden{animation:einblenden 0.3s ease both;}
     .kritisch-dot{animation:kritisch-puls 2s ease-in-out infinite;}
 
-    /* Karte */
+    /* ── Aufgaben-Karte ── */
     .aufgabe-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
       padding:13px 14px 13px 16px;margin-bottom:10px;cursor:pointer;position:relative;overflow:hidden;
       transition:border-color 0.15s,transform 0.2s,opacity 0.2s;}
     .aufgabe-card:hover{border-color:var(--accent);}
     .aufgabe-card:active{transform:scale(0.98);opacity:0.8;}
     .aufgabe-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
-    .fix-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;
-      background:var(--accent-tint);color:var(--accent-dark);border:1px solid var(--border);margin-left:2px;}
 
-    /* Badges */
+    /* ── Vorlage-Karte ── */
+    .vorlage-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:13px 16px;margin-bottom:8px;cursor:pointer;
+      display:flex;align-items:center;gap:12px;
+      transition:border-color 0.15s;}
+    .vorlage-card:hover{border-color:var(--accent);}
+    .vorlage-card.inaktiv{opacity:0.45;}
+    .vorlage-rhythmus{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+      padding:3px 8px;border-radius:999px;flex-shrink:0;}
+    .rhythmus-taeglich{background:#F0E9D8;color:#6E5527;}
+    .rhythmus-woechentlich{background:var(--woche-tint);color:var(--woche);}
+    .rhythmus-monatlich{background:var(--heute-tint);color:var(--heute);}
+    .rhythmus-spontan{background:var(--bg-soft);color:var(--text-soft);}
+
+    /* ── Badges ── */
     .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:0.04em;}
     .badge-krit{background:var(--crit-tint);color:var(--crit);border:1px solid rgba(178,58,46,.2);}
     .badge-heute{background:var(--heute-tint);color:var(--heute);border:1px solid rgba(166,122,34,.2);}
     .badge-woche{background:var(--woche-tint);color:var(--woche);border:1px solid rgba(78,114,136,.2);}
     .badge-wann{background:var(--wann-tint);color:var(--wann);border:1px solid rgba(139,129,114,.2);}
     .badge-typ{background:var(--bg-soft);color:var(--text-soft);border:1px solid var(--border);}
-    .badge-status{background:var(--bg-soft);color:var(--text-soft);border:1px solid var(--border);}
+    .badge-fix{background:var(--accent-tint);color:var(--accent-dark);border:1px solid rgba(137,108,50,.2);}
+    .badge-auto{background:var(--ok-tint);color:var(--ok);border:1px solid rgba(76,122,91,.2);}
 
-    /* Tabs */
+    /* ── Tabs ── */
     .tabs{display:flex;gap:6px;margin-bottom:20px;}
-    .tab{flex:1;padding:10px;border-radius:999px;font-weight:700;font-size:13px;
+    .tab{flex:1;padding:10px;border-radius:999px;font-weight:700;font-size:12px;
       border:1.5px solid var(--border);background:var(--card);color:var(--text-soft);
       cursor:pointer;font-family:inherit;text-align:center;transition:background 0.15s,color 0.15s,border-color 0.15s;}
     .tab.active{background:var(--text);color:#fff;border-color:var(--text);}
 
-    /* Abschnitt */
+    /* ── Abschnitt ── */
     .abschnitt-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
     .abschnitt-label{font-size:10.5px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
     .abschnitt-count{font-size:10.5px;color:rgba(33,29,23,0.25);font-weight:600;}
     .abschnitt-line{flex:1;height:1px;background:rgba(33,29,23,0.06);}
 
-    /* Header */
-    .header{padding:56px 20px 0;margin-bottom:24px;}
+    /* ── Header ── */
+    .header{padding:52px 20px 0;margin-bottom:20px;}
     .header-eyebrow{font-size:10px;font-weight:700;color:rgba(33,29,23,0.3);letter-spacing:0.12em;margin-bottom:6px;text-transform:uppercase;}
     .header-row{display:flex;align-items:flex-end;justify-content:space-between;}
-    .header-h1{font-size:30px;font-weight:800;color:var(--text);line-height:1.1;margin:0;}
+    .header-h1{font-size:28px;font-weight:800;color:var(--text);line-height:1.1;margin:0;}
     .header-sub{font-size:13px;color:rgba(33,29,23,0.35);margin-top:4px;}
     .btn-add-header{background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:12px;
-      padding:10px 16px;color:var(--accent-dark);font-size:13px;font-weight:700;cursor:pointer;
+      padding:10px 14px;color:var(--accent-dark);font-size:12px;font-weight:700;cursor:pointer;
       font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
-    .btn-add-header:hover{background:var(--border);}
+    .btn-nav{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:10px 14px;color:var(--text-soft);font-size:12px;font-weight:700;cursor:pointer;
+      font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+    .btn-nav:hover{border-color:var(--accent);}
 
-    /* FAB */
+    /* ── FAB ── */
     .fab{position:fixed;right:20px;bottom:28px;background:var(--accent);color:#fff;border:none;
       border-radius:999px;padding:14px 22px;font-weight:700;font-size:14px;
-      box-shadow:0 8px 20px rgba(137,108,50,0.40);cursor:pointer;font-family:inherit;z-index:20;transition:background 0.15s;}
+      box-shadow:0 8px 20px rgba(137,108,50,0.40);cursor:pointer;font-family:inherit;z-index:20;
+      transition:background 0.15s;}
     .fab:hover{background:var(--accent-dark);}
     .fab:active{transform:scale(0.96);}
 
-    /* Refresh */
-    .refresh-btn{display:block;margin:0 auto 24px;background:var(--card);border:1px solid var(--border);
-      border-radius:999px;padding:10px 20px;color:var(--text-soft);font-size:12px;font-weight:600;
-      cursor:pointer;font-family:inherit;letter-spacing:0.04em;transition:border-color 0.15s;}
-    .refresh-btn:hover{border-color:var(--accent);}
+    /* ── Skeleton ── */
+    .skeleton{background:var(--bg-soft);border-radius:var(--radius);height:80px;
+      animation:einblenden 0.4s ease both;}
 
-    /* Skeleton */
-    .skeleton{background:var(--bg-soft);border-radius:var(--radius);height:80px;animation:einblenden 0.4s ease both;}
+    /* ── Fehler ── */
+    .fehler-box{background:var(--crit-tint);border:1px solid rgba(178,58,46,0.25);
+      border-radius:12px;padding:14px 16px;margin-bottom:20px;}
 
-    /* Fehler */
-    .fehler-box{background:var(--crit-tint);border:1px solid rgba(178,58,46,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;}
-
-    /* Erledigt */
+    /* ── Erledigt-Karte ── */
     .done-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
       padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
-    .done-check{width:20px;height:20px;border-radius:50%;background:var(--bg-soft);
-      display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 
-    /* Modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(33,29,23,0.6);z-index:100;display:flex;align-items:flex-end;}
-    .sheet{background:var(--bg);width:100%;border-radius:22px 22px 0 0;max-height:88vh;
+    /* ── Modal / Sheet ── */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(33,29,23,0.6);z-index:100;
+      display:flex;align-items:flex-end;}
+    .sheet{background:var(--bg);width:100%;border-radius:22px 22px 0 0;max-height:90vh;
       display:flex;flex-direction:column;animation:einblenden 0.22s ease;}
     .sheet-scroll{overflow-y:auto;padding:10px 20px 6px;flex:1;}
     .sheet-handle{width:38px;height:4px;background:var(--border);border-radius:99px;margin:8px auto 18px;}
@@ -119,56 +132,54 @@
     .btn-primary-save:hover{background:var(--accent-dark);}
     .btn-primary-save:disabled{background:var(--bg-soft);color:rgba(33,29,23,0.3);cursor:default;}
     .btn-primary-save:active{transform:scale(0.98);}
-    .btn-delete{padding:14px;border-radius:12px;border:1.5px solid var(--crit-tint);
-      background:var(--crit-tint);color:var(--crit);font-weight:700;font-size:14px;
-      cursor:pointer;font-family:inherit;transition:background 0.15s;}
-    .btn-delete:hover{background:#f5c6c0;}
 
-    /* Detail Aktionen */
-    .detail-action-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:13px;
-      padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;transition:background 0.15s;}
+    /* ── Detail Aktionen ── */
+    .detail-action-primary{width:100%;background:var(--accent);color:#fff;border:none;
+      border-radius:13px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;
+      font-family:inherit;margin-bottom:10px;transition:background 0.15s;}
     .detail-action-primary:hover{background:var(--accent-dark);}
     .detail-action-secondary{width:100%;background:var(--card);color:rgba(33,29,23,0.8);
-      border:1.5px solid var(--border);border-radius:13px;padding:14px;font-size:14px;font-weight:600;
-      cursor:pointer;font-family:inherit;margin-bottom:8px;transition:border-color 0.15s;}
+      border:1.5px solid var(--border);border-radius:13px;padding:14px;font-size:14px;
+      font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:border-color 0.15s;}
     .detail-action-secondary:hover{border-color:var(--accent);}
-    .detail-action-edit{width:100%;background:var(--accent-tint);color:var(--accent-dark);
-      border:1.5px solid rgba(137,108,50,0.35);border-radius:13px;padding:14px;font-size:14px;font-weight:700;
-      cursor:pointer;font-family:inherit;margin-bottom:8px;transition:background 0.15s;}
-    .detail-action-edit:hover{background:var(--border);}
-    .detail-divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+    .detail-action-danger{width:100%;background:var(--crit-tint);color:var(--crit);
+      border:1.5px solid rgba(178,58,46,0.3);border-radius:13px;padding:14px;font-size:14px;
+      font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
 
-    /* Felder */
+    /* ── Felder ── */
     .field{margin-bottom:14px;}
     .field label{display:block;font-size:11px;font-weight:700;color:var(--text-soft);
       letter-spacing:0.04em;margin-bottom:5px;text-transform:uppercase;}
-    .field input[type=text],.field input[type=date],.field select{width:100%;padding:13px 12px;
-      border-radius:12px;border:1.5px solid var(--border);background:var(--card);font-size:15px;
-      color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;}
+    .field input[type=text],.field input[type=date],.field select{
+      width:100%;padding:13px 12px;border-radius:12px;border:1.5px solid var(--border);
+      background:var(--card);font-size:15px;color:var(--text);font-family:inherit;
+      outline:none;transition:border-color 0.15s;}
     .field input:focus,.field select:focus{border-color:var(--accent);}
     .field input.shake{border-color:var(--crit);animation:shake 0.3s;}
     .two-col{display:flex;gap:10px;}
     .two-col .field{flex:1;}
 
-    /* Prio Optionen */
+    /* ── Prio Options ── */
     .prio-options{display:flex;gap:6px;flex-wrap:wrap;}
-    .prio-opt{flex:1;min-width:72px;text-align:center;padding:10px 4px;border-radius:12px;font-size:12px;
-      font-weight:700;border:1.5px solid var(--border);cursor:pointer;color:var(--text-soft);
-      background:var(--card);font-family:inherit;transition:background 0.12s,border-color 0.12s,color 0.12s;}
+    .prio-opt{flex:1;min-width:72px;text-align:center;padding:10px 4px;border-radius:12px;
+      font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;
+      color:var(--text-soft);background:var(--card);font-family:inherit;transition:background 0.12s,border-color 0.12s,color 0.12s;}
     .prio-opt.sel-krit{border-color:var(--crit);background:var(--crit-tint);color:var(--crit);}
     .prio-opt.sel-heute{border-color:var(--heute);background:var(--heute-tint);color:var(--heute);}
     .prio-opt.sel-woche{border-color:var(--woche);background:var(--woche-tint);color:var(--woche);}
     .prio-opt.sel-wann{border-color:var(--wann);background:var(--wann-tint);color:var(--wann);}
 
-    /* Mehr Details */
-    .more-toggle{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--accent-dark);
-      font-weight:700;font-size:13px;cursor:pointer;padding:4px 2px 14px;font-family:inherit;}
-    .more-details{display:none;}
-    .more-details.open{display:block;}
+    /* ── Rhythmus Options ── */
+    .rhythmus-options{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+    .rhythmus-opt{flex:1;min-width:80px;text-align:center;padding:10px 4px;border-radius:12px;
+      font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;
+      color:var(--text-soft);background:var(--card);font-family:inherit;transition:all 0.12s;}
+    .rhythmus-opt.sel{border-color:var(--accent);background:var(--accent-tint);color:var(--accent-dark);}
 
-    /* Toggle */
-    .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);
-      border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;cursor:pointer;}
+    /* ── Toggle ── */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;
+      background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:12px 14px;margin-bottom:14px;cursor:pointer;}
     .toggle-lab{font-size:13.5px;font-weight:600;}
     .toggle-desc{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
     .switch{width:42px;height:24px;border-radius:99px;background:var(--border);position:relative;flex-shrink:0;}
@@ -177,28 +188,56 @@
       border-radius:50%;background:#fff;transition:left 0.15s;}
     .switch.on::after{left:20px;}
 
-    /* Toast */
+    /* ── More toggle ── */
+    .more-toggle{display:flex;align-items:center;gap:6px;background:none;border:none;
+      color:var(--accent-dark);font-weight:700;font-size:13px;cursor:pointer;
+      padding:4px 2px 14px;font-family:inherit;}
+    .more-details{display:none;}
+    .more-details.open{display:block;}
+
+    /* ── Next step box ── */
+    .next-step-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;
+      padding:12px 14px;margin-bottom:20px;}
+    .next-step-label{font-size:10px;color:rgba(33,29,23,0.35);font-weight:700;margin-bottom:4px;
+      letter-spacing:0.06em;text-transform:uppercase;}
+
+    /* ── Refresh ── */
+    .refresh-btn{display:block;margin:0 auto 24px;background:var(--card);border:1px solid var(--border);
+      border-radius:999px;padding:10px 20px;color:var(--text-soft);font-size:12px;font-weight:600;
+      cursor:pointer;font-family:inherit;letter-spacing:0.04em;transition:border-color 0.15s;}
+    .refresh-btn:hover{border-color:var(--accent);}
+
+    /* ── Leer ── */
+    .empty-state{text-align:center;padding-top:60px;}
+    .empty-icon{font-size:48px;margin-bottom:16px;}
+    .empty-title{color:rgba(33,29,23,0.6);font-size:18px;font-weight:700;}
+    .empty-sub{color:rgba(33,29,23,0.3);font-size:14px;margin-top:6px;}
+
+    /* ── Toast ── */
     .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);
       background:var(--text);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;
       font-weight:600;max-width:88%;text-align:center;opacity:0;transition:opacity 0.25s,transform 0.25s;
       pointer-events:none;z-index:200;white-space:nowrap;}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-    /* Nächster Schritt */
-    .next-step-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:20px;}
-    .next-step-label{font-size:10px;color:rgba(33,29,23,0.35);font-weight:700;margin-bottom:4px;letter-spacing:0.06em;text-transform:uppercase;}
-    .next-step-text{font-size:14px;color:rgba(33,29,23,0.75);line-height:1.4;}
-
-    /* Leer */
-    .empty-state{text-align:center;padding-top:60px;}
-    .empty-icon{font-size:48px;margin-bottom:16px;}
-    .empty-title{color:rgba(33,29,23,0.6);font-size:18px;font-weight:700;}
-    .empty-sub{color:rgba(33,29,23,0.3);font-size:14px;margin-top:6px;}
+    /* ── Schaltzentrale ── */
+    .sz-karte{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);
+      color:#fff;border-radius:var(--radius);padding:18px;margin-bottom:20px;
+      box-shadow:0 8px 24px rgba(137,108,50,0.3);}
+    .sz-tag{font-size:10px;letter-spacing:.14em;opacity:.8;font-weight:700;text-transform:uppercase;}
+    .sz-zahl{font-size:40px;font-weight:800;line-height:1;}
+    .sz-sub{font-size:13px;opacity:.85;margin-top:4px;}
+    .sz-chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+    .sz-chip{background:rgba(255,255,255,0.2);border-radius:999px;padding:6px 12px;
+      font-size:12px;font-weight:700;}
+    .sz-chip.rot{background:rgba(178,58,46,0.4);}
+    .sz-chip.gold{background:rgba(166,122,34,0.35);}
   </style>
 </head>
 <body>
 <div id="root"></div>
 <div class="toast" id="ghd-toast"></div>
+
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
@@ -225,12 +264,16 @@ async function sb(path, opts = {}) {
 }
 
 const api = {
-  getAufgaben: () => sb("ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast,erstellt_am.asc"),
-  getErledigt: () => sb("ghd_aufgaben?status=eq.erledigt&order=erledigt_am.desc&limit=10"),
-  updateAufgabe: (id, d) => sb(`ghd_aufgaben?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(d) }),
-  addAufgabe: (d) => sb("ghd_aufgaben", { method: "POST", body: JSON.stringify(d) }),
-  deleteAufgabe: (id) => sb(`ghd_aufgaben?id=eq.${id}`, { method: "DELETE", prefer: "" }),
-  addVerlauf: (d) => sb("ghd_aufgaben_verlauf", { method: "POST", body: JSON.stringify(d) }),
+  getAufgaben:   () => sb("ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast,erstellt_am.asc"),
+  getErledigt:   () => sb("ghd_aufgaben?status=eq.erledigt&order=erledigt_am.desc&limit=10"),
+  updateAufgabe: (id, d) => sb(`ghd_aufgaben?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(d) }),
+  addAufgabe:    (d) => sb("ghd_aufgaben", { method:"POST", body:JSON.stringify(d) }),
+  deleteAufgabe: (id) => sb(`ghd_aufgaben?id=eq.${id}`, { method:"DELETE", prefer:"" }),
+  addVerlauf:    (d) => sb("ghd_aufgaben_verlauf", { method:"POST", body:JSON.stringify(d) }),
+  getVorlagen:   () => sb("ghd_aufgaben_vorlagen?order=rhythmus.asc,erstellt_am.asc"),
+  addVorlage:    (d) => sb("ghd_aufgaben_vorlagen", { method:"POST", body:JSON.stringify(d) }),
+  updateVorlage: (id, d) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(d) }),
+  deleteVorlage: (id) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"DELETE", prefer:"" }),
 };
 
 const PRIORITAETEN = {
@@ -241,17 +284,38 @@ const PRIORITAETEN = {
 };
 
 const TYPEN = {
-  "betrieb":      { icon:"⚙",  label:"Betrieb" },
-  "entscheidung": { icon:"◎",  label:"Entscheidung" },
-  "bestellung":   { icon:"▦",  label:"Bestellung" },
-  "lernen":       { icon:"◈",  label:"Lernen" },
-  "kommunikation":{ icon:"◌",  label:"Kommunikation" },
+  "betrieb":       { icon:"⚙",  label:"Betrieb" },
+  "entscheidung":  { icon:"◎",  label:"Entscheidung" },
+  "bestellung":    { icon:"▦",  label:"Bestellung" },
+  "lernen":        { icon:"◈",  label:"Lernen" },
+  "kommunikation": { icon:"◌",  label:"Kommunikation" },
 };
 
-const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const RHYTHMEN = {
+  "taeglich":      { label:"Täglich",      cls:"rhythmus-taeglich" },
+  "woechentlich":  { label:"Wöchentlich",  cls:"rhythmus-woechentlich" },
+  "monatlich":     { label:"Monatlich",    cls:"rhythmus-monatlich" },
+  "spontan":       { label:"Spontan",      cls:"rhythmus-spontan" },
+};
+
 const MONATE = ["Jän","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 function heuteStr() { const d=new Date(); return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`; }
 function formatDatum(iso) { if(!iso) return null; const d=new Date(iso); return `${d.getDate()}. ${MONATE[d.getMonth()]}`; }
+function isoHeute() { return new Date().toISOString().slice(0,10); }
+function ersterDesMonats() { const d=new Date(); return d.getDate()===1; }
+function istMontag() { return new Date().getDay()===1; }
+
+// Prüft ob Vorlage heute fällig ist und noch keine Aufgabe existiert
+function vorlageFaellig(vorlage, aufgaben) {
+  if (!vorlage.aktiv) return false;
+  const exists = aufgaben.some(a => a.signal_key === `vorlage_${vorlage.id}_${isoHeute()}`);
+  if (exists) return false;
+  if (vorlage.rhythmus === 'taeglich') return true;
+  if (vorlage.rhythmus === 'woechentlich' && istMontag()) return true;
+  if (vorlage.rhythmus === 'monatlich' && ersterDesMonats()) return true;
+  return false;
+}
 
 // ─── PRIO OPTIONS ─────────────────────────────────────────────────────────────
 function PrioOptions({ selected, onChange }) {
@@ -264,21 +328,30 @@ function PrioOptions({ selected, onChange }) {
   </div>;
 }
 
-// ─── AUFGABE FORM (Neu + Bearbeiten) ─────────────────────────────────────────
+// ─── RHYTHMUS OPTIONS ─────────────────────────────────────────────────────────
+function RhythmusOptions({ selected, onChange }) {
+  return <div className="rhythmus-options">
+    {Object.entries(RHYTHMEN).map(([key, r]) => (
+      <button key={key} className={`rhythmus-opt ${selected===key ? 'sel' : ''}`} onClick={() => onChange(key)}>
+        {r.label}
+      </button>
+    ))}
+  </div>;
+}
+
+// ─── AUFGABE FORM ─────────────────────────────────────────────────────────────
 function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
-  const leer = { typ:"betrieb", titel:"", naechster_schritt:"", prioritaet:"heute", faellig_am:"", fix:false };
+  const leer = { typ:"betrieb", titel:"", naechster_schritt:"", prioritaet:"heute", faellig_am:"" };
   const [form, setForm] = useState(initial ? {
-    typ: initial.typ || "betrieb",
-    titel: initial.titel || "",
-    naechster_schritt: initial.naechster_schritt || "",
-    prioritaet: initial.prioritaet || "heute",
+    typ: initial.typ||"betrieb",
+    titel: initial.titel||"",
+    naechster_schritt: initial.naechster_schritt||"",
+    prioritaet: initial.prioritaet||"heute",
     faellig_am: initial.faellig_am ? initial.faellig_am.slice(0,10) : "",
-    fix: initial.fix || false,
   } : leer);
   const [moreOpen, setMoreOpen] = useState(isEdit);
   const [shaking, setShaking] = useState(false);
   const [delConfirm, setDelConfirm] = useState(false);
-
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const valid = form.titel.trim().length > 1;
 
@@ -287,78 +360,56 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
     await onSave({ ...form, faellig_am: form.faellig_am || null });
   }
 
-  async function loeschen() {
-    if (!delConfirm) { setDelConfirm(true); return; }
-    await onDelete();
-  }
-
   return (
     <div className="modal-backdrop" onClick={e => e.target===e.currentTarget && onClose()}>
       <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-scroll">
           <div className="sheet-handle"/>
           <h2>{isEdit ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'}</h2>
-          <p className="sheet-hint">{isEdit ? 'Änderungen werden sofort gespeichert.' : 'Titel reicht — Rest ist optional.'}</p>
-
+          <p className="sheet-hint">{isEdit ? 'Änderungen werden sofort gespeichert.' : 'Titel reicht — Rest optional.'}</p>
           <div className="field">
             <input type="text" className={shaking ? 'shake' : ''}
               value={form.titel} onChange={e => set("titel", e.target.value)}
               placeholder="Was ist zu tun?" style={{ fontSize:16, padding:'14px 13px' }}/>
           </div>
-
           <div className="field">
             <label>Priorität</label>
             <PrioOptions selected={form.prioritaet} onChange={v => set("prioritaet", v)} />
           </div>
-
-          <div className="toggle-row" onClick={() => set("fix", !form.fix)}>
-            <div>
-              <div className="toggle-lab">🔁 Fixe Aufgabe</div>
-              <div className="toggle-desc">Wiederkehrend — wird nach Erledigung automatisch zurückgesetzt</div>
-            </div>
-            <div className={`switch ${form.fix ? 'on' : ''}`}/>
-          </div>
-
           <button className="more-toggle" onClick={() => setMoreOpen(o => !o)}>
-            {moreOpen ? '－ Weniger Details' : '＋ Mehr Details (Typ, Datum, Schritt)'}
+            {moreOpen ? '－ Weniger' : '＋ Mehr Details'}
           </button>
-
           <div className={`more-details ${moreOpen ? 'open' : ''}`}>
             <div className="field">
-              <label>Nächster konkreter Schritt</label>
+              <label>Nächster Schritt</label>
               <input type="text" value={form.naechster_schritt}
                 onChange={e => set("naechster_schritt", e.target.value)}
-                placeholder="z.B. Lieferant anrufen"/>
+                placeholder="Konkreter nächster Schritt (optional)"/>
             </div>
             <div className="two-col">
               <div className="field">
                 <label>Typ</label>
                 <select value={form.typ} onChange={e => set("typ", e.target.value)}>
-                  {Object.entries(TYPEN).map(([id,t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
+                  {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Fällig am</label>
-                <input type="date" value={form.faellig_am}
-                  onChange={e => set("faellig_am", e.target.value)} style={{ colorScheme:'light' }}/>
+                <input type="date" value={form.faellig_am} onChange={e => set("faellig_am", e.target.value)} style={{colorScheme:'light'}}/>
               </div>
             </div>
           </div>
-
-          {isEdit && onDelete && (
-            <>
-              <hr className="detail-divider"/>
-              <button className="btn-delete" style={{width:'100%'}} onClick={loeschen}>
-                {delConfirm ? '⚠️ Wirklich löschen? Nochmal tippen' : '🗑 Aufgabe löschen'}
-              </button>
-            </>
-          )}
         </div>
-
         <div className="sheet-actions">
-          <button className="btn-secondary" onClick={onClose}>Abbrechen</button>
+          {isEdit && (
+            <button className="btn-secondary" style={{color:delConfirm?'var(--crit)':'', borderColor:delConfirm?'var(--crit)':''}}
+              onClick={async () => { if(!delConfirm){setDelConfirm(true);}else{await onDelete();onClose();} }}>
+              {delConfirm ? 'Sicher löschen?' : 'Löschen'}
+            </button>
+          )}
+          {!isEdit && <button className="btn-secondary" onClick={onClose}>Abbrechen</button>}
           <button className="btn-primary-save" onClick={speichern} disabled={!valid}>
-            {isEdit ? 'Speichern' : 'Erstellen'}
+            {isEdit ? 'Speichern' : 'Aufgabe erstellen'}
           </button>
         </div>
       </div>
@@ -366,26 +417,98 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
   );
 }
 
-// ─── DETAIL MODAL ─────────────────────────────────────────────────────────────
-function AufgabeDetail({ aufgabe, onUpdate, onDelete, onEdit, onClose }) {
+// ─── VORLAGE FORM ─────────────────────────────────────────────────────────────
+function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
+  const leer = { titel:"", naechster_schritt:"", prioritaet:"diese-woche", typ:"betrieb", rhythmus:"monatlich", aktiv:true };
+  const [form, setForm] = useState(initial ? {
+    titel: initial.titel||"",
+    naechster_schritt: initial.naechster_schritt||"",
+    prioritaet: initial.prioritaet||"diese-woche",
+    typ: initial.typ||"betrieb",
+    rhythmus: initial.rhythmus||"monatlich",
+    aktiv: initial.aktiv !== false,
+  } : leer);
+  const [shaking, setShaking] = useState(false);
+  const [delConfirm, setDelConfirm] = useState(false);
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const valid = form.titel.trim().length > 1;
+
+  async function speichern() {
+    if (!valid) { setShaking(true); setTimeout(()=>setShaking(false),400); toast('Bitte einen Titel eingeben'); return; }
+    await onSave(form);
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className="sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-scroll">
+          <div className="sheet-handle"/>
+          <h2>{isEdit ? 'Vorlage bearbeiten' : 'Neue Vorlage'}</h2>
+          <p className="sheet-hint">Vorlagen erstellen automatisch Aufgaben nach dem gewählten Rhythmus.</p>
+
+          <div className="field">
+            <input type="text" className={shaking ? 'shake' : ''}
+              value={form.titel} onChange={e => set("titel", e.target.value)}
+              placeholder="Was ist regelmäßig zu tun?" style={{ fontSize:16, padding:'14px 13px' }}/>
+          </div>
+
+          <div className="field">
+            <label>Rhythmus</label>
+            <RhythmusOptions selected={form.rhythmus} onChange={v => set("rhythmus", v)} />
+          </div>
+
+          <div className="field">
+            <label>Priorität</label>
+            <PrioOptions selected={form.prioritaet} onChange={v => set("prioritaet", v)} />
+          </div>
+
+          <div className="field">
+            <label>Nächster Schritt</label>
+            <input type="text" value={form.naechster_schritt}
+              onChange={e => set("naechster_schritt", e.target.value)}
+              placeholder="z.B. CSV exportieren und per Mail schicken"/>
+          </div>
+
+          <div className="field">
+            <label>Typ</label>
+            <select value={form.typ} onChange={e => set("typ", e.target.value)}>
+              {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
+            </select>
+          </div>
+
+          <div className="toggle-row" onClick={() => set("aktiv", !form.aktiv)}>
+            <div>
+              <div className="toggle-lab">Vorlage aktiv</div>
+              <div className="toggle-desc">Inaktive Vorlagen erstellen keine Aufgaben</div>
+            </div>
+            <div className={`switch ${form.aktiv ? 'on' : ''}`}/>
+          </div>
+        </div>
+        <div className="sheet-actions">
+          {isEdit && (
+            <button className="btn-secondary" style={{color:delConfirm?'var(--crit)':'', borderColor:delConfirm?'var(--crit)':''}}
+              onClick={async () => { if(!delConfirm){setDelConfirm(true);}else{await onDelete();onClose();} }}>
+              {delConfirm ? 'Sicher löschen?' : 'Löschen'}
+            </button>
+          )}
+          {!isEdit && <button className="btn-secondary" onClick={onClose}>Abbrechen</button>}
+          <button className="btn-primary-save" onClick={speichern} disabled={!valid}>
+            {isEdit ? 'Speichern' : 'Vorlage erstellen'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AUFGABE DETAIL ───────────────────────────────────────────────────────────
+function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit }) {
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon:"◎", label:aufgabe.typ };
 
   async function aktion(status) {
     const update = { status };
-    if (status === "erledigt") {
-      update.erledigt_am = new Date().toISOString();
-      update.erledigt_von = "mirjam";
-      // Fix-Aufgaben: als erledigt markieren mit Datum — Reset passiert automatisch beim nächsten Tag
-      if (aufgabe.fix) {
-        await onUpdate(aufgabe.id, update);
-        toast('✓ Erledigt — wird morgen automatisch zurückgesetzt');
-        setTimeout(async () => {
-          await onUpdate(aufgabe.id, { status:"neu", erledigt_am: null, erledigt_von: null });
-        }, 1500);
-        onClose(); return;
-      }
-    }
+    if (status === "erledigt") { update.erledigt_am = new Date().toISOString(); update.erledigt_von = "mirjam"; }
     await onUpdate(aufgabe.id, update);
     toast(status === "erledigt" ? '✓ Erledigt' : 'Status aktualisiert');
     onClose();
@@ -396,41 +519,30 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onEdit, onClose }) {
       <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-scroll">
           <div className="sheet-handle"/>
-
-          <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:14, flexWrap:'wrap' }}>
+          <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:14,flexWrap:'wrap'}}>
             <span className={`badge ${p.badgeCls}`}>{p.label.toUpperCase()}</span>
             <span className="badge badge-typ">{typ.icon} {typ.label}</span>
-            {aufgabe.fix && <span className="fix-badge">🔁 Fix</span>}
-            {aufgabe.faellig_am && <span style={{ fontSize:12, color:'rgba(33,29,23,0.35)', marginLeft:'auto' }}>bis {formatDatum(aufgabe.faellig_am)}</span>}
+            {aufgabe.app_kontext && <span className="badge badge-auto">AUTO</span>}
+            {aufgabe.faellig_am && <span style={{fontSize:12,color:'rgba(33,29,23,0.35)',marginLeft:'auto'}}>bis {formatDatum(aufgabe.faellig_am)}</span>}
           </div>
-
-          <p style={{ color:'#211D17', fontWeight:700, fontSize:18, marginBottom:aufgabe.naechster_schritt?12:24, lineHeight:1.3 }}>
+          <p style={{color:'#211D17',fontWeight:700,fontSize:18,marginBottom:aufgabe.naechster_schritt?12:24,lineHeight:1.3}}>
             {aufgabe.titel}
           </p>
-
           {aufgabe.naechster_schritt && (
             <div className="next-step-box">
               <div className="next-step-label">Nächster Schritt</div>
-              <div className="next-step-text">{aufgabe.naechster_schritt}</div>
+              <div style={{fontSize:14,color:'rgba(33,29,23,0.75)',lineHeight:1.4}}>{aufgabe.naechster_schritt}</div>
             </div>
           )}
-          {aufgabe.app_kontext && <p style={{ fontSize:12, color:'rgba(33,29,23,0.3)', marginBottom:20 }}>Quelle: {aufgabe.app_kontext}</p>}
-
-          <button className="detail-action-primary" onClick={() => aktion("erledigt")}>
-            ✓ {aufgabe.fix ? 'Erledigt (wird zurückgesetzt)' : 'Erledigt'}
-          </button>
-
-          <button className="detail-action-edit" onClick={onEdit}>✏️ Aufgabe bearbeiten</button>
-
+          <button className="detail-action-primary" onClick={() => aktion("erledigt")}>✓ Erledigt</button>
+          <button className="detail-action-secondary" onClick={() => { onClose(); onEdit(aufgabe); }}>✏️ Bearbeiten</button>
           {aufgabe.status !== "in-arbeit" && (
-            <button className="detail-action-secondary"
-              onClick={() => onUpdate(aufgabe.id,{status:"in-arbeit"}).then(()=>{ toast('In Arbeit gesetzt'); onClose(); })}>
+            <button className="detail-action-secondary" onClick={() => onUpdate(aufgabe.id,{status:"in-arbeit"}).then(()=>{toast('In Arbeit');onClose();})}>
               In Arbeit setzen
             </button>
           )}
           {aufgabe.status !== "wartet" && (
-            <button className="detail-action-secondary"
-              onClick={() => onUpdate(aufgabe.id,{status:"wartet"}).then(()=>{ toast('Wartet auf jemanden'); onClose(); })}>
+            <button className="detail-action-secondary" onClick={() => onUpdate(aufgabe.id,{status:"wartet"}).then(()=>{toast('Wartet');onClose();})}>
               Wartet auf jemanden
             </button>
           )}
@@ -440,29 +552,31 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onEdit, onClose }) {
   );
 }
 
-// ─── AUFGABEN-KARTE ───────────────────────────────────────────────────────────
+// ─── AUFGABE KARTE ────────────────────────────────────────────────────────────
 function AufgabeKarte({ aufgabe, onClick, delay=0 }) {
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon:"◎", label:aufgabe.typ };
-  const istKritisch = aufgabe.prioritaet === "kritisch";
+  const istKrit = aufgabe.prioritaet==="kritisch";
   return (
-    <div className="aufgabe-card einblenden" onClick={onClick} style={{ animationDelay:`${delay}ms` }}>
-      <div className="aufgabe-stripe" style={{ background:p.stripeColor, opacity:istKritisch?1:0.55 }}/>
-      <div style={{ paddingLeft:10 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, flexWrap:'wrap' }}>
+    <div className="aufgabe-card einblenden" onClick={onClick} style={{animationDelay:`${delay}ms`}}>
+      <div className="aufgabe-stripe" style={{background:p.stripeColor,opacity:istKrit?1:0.55}}/>
+      <div style={{paddingLeft:10}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8,flexWrap:'wrap'}}>
           <span className={`badge ${p.badgeCls}`}>{p.label.toUpperCase()}</span>
-          {istKritisch && <span className="kritisch-dot" style={{ width:6,height:6,borderRadius:'50%',background:'#B23A2E',display:'inline-block' }}/>}
-          {aufgabe.fix && <span className="fix-badge">🔁 Fix</span>}
-          {aufgabe.status==="wartet" && <span className="badge badge-status">WARTET</span>}
-          {aufgabe.status==="in-arbeit" && <span className="badge badge-status">IN ARBEIT</span>}
-          <span style={{ fontSize:11, color:'rgba(33,29,23,0.4)', marginLeft:'auto' }}>
-            {typ.icon} {typ.label}{aufgabe.faellig_am && ` · ${formatDatum(aufgabe.faellig_am)}`}
+          {istKrit && <span className="kritisch-dot" style={{width:6,height:6,borderRadius:'50%',background:'#B23A2E',display:'inline-block'}}/>}
+          {aufgabe.status==="wartet" && <span className="badge badge-typ">WARTET</span>}
+          {aufgabe.status==="in-arbeit" && <span className="badge badge-typ">IN ARBEIT</span>}
+          {aufgabe.app_kontext && <span className="badge badge-auto">AUTO</span>}
+          <span style={{fontSize:11,color:'rgba(33,29,23,0.4)',marginLeft:'auto'}}>
+            {typ.icon} {aufgabe.faellig_am && `· ${formatDatum(aufgabe.faellig_am)}`}
           </span>
         </div>
-        <p style={{ color:'#211D17', fontWeight:600, fontSize:15, lineHeight:1.35, marginBottom:aufgabe.naechster_schritt?8:0 }}>
+        <p style={{color:'#211D17',fontWeight:600,fontSize:15,lineHeight:1.35,marginBottom:aufgabe.naechster_schritt?8:0}}>
           {aufgabe.titel}
         </p>
-        {aufgabe.naechster_schritt && <p style={{ fontSize:13, color:'rgba(33,29,23,0.55)', lineHeight:1.4 }}>→ {aufgabe.naechster_schritt}</p>}
+        {aufgabe.naechster_schritt && (
+          <p style={{fontSize:13,color:'rgba(33,29,23,0.55)',lineHeight:1.4}}>→ {aufgabe.naechster_schritt}</p>
+        )}
       </div>
     </div>
   );
@@ -471,91 +585,139 @@ function AufgabeKarte({ aufgabe, onClick, delay=0 }) {
 // ─── ABSCHNITT ────────────────────────────────────────────────────────────────
 function Abschnitt({ label, stripeColor, kinder }) {
   if (!kinder || kinder.length===0) return null;
-  return <div style={{ marginBottom:28 }}>
-    <div className="abschnitt-header">
-      <span className="abschnitt-label" style={{ color:stripeColor }}>{label}</span>
-      <span className="abschnitt-count">{kinder.length}</span>
-      <div className="abschnitt-line"/>
+  return (
+    <div style={{marginBottom:28}}>
+      <div className="abschnitt-header">
+        <span className="abschnitt-label" style={{color:stripeColor}}>{label}</span>
+        <span className="abschnitt-count">{kinder.length}</span>
+        <div className="abschnitt-line"/>
+      </div>
+      {kinder}
     </div>
-    <div>{kinder}</div>
-  </div>;
+  );
+}
+
+// ─── SCHALTZENTRALE KARTE ─────────────────────────────────────────────────────
+function SchaltzentraleKarte({ aufgaben }) {
+  const krit = aufgaben.filter(a => a.prioritaet==="kritisch").length;
+  const heute_ = aufgaben.filter(a => a.prioritaet==="heute").length;
+  const auto = aufgaben.filter(a => a.app_kontext).length;
+  const gesamt = aufgaben.length;
+
+  return (
+    <div className="sz-karte">
+      <div className="sz-tag">WÖRNI · SCHALTZENTRALE · {heuteStr().toUpperCase()}</div>
+      <div style={{marginTop:10,display:'flex',alignItems:'flex-end',gap:12}}>
+        <div>
+          <div className="sz-zahl">{gesamt}</div>
+          <div className="sz-sub">{gesamt===0 ? 'Alles erledigt — Great Hair Day!' : `offene ${gesamt===1?'Aufgabe':'Aufgaben'}`}</div>
+        </div>
+      </div>
+      {(krit>0 || heute_>0 || auto>0) && (
+        <div className="sz-chips">
+          {krit>0 && <span className="sz-chip rot">🔴 {krit} kritisch</span>}
+          {heute_>0 && <span className="sz-chip gold">⚡ {heute_} heute</span>}
+          {auto>0 && <span className="sz-chip">🤖 {auto} automatisch</span>}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── HAUPTKOMPONENTE ──────────────────────────────────────────────────────────
 function Woerni() {
-  const [aufgaben, setAufgaben] = useState([]);
-  const [erledigt, setErledigt] = useState([]);
-  const [laden, setLaden] = useState(true);
-  const [fehler, setFehler] = useState(null);
+  const [aufgaben, setAufgaben]       = useState([]);
+  const [erledigt, setErledigt]       = useState([]);
+  const [vorlagen, setVorlagen]       = useState([]);
+  const [laden, setLaden]             = useState(true);
+  const [fehler, setFehler]           = useState(null);
   const [ausgewaehlt, setAusgewaehlt] = useState(null);
-  const [editAufgabe, setEditAufgabe] = useState(null);
+  const [bearbeiten, setBearbeiten]   = useState(null);
   const [neueAufgabe, setNeueAufgabe] = useState(false);
-  const [tab, setTab] = useState("heute");
+  const [neueVorlage, setNeueVorlage] = useState(false);
+  const [bearbVorlage, setBearbVorlage] = useState(null);
+  const [tab, setTab] = useState("heute"); // heute | vorlagen | erledigt
 
-  // Fix-Aufgaben automatisch zurücksetzen wenn ein neuer Tag begonnen hat
-  async function resetFixAufgaben(aufgaben) {
+  // Fix-Aufgaben zurücksetzen
+  async function resetFixAufgaben(alle) {
     const heute = new Date().toISOString().slice(0,10);
-    const zuResetten = aufgaben.filter(a =>
-      a.fix && a.status === "erledigt" &&
-      a.erledigt_am && a.erledigt_am.slice(0,10) < heute
-    );
-    for (const a of zuResetten) {
-      await api.updateAufgabe(a.id, { status:"neu", erledigt_am:null, erledigt_von:null });
-    }
-    return zuResetten.length > 0;
+    const zuReset = alle.filter(a => a.fix && a.status==="erledigt" && a.erledigt_am && a.erledigt_am.slice(0,10) < heute);
+    for (const a of zuReset) await api.updateAufgabe(a.id, { status:"neu", erledigt_am:null, erledigt_von:null });
+    return zuReset.length > 0;
   }
 
-  async function laden_(silent=false) {
+  // Vorlagen-Aufgaben automatisch erstellen
+  async function erstelleVorlagenAufgaben(vorlagen_, aufgaben_) {
+    const faellig = vorlagen_.filter(v => vorlageFaellig(v, aufgaben_));
+    for (const v of faellig) {
+      await api.addAufgabe({
+        titel: v.titel,
+        naechster_schritt: v.naechster_schritt||"",
+        prioritaet: v.prioritaet,
+        typ: v.typ,
+        status: "neu",
+        erstellt_von: "wörni-auto",
+        app_kontext: `vorlage_${v.rhythmus}`,
+        signal_key: `vorlage_${v.id}_${isoHeute()}`,
+      });
+    }
+    return faellig.length > 0;
+  }
+
+  async function laden_() {
     try {
-      setFehler(null);
-      if (!silent) setLaden(true);
-      const [a, e] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
-      // Fix-Aufgaben vom Vortag zurücksetzen
-      const hatReset = await resetFixAufgaben(a || []);
-      if (hatReset) {
+      setFehler(null); setLaden(true);
+      const [a, e, v] = await Promise.all([api.getAufgaben(), api.getErledigt(), api.getVorlagen()]);
+      const hatReset = await resetFixAufgaben(a||[]);
+      const hatNeu   = await erstelleVorlagenAufgaben(v||[], a||[]);
+      if (hatReset || hatNeu) {
         const [a2, e2] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
-        setAufgaben(a2 || []);
-        setErledigt(e2 || []);
+        setAufgaben(a2||[]); setErledigt(e2||[]);
       } else {
-        setAufgaben(a || []);
-        setErledigt(e || []);
+        setAufgaben(a||[]); setErledigt(e||[]);
       }
-    } catch(err) { setFehler("Verbindung fehlgeschlagen — bitte prüfen"); }
+      setVorlagen(v||[]);
+    } catch(err) { setFehler("Verbindung fehlgeschlagen"); }
     finally { setLaden(false); }
   }
 
-  useEffect(() => { laden_(); }, []);
+  useEffect(() => { laden_(); const t=setInterval(()=>laden_(),60000); return ()=>clearInterval(t); }, []);
 
   async function updateAufgabe(id, daten) {
     await api.updateAufgabe(id, daten);
-    try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); }
-    catch(e) { console.warn("Verlauf:", e.message); }
-    await laden_(true);
+    try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); } catch(e) {}
+    await laden_();
   }
 
   async function addAufgabe(daten) {
     const neu = await api.addAufgabe({ ...daten, status:"neu", erstellt_von:"mirjam" });
-    try { await api.addVerlauf({ aufgabe_id:neu[0].id, von:"mirjam", aktion:"erstellt", zu_status:"neu" }); }
-    catch(e) { console.warn("Verlauf:", e.message); }
-    toast('Aufgabe erstellt');
-    setNeueAufgabe(false);
-    await laden_(true);
+    try { await api.addVerlauf({ aufgabe_id:neu[0].id, von:"mirjam", aktion:"erstellt", zu_status:"neu" }); } catch(e) {}
+    await laden_(); toast('Aufgabe erstellt');
   }
 
-  async function saveEdit(daten) {
-    await api.updateAufgabe(editAufgabe.id, daten);
-    toast('Aufgabe gespeichert');
-    setEditAufgabe(null);
-    setAusgewaehlt(null);
-    await laden_(true);
+  async function editAufgabe(id, daten) {
+    await api.updateAufgabe(id, daten);
+    await laden_(); toast('Gespeichert');
   }
 
-  async function deleteAufgabe() {
-    await api.deleteAufgabe(editAufgabe.id);
-    toast('Aufgabe gelöscht');
-    setEditAufgabe(null);
-    setAusgewaehlt(null);
-    await laden_(true);
+  async function deleteAufgabe(id) {
+    await api.deleteAufgabe(id);
+    await laden_(); toast('Gelöscht');
+  }
+
+  async function addVorlage(daten) {
+    await api.addVorlage(daten);
+    await laden_(); toast('Vorlage erstellt');
+  }
+
+  async function editVorlage(id, daten) {
+    await api.updateVorlage(id, daten);
+    await laden_(); toast('Vorlage gespeichert');
+  }
+
+  async function deleteVorlage(id) {
+    await api.deleteVorlage(id);
+    await laden_(); toast('Vorlage gelöscht');
   }
 
   const gruppen = {
@@ -564,108 +726,198 @@ function Woerni() {
     "diese-woche":   aufgaben.filter(a => a.prioritaet==="diese-woche"),
     "wann-moeglich": aufgaben.filter(a => a.prioritaet==="wann-moeglich"),
   };
-  const entscheidungen = aufgaben.filter(a => a.typ==="entscheidung");
-  const offeneGesamt = aufgaben.length;
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', paddingBottom:100 }}>
+    <div style={{minHeight:'100vh',background:'var(--bg)',paddingBottom:100}}>
 
+      {/* HEADER */}
       <div className="header">
-        <div className="header-eyebrow">WÖRNI · {heuteStr().toUpperCase()}</div>
+        <div className="header-eyebrow">WÖRNI · SCHALTZENTRALE</div>
         <div className="header-row">
           <div>
-            <h1 className="header-h1">
-              {gruppen.kritisch.length > 0
-                ? <><span style={{ color:'var(--crit)' }}>{gruppen.kritisch.length}</span> kritisch</>
-                : offeneGesamt===0 ? "Alles erledigt"
-                : <><span style={{ color:'var(--heute)' }}>{offeneGesamt}</span> offen</>}
-            </h1>
-            <p className="header-sub">
-              {gruppen.kritisch.length>0 ? `+ ${offeneGesamt-gruppen.kritisch.length} weitere`
-                : offeneGesamt===0 ? "Great Hair Day läuft."
-                : entscheidungen.length>0 ? `${entscheidungen.length} Entscheidungen warten`
-                : "Kein unmittelbarer Handlungsbedarf"}
-            </p>
+            <h1 className="header-h1">Hallo, Mirjam</h1>
+            <p className="header-sub">{heuteStr()}</p>
           </div>
-          <button className="btn-add-header" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn-nav" onClick={() => window.location.href='index.html'}>← Start</button>
+            <button className="btn-add-header" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
+          </div>
         </div>
       </div>
 
-      <div style={{ padding:'0 20px' }}>
+      <div style={{padding:'0 20px'}}>
+
+        {/* SCHALTZENTRALE KARTE */}
+        {!laden && !fehler && <SchaltzentraleKarte aufgaben={aufgaben} />}
+
+        {/* TABS */}
         <div className="tabs">
-          {[["heute","Offen"],["erledigt","Erledigt"]].map(([id,label]) => (
+          {[["heute","Offen"],["vorlagen","Vorlagen"],["erledigt","Erledigt"]].map(([id,label]) => (
             <button key={id} className={`tab ${tab===id?'active':''}`} onClick={() => setTab(id)}>{label}</button>
           ))}
         </div>
-      </div>
 
-      <div style={{ padding:'0 20px' }}>
-        {fehler && <div className="fehler-box">
-          <p style={{ color:'var(--crit)', fontSize:14, fontWeight:600, margin:0 }}>{fehler}</p>
-          <button onClick={() => laden_()} style={{ marginTop:8, fontSize:13, color:'rgba(33,29,23,0.5)', background:'none', border:'none', cursor:'pointer', padding:0, textDecoration:'underline', fontFamily:'inherit' }}>Erneut versuchen</button>
-        </div>}
+        {/* FEHLER */}
+        {fehler && (
+          <div className="fehler-box">
+            <p style={{color:'var(--crit)',fontSize:14,fontWeight:600,margin:0}}>{fehler}</p>
+            <button onClick={laden_} style={{marginTop:8,fontSize:13,color:'rgba(33,29,23,0.5)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline',fontFamily:'inherit'}}>
+              Erneut versuchen
+            </button>
+          </div>
+        )}
 
-        {laden && <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          {[...Array(3)].map((_,i) => <div key={i} className="skeleton" style={{ animationDelay:`${i*80}ms` }}/>)}
-        </div>}
+        {/* SKELETON */}
+        {laden && (
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {[...Array(3)].map((_,i) => <div key={i} className="skeleton" style={{animationDelay:`${i*80}ms`}}/>)}
+          </div>
+        )}
 
-        {!laden && tab==="heute" && <>
-          <Abschnitt label="Kritisch"     stripeColor="var(--crit)"  kinder={gruppen.kritisch.map((a,i)      => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={()=>setAusgewaehlt(a)}/>)} />
-          <Abschnitt label="Heute"        stripeColor="var(--heute)" kinder={gruppen.heute.map((a,i)         => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={()=>setAusgewaehlt(a)}/>)} />
-          <Abschnitt label="Diese Woche"  stripeColor="var(--woche)" kinder={gruppen["diese-woche"].map((a,i)=> <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={()=>setAusgewaehlt(a)}/>)} />
-          <Abschnitt label="Wann möglich" stripeColor="var(--wann)"  kinder={gruppen["wann-moeglich"].map((a,i)=><AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={()=>setAusgewaehlt(a)}/>)} />
-          {offeneGesamt===0 && !fehler && <div className="empty-state einblenden">
-            <div className="empty-icon">✓</div>
-            <p className="empty-title">Alles erledigt.</p>
-            <p className="empty-sub">Great Hair Day läuft.</p>
-          </div>}
-        </>}
-
-        {!laden && tab==="erledigt" && <div>
-          {erledigt.length===0 && <p style={{ color:'rgba(33,29,23,0.3)', fontSize:14, textAlign:'center', paddingTop:40 }}>Noch nichts erledigt.</p>}
-          {erledigt.map((a,i) => (
-            <div key={a.id} className="done-card einblenden" style={{ animationDelay:`${i*50}ms` }}>
-              <div className="done-check"><span style={{ fontSize:10, color:'rgba(33,29,23,0.4)' }}>✓</span></div>
-              <div style={{ flex:1 }}>
-                <p style={{ color:'rgba(33,29,23,0.45)', fontSize:14, fontWeight:600, textDecoration:'line-through', textDecorationColor:'rgba(33,29,23,0.15)', margin:0 }}>{a.titel}</p>
-                {a.erledigt_am && <p style={{ fontSize:11, color:'rgba(33,29,23,0.2)', marginTop:2 }}>{formatDatum(a.erledigt_am)}</p>}
+        {/* TAB: OFFEN */}
+        {!laden && tab==="heute" && (
+          <>
+            <Abschnitt label="Kritisch" stripeColor="var(--crit)"
+              kinder={gruppen.kritisch.map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            <Abschnitt label="Heute" stripeColor="var(--heute)"
+              kinder={gruppen.heute.map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            <Abschnitt label="Diese Woche" stripeColor="var(--woche)"
+              kinder={gruppen["diese-woche"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            <Abschnitt label="Wann möglich" stripeColor="var(--wann)"
+              kinder={gruppen["wann-moeglich"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            {aufgaben.length===0 && !fehler && (
+              <div className="empty-state einblenden">
+                <div className="empty-icon">✓</div>
+                <p className="empty-title">Alles erledigt.</p>
+                <p className="empty-sub">Great Hair Day läuft.</p>
               </div>
-            </div>
-          ))}
-        </div>}
+            )}
+          </>
+        )}
+
+        {/* TAB: VORLAGEN */}
+        {!laden && tab==="vorlagen" && (
+          <div>
+            {["taeglich","woechentlich","monatlich","spontan"].map(rhythmus => {
+              const gruppe = vorlagen.filter(v => v.rhythmus===rhythmus);
+              if (gruppe.length===0) return null;
+              const r = RHYTHMEN[rhythmus];
+              return (
+                <div key={rhythmus} style={{marginBottom:24}}>
+                  <div className="abschnitt-header">
+                    <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>{r.label}</span>
+                    <span className="abschnitt-count">{gruppe.length}</span>
+                    <div className="abschnitt-line"/>
+                  </div>
+                  {gruppe.map(v => (
+                    <div key={v.id} className={`vorlage-card ${!v.aktiv?'inaktiv':''}`}
+                      style={{flexDirection:'column',alignItems:'stretch',gap:8}}
+                      onClick={() => setBearbVorlage(v)}>
+                      <div style={{display:'flex',alignItems:'center',gap:12}}>
+                        <span className={`vorlage-rhythmus ${r.cls}`}>{r.label}</span>
+                        <div style={{flex:1}}>
+                          <p style={{margin:0,fontWeight:600,fontSize:14,color:'var(--text)'}}>{v.titel}</p>
+                          {v.naechster_schritt && <p style={{margin:'2px 0 0',fontSize:12,color:'var(--text-soft)'}}>{v.naechster_schritt}</p>}
+                        </div>
+                        <span className={`badge ${(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).badgeCls}`} style={{fontSize:9}}>
+                          {(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).label}
+                        </span>
+                        <span style={{color:'var(--text-soft)',fontSize:18}}>›</span>
+                      </div>
+                      {v.rhythmus === 'spontan' && v.aktiv && (
+                        <button
+                          onClick={async e => {
+                            e.stopPropagation();
+                            await addAufgabe({
+                              titel: v.titel,
+                              naechster_schritt: v.naechster_schritt||'',
+                              prioritaet: v.prioritaet,
+                              typ: v.typ,
+                            });
+                            toast('✓ Aufgabe aus Vorlage erstellt');
+                          }}
+                          style={{
+                            background:'var(--accent)',color:'#fff',border:'none',
+                            borderRadius:10,padding:'9px 14px',fontWeight:700,
+                            fontSize:13,cursor:'pointer',fontFamily:'inherit',
+                            width:'100%',marginTop:2
+                          }}>
+                          ▶ Jetzt als Aufgabe erstellen
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            {vorlagen.length===0 && (
+              <div className="empty-state einblenden">
+                <div className="empty-icon">📋</div>
+                <p className="empty-title">Noch keine Vorlagen.</p>
+                <p className="empty-sub">Erstelle wiederkehrende Aufgaben-Vorlagen.</p>
+              </div>
+            )}
+            <button className="refresh-btn" style={{marginTop:8}} onClick={() => setNeueVorlage(true)}>
+              + Neue Vorlage erstellen
+            </button>
+          </div>
+        )}
+
+        {/* TAB: ERLEDIGT */}
+        {!laden && tab==="erledigt" && (
+          <div>
+            {erledigt.length===0 && <p style={{color:'rgba(33,29,23,0.3)',fontSize:14,textAlign:'center',paddingTop:40}}>Noch nichts erledigt.</p>}
+            {erledigt.map((a,i) => (
+              <div key={a.id} className="done-card einblenden" style={{animationDelay:`${i*50}ms`}}>
+                <div style={{width:20,height:20,borderRadius:'50%',background:'var(--bg-soft)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <span style={{fontSize:10,color:'rgba(33,29,23,0.4)'}}>✓</span>
+                </div>
+                <div style={{flex:1}}>
+                  <p style={{color:'rgba(33,29,23,0.45)',fontSize:14,fontWeight:600,textDecoration:'line-through',textDecorationColor:'rgba(33,29,23,0.15)',margin:0}}>{a.titel}</p>
+                  {a.erledigt_am && <p style={{fontSize:11,color:'rgba(33,29,23,0.2)',marginTop:2}}>{formatDatum(a.erledigt_am)}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
 
-      <div style={{ padding:'24px 20px 0' }}>
-        <button className="refresh-btn" onClick={() => laden_()}>↻ Aktualisieren</button>
+      {/* REFRESH */}
+      <div style={{padding:'24px 20px 0'}}>
+        <button className="refresh-btn" onClick={laden_}>↻ Aktualisieren</button>
       </div>
 
+      {/* FAB */}
       <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
 
-      {ausgewaehlt && !editAufgabe && (
-        <AufgabeDetail
-          aufgabe={ausgewaehlt}
+      {/* MODALS */}
+      {ausgewaehlt && (
+        <AufgabeDetail aufgabe={ausgewaehlt}
           onUpdate={updateAufgabe}
-          onDelete={() => setEditAufgabe(ausgewaehlt)}
-          onEdit={() => setEditAufgabe(ausgewaehlt)}
+          onDelete={() => deleteAufgabe(ausgewaehlt.id)}
           onClose={() => setAusgewaehlt(null)}
+          onEdit={a => { setAusgewaehlt(null); setBearbeiten(a); }}
         />
       )}
-
-      {editAufgabe && (
-        <AufgabeForm
-          initial={editAufgabe}
-          isEdit={true}
-          onSave={saveEdit}
-          onDelete={deleteAufgabe}
-          onClose={() => { setEditAufgabe(null); setAusgewaehlt(null); }}
+      {bearbeiten && (
+        <AufgabeForm initial={bearbeiten} isEdit
+          onSave={d => editAufgabe(bearbeiten.id, d).then(() => setBearbeiten(null))}
+          onDelete={() => deleteAufgabe(bearbeiten.id).then(() => setBearbeiten(null))}
+          onClose={() => setBearbeiten(null)}
         />
       )}
-
       {neueAufgabe && (
-        <AufgabeForm
-          isEdit={false}
-          onSave={addAufgabe}
-          onClose={() => setNeueAufgabe(false)}
+        <AufgabeForm onSave={d => addAufgabe(d).then(() => setNeueAufgabe(false))} onClose={() => setNeueAufgabe(false)} />
+      )}
+      {neueVorlage && (
+        <VorlageForm onSave={d => addVorlage(d).then(() => setNeueVorlage(false))} onClose={() => setNeueVorlage(false)} />
+      )}
+      {bearbVorlage && (
+        <VorlageForm initial={bearbVorlage} isEdit
+          onSave={d => editVorlage(bearbVorlage.id, d).then(() => setBearbVorlage(null))}
+          onDelete={() => deleteVorlage(bearbVorlage.id).then(() => setBearbVorlage(null))}
+          onClose={() => setBearbVorlage(null)}
         />
       )}
     </div>
