@@ -304,6 +304,27 @@
       color: var(--text-soft); letter-spacing: .04em;
       margin-bottom: 6px; text-transform: uppercase;
     }
+
+    /* ── App-Badges ── */
+    .app-tile-wrap { position: relative; }
+    .app-badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      background: #B23A2E;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid var(--bg);
+      z-index: 5;
+      animation: einblenden 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -499,11 +520,11 @@ function renderHome() {
 /* ── Apps ── */
 function renderApps() {
   document.getElementById('appsGrid').innerHTML = orderedApps().map(a => `
-    <button class="app-tile" onclick="goApp('${a.nm}')">
+    <div class="app-tile-wrap"><button class="app-tile" onclick="goApp('${a.nm}')">
       <div class="em">${a.em}</div>
       <div class="nm">${a.nm}</div>
       <div class="sb">${a.sb}</div>
-    </button>`).join('');
+    </button></div>`).join('');
 }
 
 function renderSystem() {
@@ -520,7 +541,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-home')   { renderHome(); }
-  if (id === 'screen-apps')   { renderApps(); }
+  if (id === 'screen-apps')   { renderApps(); setTimeout(ladeBadges, 100); }
   if (id === 'screen-system') { renderSystem(); }
 }
 function goHome() { showScreen('screen-home'); }
@@ -620,12 +641,137 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
+
+/* ── Badge-System ── */
+const BADGE_SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const BADGE_SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+
+async function badgeFetch(table, filter) {
+  try {
+    const r = await fetch(`${BADGE_SB_URL}/rest/v1/${table}?${filter}&select=id`, {
+      headers: {
+        "apikey": BADGE_SB_KEY,
+        "Authorization": `Bearer ${BADGE_SB_KEY}`,
+        "Prefer": "count=exact"
+      }
+    });
+    const count = r.headers.get("content-range");
+    if (count) return parseInt(count.split("/")[1]) || 0;
+    const data = await r.json();
+    return Array.isArray(data) ? data.length : 0;
+  } catch(e) { return 0; }
+}
+
+function setBadge(appName, count) {
+  if (count <= 0) return;
+  const tiles = document.querySelectorAll('.app-tile-wrap');
+  tiles.forEach(wrap => {
+    const nm = wrap.querySelector('.nm');
+    if (nm && nm.textContent.trim() === appName) {
+      // alten Badge entfernen falls vorhanden
+      const old = wrap.querySelector('.app-badge');
+      if (old) old.remove();
+      const badge = document.createElement('div');
+      badge.className = 'app-badge';
+      badge.textContent = count > 9 ? '9+' : count;
+      wrap.appendChild(badge);
+    }
+  });
+}
+
+async function ladeBadges() {
+  // Abwesenheit: offene Anträge
+  const abw = await badgeFetch('abw_anfragen', 'status=eq.ausstehend');
+  setBadge('Abwesenheit', abw);
+
+  // Wörni: kritische Aufgaben
+  const woerni = await badgeFetch('ghd_aufgaben', 'status=neq.erledigt&prioritaet=eq.kritisch');
+  setBadge('Aufträge', woerni);
+  setBadge('Wörni', woerni);
+
+  // Innung: Seminare ohne Trainer
+  const innung = await badgeFetch('innungs_seminare', 'bestaetigte_person_id=is.null');
+  setBadge('Innung', innung);
+
+  // Lernquiz: hat Lehrling diese Woche Quiz gemacht?
+  await lernquizBadge();
+}
+
+async function lernquizBadge() {
+  try {
+    // Montag dieser Woche berechnen (österreichisches Format: D.M.YYYY)
+    const heute = new Date();
+    const tag = heute.getDay(); // 0=So, 1=Mo...
+    const diffZuMo = (tag === 0) ? -6 : 1 - tag;
+    const montag = new Date(heute);
+    montag.setDate(heute.getDate() + diffZuMo);
+
+    // Verlauf dieser Woche abfragen — österreichisches Datum D.M.YYYY
+    const r = await fetch(`${BADGE_SB_URL}/rest/v1/verlauf?select=datum,lehrling_id&order=datum.desc&limit=50`, {
+      headers: {
+        "apikey": BADGE_SB_KEY,
+        "Authorization": `Bearer ${BADGE_SB_KEY}`
+      }
+    });
+    const eintraege = await r.json();
+    if (!Array.isArray(eintraege)) return;
+
+    // Prüfen ob diese Woche ein Eintrag existiert
+    const dieseWoche = eintraege.some(e => {
+      if (!e.datum) return false;
+      // Format: D.M.YYYY
+      const [d, m, y] = e.datum.split('.').map(Number);
+      const datum = new Date(y, m - 1, d);
+      return datum >= montag;
+    });
+
+    if (!dieseWoche) {
+      // Kein Quiz diese Woche → Badge "!" anzeigen
+      setBadgeCustom('Lernquiz', '!', '#A67A22');
+    } else {
+      // Quiz gemacht → prüfen ob neues Abzeichen (Streak) diese Woche
+      const abzeichen = await fetch(`${BADGE_SB_URL}/rest/v1/lernquiz_abzeichen?select=created_at&order=created_at.desc&limit=5`, {
+        headers: {
+          "apikey": BADGE_SB_KEY,
+          "Authorization": `Bearer ${BADGE_SB_KEY}`
+        }
+      });
+      const abzData = await abzeichen.json();
+      if (Array.isArray(abzData) && abzData.length > 0) {
+        const neuesAbz = abzData.some(a => {
+          if (!a.created_at) return false;
+          return new Date(a.created_at) >= montag;
+        });
+        if (neuesAbz) setBadgeCustom('Lernquiz', '★', '#4C7A5B');
+      }
+    }
+  } catch(e) { console.warn('Lernquiz Badge:', e); }
+}
+
+function setBadgeCustom(appName, symbol, farbe) {
+  const tiles = document.querySelectorAll('.app-tile-wrap');
+  tiles.forEach(wrap => {
+    const nm = wrap.querySelector('.nm');
+    if (nm && nm.textContent.trim() === appName) {
+      const old = wrap.querySelector('.app-badge');
+      if (old) old.remove();
+      const badge = document.createElement('div');
+      badge.className = 'app-badge';
+      badge.textContent = symbol;
+      badge.style.background = farbe;
+      wrap.appendChild(badge);
+    }
+  });
+}
+
 /* ── Init ── */
 buildKeypad();
 renderPinDots();
 updateGreeting();
 renderNowCard();
 renderHome();
+ladeBadges();
+setInterval(ladeBadges, 30000);
 </script>
 </body>
 </html>
