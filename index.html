@@ -125,6 +125,22 @@
     }
     .pill:hover { border-color: var(--accent); }
 
+    /* ── Signale ── */
+    .signale-grid { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .signal-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 7px 12px;
+      font-size: 12px; font-weight: 600; color: var(--text-soft);
+      cursor: pointer; flex: 1; min-width: 0;
+    }
+    .signal-chip:active { background: var(--bg-soft); }
+    .signal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .signal-dot.ok   { background: var(--ok); }
+    .signal-dot.warn { background: var(--heute); animation: signal-puls 2s ease-in-out infinite; }
+    .signal-dot.leer { background: var(--border); }
+    @keyframes signal-puls { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
     /* ── Now-Card ── */
     .now-card {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
@@ -356,6 +372,11 @@
     </div>
   </div>
 
+  <!-- SIGNALE -->
+  <div class="signale-grid" id="signaleGrid">
+    <div class="signal-row"><div class="signal-dot leer"></div><div><div class="signal-text">Wird geladen…</div></div></div>
+  </div>
+
   <div class="now-card">
     <div class="now-tag">JETZT</div>
     <div class="now-title" id="nowTitle">Abschluss: Sind die Belege diesen Monat vollständig?</div>
@@ -543,7 +564,7 @@ function renderSystem() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'screen-home')   { renderHome(); }
+  if (id === 'screen-home')   { renderHome(); ladeSignale(); }
   if (id === 'screen-apps')   { renderApps(); setTimeout(ladeBadges, 100); }
   if (id === 'screen-system') { renderSystem(); }
 }
@@ -644,6 +665,78 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
+
+/* ── Signale ── */
+const SIG_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const SIG_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+
+async function sigFetch(table, filter) {
+  try {
+    const r = await fetch(`${SIG_URL}/rest/v1/${table}?${filter}&select=id`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}`, "Prefer": "count=exact" }
+    });
+    const count = r.headers.get("content-range");
+    if (count) return parseInt(count.split("/")[1]) || 0;
+    const data = await r.json();
+    return Array.isArray(data) ? data.length : 0;
+  } catch(e) { return null; }
+}
+
+async function lernquizDieseWoche() {
+  try {
+    const heute = new Date();
+    const tag = heute.getDay();
+    const diffZuMo = (tag === 0) ? -6 : 1 - tag;
+    const montag = new Date(heute);
+    montag.setDate(heute.getDate() + diffZuMo);
+    const r = await fetch(`${SIG_URL}/rest/v1/verlauf?select=datum&order=datum.desc&limit=50`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+    });
+    const eintraege = await r.json();
+    if (!Array.isArray(eintraege)) return null;
+    return eintraege.some(e => {
+      if (!e.datum) return false;
+      const [d, m, y] = e.datum.split('.').map(Number);
+      return new Date(y, m - 1, d) >= montag;
+    });
+  } catch(e) { return null; }
+}
+
+function signalHTML(dot, label, onclick) {
+  const klick = onclick ? `onclick="${onclick}"` : '';
+  return `<div class="signal-chip" ${klick}><div class="signal-dot ${dot}"></div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></div>`;
+}
+
+async function ladeSignale() {
+  const grid = document.getElementById('signaleGrid');
+  if (!grid) return;
+
+  // 1. Urlaubsantrag
+  const abw = await sigFetch('abw_anfragen', 'status=eq.ausstehend');
+  // 2. Einkauf offen
+  const einkauf = await sigFetch('einkauf_items', 'erledigt=eq.false');
+  // 3. Lernquiz diese Woche
+  const gelernt = await lernquizDieseWoche();
+
+  let html = '';
+
+  // Signal 1: Urlaubsantrag
+  if (abw === null)       html += signalHTML('leer', 'Urlaub');
+  else if (abw === 0)     html += signalHTML('ok',   'Kein Urlaub offen');
+  else                    html += signalHTML('warn',  `${abw} Urlaubsantrag${abw>1?'e':''}`, "goApp('Abwesenheit')");
+
+  // Signal 2: Einkauf
+  if (einkauf === null)   html += signalHTML('leer', 'Einkauf');
+  else if (einkauf === 0) html += signalHTML('ok',   'Einkauf ok');
+  else                    html += signalHTML('warn',  `${einkauf} Einkäufe offen`, "goApp('Checklisten')");
+
+  // Signal 3: Lernquiz
+  if (gelernt === null)   html += signalHTML('leer', 'Lernquiz');
+  else if (gelernt)       html += signalHTML('ok',   'Quiz gemacht');
+  else                    html += signalHTML('warn',  'Kein Quiz diese Woche', "goApp('Lernquiz')");
+
+  grid.innerHTML = html;
+}
 
 /* ── Badge-System ── */
 const BADGE_SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
@@ -775,6 +868,7 @@ renderNowCard();
 renderHome();
 showScreen('screen-pin');
 ladeBadges();
+ladeSignale();
 setInterval(ladeBadges, 30000);
 </script>
 </body>
