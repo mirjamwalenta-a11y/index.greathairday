@@ -637,6 +637,10 @@ function Woerni() {
   const [neueVorlage, setNeueVorlage] = useState(false);
   const [bearbVorlage, setBearbVorlage] = useState(null);
   const [tab, setTab] = useState("heute"); // heute | vorlagen | erledigt
+  const [sprache, setSprache] = useState(false); // Spracheingabe aktiv
+  const [sprachText, setSprachText] = useState('');
+  const [hoert, setHoert] = useState(false);
+  const erkennungRef = useRef(null);
 
   // Fix-Aufgaben zurücksetzen
   async function resetFixAufgaben(alle) {
@@ -718,6 +722,39 @@ function Woerni() {
   async function deleteVorlage(id) {
     await api.deleteVorlage(id);
     await laden_(); toast('Vorlage gelöscht');
+  }
+
+  // ── Spracheingabe ──
+  function spracheStarten() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { toast('Spracheingabe nicht verfügbar'); return; }
+    setSprache(true);
+    setSprachText('');
+    const erkennung = new SR();
+    erkennungRef.current = erkennung;
+    erkennung.lang = 'de-AT';
+    erkennung.continuous = false;
+    erkennung.interimResults = true;
+    erkennung.onstart = () => setHoert(true);
+    erkennung.onresult = e => {
+      const text = Array.from(e.results).map(r => r[0].transcript).join('');
+      setSprachText(text);
+    };
+    erkennung.onend = () => setHoert(false);
+    erkennung.onerror = () => { setHoert(false); toast('Sprache nicht erkannt — bitte nochmal'); };
+    erkennung.start();
+  }
+
+  function spracheAbbrechen() {
+    if (erkennungRef.current) erkennungRef.current.abort();
+    setSprache(false); setSprachText(''); setHoert(false);
+  }
+
+  async function spracheBestaetigen() {
+    if (!sprachText.trim()) { toast('Kein Text erkannt'); return; }
+    await addAufgabe({ titel: sprachText.trim(), prioritaet: 'heute', typ: 'betrieb' });
+    setSprache(false); setSprachText(''); setHoert(false);
+    toast('✓ Aufgabe erstellt');
   }
 
   const gruppen = {
@@ -930,8 +967,52 @@ function Woerni() {
         <button className="refresh-btn" onClick={laden_}>↻ Aktualisieren</button>
       </div>
 
-      {/* FAB */}
-      <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
+      {/* FAB: Aufgabe + Mikrofon */}
+      <div style={{position:'fixed',right:20,bottom:28,display:'flex',gap:10,zIndex:20}}>
+        <button className="fab" style={{background:'var(--bg-soft)',color:'var(--accent-dark)',border:'1.5px solid var(--border)',boxShadow:'0 4px 12px rgba(137,108,50,0.15)'}}
+          onClick={spracheStarten}>🎤</button>
+        <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
+      </div>
+
+      {/* SPRACHE MODAL */}
+      {sprache && (
+        <div className="modal-backdrop" onClick={spracheAbbrechen}>
+          <div className="sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-scroll" style={{textAlign:'center',padding:'32px 24px'}}>
+              <div className="sheet-handle"/>
+              <div style={{fontSize:48,marginBottom:16}}>{hoert ? '🎤' : '⏸'}</div>
+              <p style={{fontWeight:700,fontSize:17,marginBottom:8}}>
+                {hoert ? 'Ich höre zu…' : 'Mikrofon bereit'}
+              </p>
+              <p style={{fontSize:13,color:'var(--text-soft)',marginBottom:24}}>
+                {hoert ? 'Sprich deine Aufgabe' : 'Tippe auf das Mikrofon um zu sprechen'}
+              </p>
+              {sprachText ? (
+                <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'14px 16px',marginBottom:20,textAlign:'left'}}>
+                  <p style={{fontSize:11,fontWeight:700,color:'var(--text-soft)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.06em'}}>Erkannt</p>
+                  <p style={{fontSize:16,fontWeight:600,color:'var(--text)',margin:0}}>{sprachText}</p>
+                </div>
+              ) : null}
+              {!hoert && !sprachText && (
+                <button onClick={spracheStarten} style={{
+                  background:'var(--accent)',color:'#fff',border:'none',
+                  borderRadius:999,width:72,height:72,fontSize:28,
+                  cursor:'pointer',marginBottom:20,boxShadow:'0 6px 16px rgba(137,108,50,0.35)'}}>
+                  🎤
+                </button>
+              )}
+            </div>
+            <div className="sheet-actions">
+              <button className="btn-secondary" onClick={spracheAbbrechen}>Abbrechen</button>
+              {sprachText && (
+                <button className="btn-primary-save" onClick={spracheBestaetigen}>
+                  ✓ Als Aufgabe speichern
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODALS */}
       {ausgewaehlt && (
