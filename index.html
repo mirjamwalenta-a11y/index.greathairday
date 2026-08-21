@@ -331,7 +331,7 @@
 <body>
 
 <!-- PIN -->
-<div class="screen active" id="screen-pin">
+<div class="screen" id="screen-pin">
   <div class="avatar-dot"></div>
   <div class="pin-name">Mirjam Walenta</div>
   <div class="pin-brand">A Great Hair Day</div>
@@ -443,12 +443,14 @@ const apps = [
   {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
   {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/'},
   {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
-  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'},
+  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
   {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager.index.html'},
-  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'},
+  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'},
   {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
   {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'woerni.html'},
   {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
+  {em:'🌟', nm:'Schnuppertag', sb:'Lehrlings-Auswahl & Probezeit',    url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
+  {em:'🗄', nm:'Schrank',     sb:'Dokumente & Tresor',                url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'},
 ];
 
 const cardCopy = {
@@ -771,6 +773,7 @@ renderPinDots();
 updateGreeting();
 renderNowCard();
 renderHome();
+showScreen('screen-pin');
 ladeBadges();
 setInterval(ladeBadges, 30000);
 </script>
