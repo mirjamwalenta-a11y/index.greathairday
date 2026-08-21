@@ -953,8 +953,13 @@ const ALLE_APPS = [
     rollen:['chefin','ausbildnerin','lehrling']
   },
   {
+    icon:'🌟', name:'Schnuppertag', desc:'Lehrlings-Auswahl & Probezeit',
+    url:`${B}/lernquiz.greathairday/schnuppertag.html`,
+    rollen:['chefin','ausbildnerin']
+  },
+  {
     icon:'📖', name:'Lerntool', desc:'Lernkarten & Themen',
-    url:`${B}/lerntool.index.html/lerntool.html`,
+    url:`${B}/lernquiz.greathairday/lerntool.html`,
     rollen:['chefin','ausbildnerin','lehrling']
   },
   {
@@ -1798,7 +1803,7 @@ function systemRendern(){
     {name:'Abwesenheit', icon:'📅', desc:'Urlaub & Krankenstand',             url: typeof B!=='undefined'?B+'/abwesenheiten-ghd/abwesenheiten.html':'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
     {name:'Team',        icon:'💬', desc:'Mitteilungen & Besprechungen',      url: typeof B!=='undefined'?B+'/Team/team.html':'https://mirjamwalenta-a11y.github.io/Team/team.html'},
     {name:'Lernquiz',    icon:'✂️', desc:'Quiz & Prüfungsvorbereitung',       url: typeof B!=='undefined'?B+'/lernquiz.greathairday/lernquiz.html':'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
-    {name:'Lerntool',    icon:'📖', desc:'Lernkarten & Themen',               url: typeof B!=='undefined'?B+'/lerntool.index.html/lerntool.html':'https://mirjamwalenta-a11y.github.io/lerntool.index.html/lerntool.html'},
+    {name:'Lerntool',    icon:'📖', desc:'Lernkarten & Themen',               url: typeof B!=='undefined'?B+'/lernquiz.greathairday/lerntool.html':'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
     {name:'Lager',       icon:'📦', desc:'Bestand & Bestellungen',            url: typeof B!=='undefined'?B+'/lager.greathairday/Lager.index.html':'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager.index.html'},
     {name:'Handbuch',    icon:'📒', desc:'Richtlinien & Standards',           url: typeof B!=='undefined'?B+'/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html':'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'},
     {name:'Belege',      icon:'🧾', desc:'Rechnungen & Steuerberater',        url: typeof B!=='undefined'?B+'/belege.greathairday/belege.html':'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
