@@ -640,6 +640,8 @@ function Woerni() {
   const [sprache, setSprache] = useState(false); // Spracheingabe aktiv
   const [sprachText, setSprachText] = useState('');
   const [hoert, setHoert] = useState(false);
+  const [woerniAntwort, setWoerniAntwort] = useState('');
+  const [woerniLadet, setWoerniLadet] = useState(false);
   const erkennungRef = useRef(null);
 
   // Fix-Aufgaben zurücksetzen
@@ -730,6 +732,7 @@ function Woerni() {
     if (!SR) { toast('Spracheingabe nicht verfügbar'); return; }
     setSprache(true);
     setSprachText('');
+    setWoerniAntwort('');
     const erkennung = new SR();
     erkennungRef.current = erkennung;
     erkennung.lang = 'de-AT';
@@ -747,7 +750,32 @@ function Woerni() {
 
   function spracheAbbrechen() {
     if (erkennungRef.current) erkennungRef.current.abort();
-    setSprache(false); setSprachText(''); setHoert(false);
+    setSprache(false); setSprachText(''); setHoert(false); setWoerniAntwort(''); setWoerniLadet(false);
+  }
+
+  async function fragenWoerni() {
+    if (!sprachText.trim()) return;
+    setWoerniLadet(true);
+    setWoerniAntwort('');
+    try {
+      const offeneAufgaben = aufgaben.slice(0,8).map(a => `- ${a.titel} (${a.prioritaet})`).join('\n');
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: `Du bist Wörni, der persönliche KI-Assistent von Mirjam Walenta, Friseurmeisterin und Saloninhaberin in Wien (Salon "A Great Hair Day"). Du kennst ihren Betrieb, ihr Team und ihre Apps. Antworte kurz, direkt und auf Deutsch. Keine langen Einleitungen. Hier sind ihre aktuell offenen Aufgaben:\n${offeneAufgaben || '(keine offenen Aufgaben)'}`,
+          messages: [{ role: 'user', content: sprachText.trim() }]
+        })
+      });
+      const data = await response.json();
+      const antwort = data.content?.find(b => b.type === 'text')?.text || 'Keine Antwort erhalten.';
+      setWoerniAntwort(antwort);
+    } catch(e) {
+      setWoerniAntwort('Verbindung fehlgeschlagen. Bitte erneut versuchen.');
+    }
+    setWoerniLadet(false);
   }
 
   async function spracheBestaetigen() {
@@ -978,35 +1006,79 @@ function Woerni() {
       {sprache && (
         <div className="modal-backdrop" onClick={spracheAbbrechen}>
           <div className="sheet" onClick={e => e.stopPropagation()}>
-            <div className="sheet-scroll" style={{textAlign:'center',padding:'32px 24px'}}>
+            <div className="sheet-scroll" style={{padding:'10px 24px 6px'}}>
               <div className="sheet-handle"/>
-              <div style={{fontSize:48,marginBottom:16}}>{hoert ? '🎤' : '⏸'}</div>
-              <p style={{fontWeight:700,fontSize:17,marginBottom:8}}>
-                {hoert ? 'Ich höre zu…' : 'Mikrofon bereit'}
-              </p>
-              <p style={{fontSize:13,color:'var(--text-soft)',marginBottom:24}}>
-                {hoert ? 'Sprich deine Aufgabe' : 'Tippe auf das Mikrofon um zu sprechen'}
-              </p>
+              <div style={{textAlign:'center',marginBottom:16}}>
+                <div style={{fontSize:36,marginBottom:8}}>{hoert ? '🎤' : woerniAntwort ? '🤖' : '⏸'}</div>
+                <p style={{fontWeight:700,fontSize:16,marginBottom:4,margin:0}}>
+                  {hoert ? 'Ich höre zu…' : woerniAntwort ? 'Wörni antwortet' : 'Mikrofon bereit'}
+                </p>
+                <p style={{fontSize:12,color:'var(--text-soft)',marginTop:4}}>
+                  {hoert ? 'Sprich frei — Frage oder Aufgabe' : woerniAntwort ? '' : 'Frag Wörni oder diktiere eine Aufgabe'}
+                </p>
+              </div>
+
+              {!hoert && !sprachText && !woerniAntwort && (
+                <div style={{textAlign:'center',marginBottom:16}}>
+                  <button onClick={spracheStarten} style={{
+                    background:'var(--accent)',color:'#fff',border:'none',
+                    borderRadius:999,width:64,height:64,fontSize:24,
+                    cursor:'pointer',boxShadow:'0 6px 16px rgba(137,108,50,0.35)'}}>
+                    🎤
+                  </button>
+                </div>
+              )}
+
               {sprachText ? (
-                <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'14px 16px',marginBottom:20,textAlign:'left'}}>
-                  <p style={{fontSize:11,fontWeight:700,color:'var(--text-soft)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.06em'}}>Erkannt</p>
-                  <p style={{fontSize:16,fontWeight:600,color:'var(--text)',margin:0}}>{sprachText}</p>
+                <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <p style={{fontSize:10,fontWeight:700,color:'var(--text-soft)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.06em'}}>Du hast gesagt</p>
+                  <p style={{fontSize:15,fontWeight:600,color:'var(--text)',margin:0,lineHeight:1.4}}>{sprachText}</p>
                 </div>
               ) : null}
-              {!hoert && !sprachText && (
+
+              {woerniLadet && (
+                <div style={{background:'var(--accent-tint)',border:'1px solid rgba(137,108,50,0.2)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <p style={{fontSize:13,color:'var(--accent-dark)',margin:0,fontWeight:600}}>Wörni denkt nach…</p>
+                </div>
+              )}
+
+              {woerniAntwort && !woerniLadet && (
+                <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <p style={{fontSize:10,fontWeight:700,color:'var(--accent-dark)',marginBottom:6,textTransform:'uppercase',letterSpacing:'.06em'}}>🤖 Wörni</p>
+                  <p style={{fontSize:14,color:'var(--text)',margin:0,lineHeight:1.5}}>{woerniAntwort}</p>
+                </div>
+              )}
+
+              {sprachText && !hoert && !woerniAntwort && !woerniLadet && (
                 <button onClick={spracheStarten} style={{
-                  background:'var(--accent)',color:'#fff',border:'none',
-                  borderRadius:999,width:72,height:72,fontSize:28,
-                  cursor:'pointer',marginBottom:20,boxShadow:'0 6px 16px rgba(137,108,50,0.35)'}}>
-                  🎤
+                  display:'block',width:'100%',background:'none',border:'1px solid var(--border)',
+                  borderRadius:10,padding:'10px',fontSize:13,color:'var(--text-soft)',
+                  cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                  🎤 Nochmal sprechen
                 </button>
               )}
             </div>
-            <div className="sheet-actions">
-              <button className="btn-secondary" onClick={spracheAbbrechen}>Abbrechen</button>
-              {sprachText && (
-                <button className="btn-primary-save" onClick={spracheBestaetigen}>
-                  ✓ Als Aufgabe speichern
+            <div className="sheet-actions" style={{flexDirection:'column',gap:8}}>
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn-secondary" onClick={spracheAbbrechen}>Schließen</button>
+                {sprachText && !woerniAntwort && !woerniLadet && (
+                  <button className="btn-primary-save" onClick={fragenWoerni}>
+                    🤖 Wörni fragen
+                  </button>
+                )}
+                {woerniAntwort && (
+                  <button className="btn-primary-save" onClick={spracheBestaetigen}>
+                    ✓ Als Aufgabe speichern
+                  </button>
+                )}
+              </div>
+              {sprachText && !woerniAntwort && !woerniLadet && (
+                <button style={{
+                  width:'100%',padding:'11px',borderRadius:12,border:'none',
+                  background:'var(--bg-soft)',color:'var(--text-soft)',
+                  fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}
+                  onClick={spracheBestaetigen}>
+                  ✓ Direkt als Aufgabe speichern
                 </button>
               )}
             </div>

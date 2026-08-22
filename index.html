@@ -378,11 +378,14 @@
   </div>
 
   <div class="now-card">
-    <div class="now-tag">JETZT</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+      <div class="now-tag">JETZT · PRIORITÄT 1</div>
+      <button onclick="openNowSheet()" style="background:rgba(255,255,255,0.18);border:none;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.04em;">↕ Sortieren</button>
+    </div>
     <div class="now-title" id="nowTitle">Abschluss: Sind die Belege diesen Monat vollständig?</div>
     <div class="now-actions">
-      <button class="now-btn-primary" onclick="goApp('Belege')">→ Belege prüfen</button>
-      <button class="now-btn-quiet" onclick="goApp('Belege')">Belege ordnen</button>
+      <button class="now-btn-primary" id="nowBtnPrimary" onclick="goApp('Belege')">→ Belege prüfen</button>
+      <button class="now-btn-quiet" id="nowBtnQuiet" onclick="goApp('Belege')">Belege ordnen</button>
     </div>
   </div>
 
@@ -453,6 +456,21 @@
   </div>
 </div>
 
+<!-- OVERLAY: Now-Card Priorität -->
+<div class="overlay" id="overlayNow" onclick="closeNowSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Morgennachrichten sortieren</h2>
+      <p class="sheet-hint">Was gerade am wichtigsten ist, steht oben — das siehst du jeden Morgen zuerst.</p>
+      <div id="nowSortList"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closeNowSheet()">Fertig</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -501,21 +519,131 @@ function updateGreeting() {
   document.getElementById('greetSub').textContent = `${greet}, Mirjam!`;
 }
 
-/* ── Now-Card: rotiert täglich ── */
-const nowCards = [
-  {title:'Abschluss: Sind die Belege diesen Monat vollständig?',   btn:'→ Belege prüfen',         quiet:'Belege ordnen',    app:'Belege'},
-  {title:'Reichweite: Gibt es heute einen Anlass für einen Post?', btn:'→ Post erstellen',        quiet:'Ideen sammeln',    app:'Reichweite'},
-  {title:'Team: Steht etwas Wichtiges für heute auf dem Plan?',    btn:'→ Checkliste öffnen',     quiet:'Später erledigen', app:'Checklisten'},
-  {title:'Wörni: Welche Aufgabe wartet schon länger auf dich?',    btn:'→ Aufgaben ansehen',      quiet:'Überspringen',     app:'Wörni'},
+/* ── Now-Card: priorisierbar, alle Apps ── */
+const NOW_CARDS_ALLE = [
+  {id:'mitarbeiter', title:'Team: Läuft gerade die Mitarbeitersuche — wo stehen wir?', btn:'→ Team öffnen',        quiet:'Später ansehen',   app:'Team'},
+  {id:'belege',      title:'Abschluss: Sind die Belege diesen Monat vollständig?',     btn:'→ Belege prüfen',     quiet:'Belege ordnen',    app:'Belege'},
+  {id:'reichweite',  title:'Reichweite: Gibt es heute einen Anlass für einen Post?',   btn:'→ Post erstellen',    quiet:'Ideen sammeln',    app:'Reichweite'},
+  {id:'checklisten', title:'Team: Steht etwas Wichtiges für heute auf dem Plan?',      btn:'→ Checkliste öffnen', quiet:'Später erledigen', app:'Checklisten'},
+  {id:'woerni',      title:'Wörni: Welche Aufgabe wartet schon länger auf dich?',      btn:'→ Aufgaben ansehen',  quiet:'Überspringen',     app:'Wörni'},
+  {id:'einkauf',     title:'Einkauf: Was fehlt im Salon — ist die Liste aktuell?',     btn:'→ Einkauf prüfen',    quiet:'Überspringen',     app:'Checklisten'},
+  {id:'lernquiz',    title:'Lehrling: Hat der Lehrling diese Woche schon gelernt?',    btn:'→ Lernquiz öffnen',   quiet:'Morgen erledigen', app:'Lernquiz'},
+  {id:'innung',      title:'Innung: Gibt es offene Seminare oder Trainer-Anfragen?',   btn:'→ Innung öffnen',     quiet:'Überspringen',     app:'Innung'},
+  {id:'schrank',     title:'Dokumente: Gibt es etwas Wichtiges abzulegen oder zu finden?', btn:'→ Schrank öffnen', quiet:'Später',          app:'Schrank'},
+  {id:'lager',       title:'Lager: Stimmt der Bestand — fehlt etwas Wichtiges?',       btn:'→ Lager prüfen',      quiet:'Überspringen',     app:'Lager'},
+  {id:'handbuch',    title:'Handbuch: Gibt es Standards die aktualisiert werden sollten?', btn:'→ Handbuch öffnen', quiet:'Später',          app:'Handbuch'},
+  {id:'abwesenheit', title:'Abwesenheit: Gibt es offene Urlaubsanträge im Team?',      btn:'→ Abwesenheit öffnen', quiet:'Später prüfen',   app:'Abwesenheit'},
+  {id:'lerntool',    title:'Lerntool: Gibt es neue Lernkarten oder Themen zu pflegen?',btn:'→ Lerntool öffnen',   quiet:'Überspringen',     app:'Lerntool'},
+  {id:'schnuppertag',title:'Schnuppertag: Steht bald ein neuer Schnuppertag an?',      btn:'→ Schnuppertag öffnen',quiet:'Später',          app:'Schnuppertag'},
 ];
+
+const NOW_PRIO_KEY    = 'ghd_now_reihenfolge';
+const NOW_AKTIV_KEY   = 'ghd_now_aktiv';
+
+function nowLadeEinstellungen() {
+  let reihenfolge = NOW_CARDS_ALLE.map(c => c.id);
+  let aktiv = ['mitarbeiter','belege','reichweite','checklisten','woerni'];
+  try {
+    const sr = localStorage.getItem(NOW_PRIO_KEY);
+    const sa = localStorage.getItem(NOW_AKTIV_KEY);
+    if (sr) reihenfolge = JSON.parse(sr);
+    if (sa) aktiv = JSON.parse(sa);
+    // neue Karten hinzufügen die noch nicht in der Liste sind
+    NOW_CARDS_ALLE.forEach(c => { if (!reihenfolge.includes(c.id)) reihenfolge.push(c.id); });
+  } catch(e) {}
+  return { reihenfolge, aktiv };
+}
+
+function nowSpeichern() {
+  try {
+    localStorage.setItem(NOW_PRIO_KEY,  JSON.stringify(nowOrder.map(c => c.id)));
+    localStorage.setItem(NOW_AKTIV_KEY, JSON.stringify(nowAktiv));
+  } catch(e) {}
+}
+
+let { reihenfolge: _r, aktiv: _a } = nowLadeEinstellungen();
+let nowOrder = _r.map(id => NOW_CARDS_ALLE.find(c => c.id === id)).filter(Boolean);
+let nowAktiv = _a;
+
+function nowErsteAktive() {
+  return nowOrder.find(c => nowAktiv.includes(c.id)) || nowOrder[0];
+}
+
 function renderNowCard() {
-  const nc = nowCards[new Date().getDay() % nowCards.length];
+  const nc = nowErsteAktive();
   document.getElementById('nowTitle').textContent = nc.title;
-  const btns = document.querySelectorAll('.now-btn-primary, .now-btn-quiet');
-  btns[0].textContent = nc.btn;
-  btns[0].onclick = () => goApp(nc.app);
-  btns[1].textContent = nc.quiet;
-  btns[1].onclick = () => goApp(nc.app);
+  document.getElementById('nowBtnPrimary').textContent = nc.btn;
+  document.getElementById('nowBtnPrimary').onclick = () => goApp(nc.app);
+  document.getElementById('nowBtnQuiet').textContent = nc.quiet;
+  document.getElementById('nowBtnQuiet').onclick = () => goApp(nc.app);
+}
+
+/* ── Now-Sort-Sheet ── */
+function openNowSheet()  { renderNowSortList(); document.getElementById('overlayNow').classList.add('active'); }
+function closeNowSheet() { document.getElementById('overlayNow').classList.remove('active'); renderNowCard(); }
+function closeNowSheetBg(e) { if (e.target.id === 'overlayNow') closeNowSheet(); }
+
+function renderNowSortList() {
+  const aktiveKarten  = nowOrder.filter(c => nowAktiv.includes(c.id));
+  const inaktiveKarten = nowOrder.filter(c => !nowAktiv.includes(c.id));
+
+  let html = `<div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">Aktiv — wird angezeigt</div>`;
+
+  aktiveKarten.forEach((nc, i) => {
+    html += `<div class="prio-row" style="align-items:flex-start;gap:8px;">
+      <div style="font-size:13px;width:22px;text-align:center;color:${i===0?'var(--accent-dark)':'var(--text-soft)'};padding-top:2px;flex-shrink:0;">${i===0?'★':'·'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:var(--text);line-height:1.35;">${nc.title}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <div style="display:flex;gap:4px;">
+          <button class="prio-btn" ${i===0?'disabled':''} onclick="moveNowCard('${nc.id}',-1)">↑</button>
+          <button class="prio-btn" ${i===aktiveKarten.length-1?'disabled':''} onclick="moveNowCard('${nc.id}',1)">↓</button>
+        </div>
+        <button class="prio-btn remove" title="Ausblenden" onclick="nowDeaktivieren('${nc.id}')">✕</button>
+      </div>
+    </div>`;
+  });
+
+  if (inaktiveKarten.length > 0) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase;margin:16px 0 8px;">Ausgeblendet — tippe + zum Aktivieren</div>`;
+    inaktiveKarten.forEach(nc => {
+      html += `<div class="prio-row" style="opacity:.55;align-items:center;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:13px;color:var(--text);line-height:1.35;">${nc.title}</div>
+        </div>
+        <button class="prio-btn add" title="Aktivieren" onclick="nowAktivieren('${nc.id}')">+</button>
+      </div>`;
+    });
+  }
+
+  document.getElementById('nowSortList').innerHTML = html;
+}
+
+function moveNowCard(id, dir) {
+  const aktiveKarten = nowOrder.filter(c => nowAktiv.includes(c.id));
+  const i = aktiveKarten.findIndex(c => c.id === id);
+  const j = i + dir;
+  if (j < 0 || j >= aktiveKarten.length) return;
+  // Tausch in nowOrder
+  const oi = nowOrder.findIndex(c => c.id === aktiveKarten[i].id);
+  const oj = nowOrder.findIndex(c => c.id === aktiveKarten[j].id);
+  [nowOrder[oi], nowOrder[oj]] = [nowOrder[oj], nowOrder[oi]];
+  nowSpeichern();
+  renderNowSortList();
+}
+
+function nowDeaktivieren(id) {
+  nowAktiv = nowAktiv.filter(a => a !== id);
+  if (nowAktiv.length === 0) { toast('Mindestens 1 Thema muss aktiv bleiben'); nowAktiv.push(id); return; }
+  nowSpeichern();
+  renderNowSortList();
+}
+
+function nowAktivieren(id) {
+  if (!nowAktiv.includes(id)) nowAktiv.push(id);
+  nowSpeichern();
+  renderNowSortList();
 }
 
 /* ── Home: Prioritäten ── */
@@ -727,7 +855,7 @@ async function ladeSignale() {
 
   // Signal 2: Einkauf
   if (einkauf === null)   html += signalHTML('leer', 'Einkauf');
-  else if (einkauf === 0) html += signalHTML('ok',   'Einkauf ok');
+  else if (einkauf === 0) html += signalHTML('ok',   'Kein Einkauf offen');
   else                    html += signalHTML('warn',  `${einkauf} Einkäufe offen`, "goApp('Checklisten')");
 
   // Signal 3: Lernquiz
