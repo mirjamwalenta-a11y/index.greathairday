@@ -256,7 +256,7 @@ async function fragenWoerni() {
 
     const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_ANON}` },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
@@ -266,8 +266,7 @@ async function fragenWoerni() {
     });
 
     const data = await r.json();
-    console.log('Wörni Antwort:', JSON.stringify(data));
-    const antwort = data.content?.find(b => b.type === 'text')?.text || (data.error ? 'Fehler: ' + (data.error.message || JSON.stringify(data.error)) : 'Keine Antwort erhalten.');
+    const antwort = data.content?.find(b => b.type === 'text')?.text || 'Keine Antwort erhalten.';
     zeige('bubbleLaden', false);
     el('antwortText').textContent = antwort;
     zeige('bubbleAntwort', true);
