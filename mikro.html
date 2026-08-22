@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Wörni · Sprechen</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#F8F4EA"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F8F4EA; --bg-soft:#F0E9D8; --card:#FFFFFF; --border:#E4DBC5;
+    --text:#211D17; --text-soft:#7C7565;
+    --accent:#896C32; --accent-dark:#6E5527; --accent-tint:#EEE6CD;
+    --ok:#4C7A5B; --ok-tint:#DCEEE1;
+    --crit:#B23A2E; --crit-tint:#F5DAD5;
+    --radius:14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { display: none; }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'Poppins',-apple-system,sans-serif; min-height:100vh; }
+
+  @keyframes einblenden { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes puls { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .page { min-height:100vh; display:flex; flex-direction:column; padding:52px 20px calc(40px + env(safe-area-inset-bottom)); }
+
+  /* Header */
+  .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .back-btn { background:var(--card); border:1px solid var(--border); border-radius:999px;
+    padding:9px 16px; font-size:13px; font-weight:700; color:var(--text-soft);
+    cursor:pointer; font-family:inherit; }
+  .back-btn:active { background:var(--bg-soft); }
+  .header-title { font-size:15px; font-weight:800; }
+
+  /* Status-Karte */
+  .status-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:28px 20px; text-align:center; margin-bottom:20px; animation:einblenden .2s ease; }
+  .status-icon { font-size:52px; margin-bottom:12px; line-height:1; }
+  .status-titel { font-size:18px; font-weight:700; margin-bottom:6px; }
+  .status-sub { font-size:13px; color:var(--text-soft); line-height:1.5; }
+
+  /* Mikro-Gross-Button */
+  .mikro-btn {
+    width:80px; height:80px; border-radius:50%; border:none;
+    background:var(--accent); color:#fff; font-size:30px;
+    cursor:pointer; margin:20px auto 0; display:block;
+    box-shadow:0 8px 24px rgba(137,108,50,0.4);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .mikro-btn:active { transform:scale(.94); box-shadow:0 4px 12px rgba(137,108,50,0.3); }
+  .mikro-btn.hoert { background:var(--crit); box-shadow:0 8px 24px rgba(178,58,46,0.4); animation:puls 1.2s ease-in-out infinite; }
+
+  /* Bubble */
+  .bubble { border-radius:12px; padding:14px 16px; margin-bottom:12px; animation:einblenden .2s ease; }
+  .bubble-user { background:var(--accent-tint); border:1px solid rgba(137,108,50,.2); }
+  .bubble-woerni { background:var(--card); border:1px solid var(--border); }
+  .bubble-laden { background:var(--accent-tint); border:1px solid rgba(137,108,50,.2); }
+  .bubble-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; }
+  .bubble-label.user { color:var(--text-soft); }
+  .bubble-label.woerni { color:var(--accent-dark); }
+  .bubble-text { font-size:14px; line-height:1.5; color:var(--text); }
+  .bubble-text.gesprochen { font-weight:600; font-size:15px; }
+  .puls { animation:puls 1s ease-in-out infinite; color:var(--accent-dark); font-weight:600; }
+
+  /* Aktionen */
+  .aktionen { margin-top:auto; padding-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .btn-row { display:flex; gap:8px; }
+  .btn-pri { flex:1.5; padding:14px; border-radius:12px; border:none;
+    background:var(--accent); color:#fff; font-weight:700; font-size:14px;
+    cursor:pointer; font-family:inherit; transition:background .15s; }
+  .btn-pri:active { background:var(--accent-dark); }
+  .btn-sec { flex:1; padding:14px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--card); font-weight:700; font-size:14px; color:var(--text);
+    cursor:pointer; font-family:inherit; }
+  .btn-sec:active { background:var(--bg-soft); }
+  .btn-ghost { width:100%; padding:12px; border-radius:12px; border:none;
+    background:var(--bg-soft); color:var(--text-soft); font-weight:700;
+    font-size:13px; cursor:pointer; font-family:inherit; }
+  .btn-ghost:active { background:var(--border); }
+  .btn-nochmal { width:100%; padding:11px; border-radius:10px; border:1px solid var(--border);
+    background:none; color:var(--text-soft); font-size:13px; cursor:pointer; font-family:inherit; }
+
+  /* Toast */
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px);
+    background:var(--text); color:#fff; padding:11px 18px; border-radius:12px;
+    font-size:13px; font-weight:600; opacity:0; transition:.25s; pointer-events:none; z-index:99; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Aufgaben-Liste */
+  .aufgaben-hinweis { background:var(--bg-soft); border:1px solid var(--border); border-radius:10px;
+    padding:10px 14px; font-size:12px; color:var(--text-soft); margin-bottom:16px; line-height:1.5; }
+  .aufgaben-hinweis strong { color:var(--text); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn" onclick="history.back()">← Zurück</button>
+    <div class="header-title">🤖 Wörni · Sprechen</div>
+    <div style="width:80px;"></div>
+  </div>
+
+  <!-- Aufgaben-Hinweis -->
+  <div class="aufgaben-hinweis" id="aufgabenHinweis">
+    Wörni lädt deine offenen Aufgaben…
+  </div>
+
+  <!-- Status-Karte -->
+  <div class="status-card">
+    <div class="status-icon" id="statusIcon">🎤</div>
+    <div class="status-titel" id="statusTitel">Bereit zum Sprechen</div>
+    <div class="status-sub" id="statusSub">Tippe auf das Mikrofon und frag Wörni — oder diktiere eine neue Aufgabe.</div>
+  </div>
+
+  <!-- Erkannter Text -->
+  <div id="bubbleErkannt" class="bubble bubble-user" style="display:none;">
+    <div class="bubble-label user">Du hast gesagt</div>
+    <div class="bubble-text gesprochen" id="erkannterText"></div>
+  </div>
+
+  <!-- Wörni lädt -->
+  <div id="bubbleLaden" class="bubble bubble-laden" style="display:none;">
+    <div class="bubble-label woerni">🤖 Wörni</div>
+    <div class="bubble-text puls">Denkt nach…</div>
+  </div>
+
+  <!-- Wörni Antwort -->
+  <div id="bubbleAntwort" class="bubble bubble-woerni" style="display:none;">
+    <div class="bubble-label woerni">🤖 Wörni</div>
+    <div class="bubble-text" id="antwortText"></div>
+  </div>
+
+  <!-- Mikro-Button -->
+  <button class="mikro-btn" id="mikroBtn" onclick="starteSprache()">🎤</button>
+
+  <!-- Nochmal -->
+  <div id="nochmalBereich" style="display:none; margin-top:12px;">
+    <button class="btn-nochmal" onclick="starteSprache()">🎤 Nochmal sprechen</button>
+  </div>
+
+  <!-- Aktionen -->
+  <div class="aktionen" id="aktionenBereich" style="display:none;">
+    <div class="btn-row" id="btnRow"></div>
+    <div id="direktBereich" style="display:none;">
+      <button class="btn-ghost" onclick="direktSpeichern()">✓ Direkt als Aufgabe speichern</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+
+let erkannterText = '';
+let offeneAufgaben = [];
+let erkennung = null;
+let toastTimer;
+
+// ── Supabase: offene Aufgaben laden ──
+async function ladeAufgaben() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast&limit=10`, {
+      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` }
+    });
+    offeneAufgaben = await r.json();
+    if (!Array.isArray(offeneAufgaben)) offeneAufgaben = [];
+    const anz = offeneAufgaben.length;
+    el('aufgabenHinweis').innerHTML = anz === 0
+      ? 'Keine offenen Aufgaben — alles erledigt! 🎉'
+      : `<strong>${anz} offene ${anz === 1 ? 'Aufgabe' : 'Aufgaben'}</strong> geladen — Wörni kennt deinen aktuellen Stand.`;
+  } catch(e) {
+    el('aufgabenHinweis').textContent = 'Aufgaben konnten nicht geladen werden.';
+  }
+}
+
+// ── Supabase: Aufgabe speichern ──
+async function speichereAufgabe(titel) {
+  const r = await fetch(`${SB_URL}/rest/v1/ghd_aufgaben`, {
+    method: 'POST',
+    headers: {
+      "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`,
+      "Content-Type": "application/json", "Prefer": "return=representation"
+    },
+    body: JSON.stringify({ titel, prioritaet: 'heute', typ: 'betrieb', status: 'neu', erstellt_von: 'mirjam' })
+  });
+  if (!r.ok) throw new Error('Speichern fehlgeschlagen');
+}
+
+// ── Sprache ──
+function starteSprache() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Mikrofon nicht verfügbar auf diesem Gerät'); return; }
+
+  reset(false);
+  setStatus('🎤', 'Ich höre zu…', 'Sprich jetzt — Frage oder Aufgabe');
+  el('mikroBtn').classList.add('hoert');
+  el('nochmalBereich').style.display = 'none';
+  el('aktionenBereich').style.display = 'none';
+
+  erkennung = new SR();
+  erkennung.lang = 'de-AT';
+  erkennung.continuous = false;
+  erkennung.interimResults = true;
+
+  erkennung.onresult = e => {
+    erkannterText = Array.from(e.results).map(r => r[0].transcript).join('');
+    el('erkannterText').textContent = erkannterText;
+    zeige('bubbleErkannt', true);
+  };
+
+  erkennung.onend = () => {
+    el('mikroBtn').classList.remove('hoert');
+    if (erkannterText.trim()) {
+      setStatus('✓', 'Erkannt', 'Was möchtest du tun?');
+      zeige('nochmalBereich', true);
+      zeige('direktBereich', true);
+      el('btnRow').innerHTML = `
+        <button class="btn-sec" onclick="history.back()">Schließen</button>
+        <button class="btn-pri" onclick="fragenWoerni()">🤖 Wörni fragen</button>`;
+      zeige('aktionenBereich', true);
+    } else {
+      setStatus('🎤', 'Nichts erkannt', 'Bitte nochmal tippen und sprechen.');
+    }
+  };
+
+  erkennung.onerror = () => {
+    el('mikroBtn').classList.remove('hoert');
+    setStatus('🎤', 'Nicht erkannt', 'Bitte nochmal tippen und sprechen.');
+  };
+
+  erkennung.start();
+}
+
+// ── Wörni fragen ──
+async function fragenWoerni() {
+  if (!erkannterText.trim()) return;
+  zeige('bubbleLaden', true);
+  zeige('bubbleAntwort', false);
+  zeige('nochmalBereich', false);
+  zeige('direktBereich', false);
+  setStatus('🤖', 'Wörni antwortet…', '');
+  el('btnRow').innerHTML = '';
+  zeige('aktionenBereich', false);
+
+  try {
+    const aufgabenListe = offeneAufgaben.slice(0,8)
+      .map(a => `- ${a.titel} (${a.prioritaet})`).join('\n');
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: `Du bist Wörni, der persönliche KI-Assistent von Mirjam Walenta, Friseurmeisterin und Saloninhaberin in Wien (Salon "A Great Hair Day"). Antworte kurz, direkt und auf Deutsch. Keine langen Einleitungen. Offene Aufgaben:\n${aufgabenListe || '(keine)'}`,
+        messages: [{ role: 'user', content: erkannterText.trim() }]
+      })
+    });
+
+    const data = await r.json();
+    const antwort = data.content?.find(b => b.type === 'text')?.text || 'Keine Antwort erhalten.';
+    zeige('bubbleLaden', false);
+    el('antwortText').textContent = antwort;
+    zeige('bubbleAntwort', true);
+    setStatus('🤖', 'Wörni hat geantwortet', '');
+    el('btnRow').innerHTML = `
+      <button class="btn-sec" onclick="neuesFragen()">Nochmal fragen</button>
+      <button class="btn-pri" onclick="direktSpeichern()">✓ Als Aufgabe speichern</button>`;
+    zeige('aktionenBereich', true);
+  } catch(e) {
+    zeige('bubbleLaden', false);
+    el('antwortText').textContent = 'Verbindung fehlgeschlagen — bitte erneut versuchen.';
+    zeige('bubbleAntwort', true);
+    el('btnRow').innerHTML = `<button class="btn-sec" onclick="neuesFragen()">Nochmal versuchen</button>`;
+    zeige('aktionenBereich', true);
+  }
+}
+
+// ── Direkt als Aufgabe speichern ──
+async function direktSpeichern() {
+  if (!erkannterText.trim()) return;
+  try {
+    await speichereAufgabe(erkannterText.trim());
+    toast('✓ Aufgabe gespeichert');
+    setTimeout(() => history.back(), 1200);
+  } catch(e) {
+    toast('Fehler beim Speichern');
+  }
+}
+
+// ── Neu starten ──
+function neuesFragen() {
+  reset(true);
+}
+
+// ── Hilfsfunktionen ──
+function reset(mitStart) {
+  erkannterText = '';
+  if (erkennung) { try { erkennung.abort(); } catch(e) {} }
+  el('mikroBtn').classList.remove('hoert');
+  zeige('bubbleErkannt', false);
+  zeige('bubbleLaden', false);
+  zeige('bubbleAntwort', false);
+  zeige('nochmalBereich', false);
+  zeige('aktionenBereich', false);
+  if (mitStart) {
+    setStatus('🎤', 'Bereit zum Sprechen', 'Tippe auf das Mikrofon und frag Wörni.');
+  }
+}
+
+function setStatus(icon, titel, sub) {
+  el('statusIcon').textContent = icon;
+  el('statusTitel').textContent = titel;
+  el('statusSub').textContent = sub;
+}
+
+function zeige(id, v) { el(id).style.display = v ? 'block' : 'none'; }
+function el(id) { return document.getElementById(id); }
+
+function toast(msg) {
+  const t = el('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Start
+ladeAufgaben();
+</script>
+</body>
+</html>
