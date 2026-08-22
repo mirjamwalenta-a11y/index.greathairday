@@ -265,8 +265,12 @@ async function fragenWoerni() {
       })
     });
 
+    if (!r.ok) {
+      const txt = await r.text().catch(()=>'(kein Text)');
+      throw new Error('HTTP ' + r.status + ': ' + txt.slice(0,200));
+    }
     const data = await r.json();
-    const antwort = data.content?.find(b => b.type === 'text')?.text || 'Keine Antwort erhalten.';
+    const antwort = data.content?.find(b => b.type === 'text')?.text || ('Roh: ' + JSON.stringify(data).slice(0,150));
     zeige('bubbleLaden', false);
     el('antwortText').textContent = antwort;
     zeige('bubbleAntwort', true);
@@ -277,7 +281,7 @@ async function fragenWoerni() {
     zeige('aktionenBereich', true);
   } catch(e) {
     zeige('bubbleLaden', false);
-    el('antwortText').textContent = 'Fehler: ' + (e && e.message ? e.message : String(e));
+    el('antwortText').textContent = 'Fehler: ' + (e.message || String(e));
     zeige('bubbleAntwort', true);
     el('btnRow').innerHTML = `<button class="btn-sec" onclick="neuesFragen()">Nochmal versuchen</button>`;
     zeige('aktionenBereich', true);
