@@ -236,6 +236,16 @@
 </head>
 <body>
 <div id="root"></div>
+
+<!-- MIKRO-BUTTON: fix, außerhalb React, immer sichtbar -->
+<button id="ghd-fab-mikro" onclick="window.location.href='mikro.html'" style="
+  position:fixed;right:20px;bottom:90px;z-index:9999;
+  background:var(--bg-soft);color:var(--accent-dark);
+  border:1.5px solid var(--border);border-radius:999px;
+  padding:14px 20px;font-size:22px;cursor:pointer;
+  box-shadow:0 4px 12px rgba(137,108,50,0.2);
+  font-family:inherit;
+">🎤</button>
 <div class="toast" id="ghd-toast"></div>
 
 <script type="text/babel">
