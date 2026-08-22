@@ -266,7 +266,8 @@ async function fragenWoerni() {
     });
 
     const data = await r.json();
-    const antwort = data.content?.find(b => b.type === 'text')?.text || 'Keine Antwort erhalten.';
+    console.log('Wörni Antwort:', JSON.stringify(data));
+    const antwort = data.content?.find(b => b.type === 'text')?.text || (data.error ? 'Fehler: ' + (data.error.message || JSON.stringify(data.error)) : 'Keine Antwort erhalten.');
     zeige('bubbleLaden', false);
     el('antwortText').textContent = antwort;
     zeige('bubbleAntwort', true);
