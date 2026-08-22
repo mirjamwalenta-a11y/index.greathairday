@@ -254,9 +254,9 @@ async function fragenWoerni() {
     const aufgabenListe = offeneAufgaben.slice(0,8)
       .map(a => `- ${a.titel} (${a.prioritaet})`).join('\n');
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_ANON}` },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
