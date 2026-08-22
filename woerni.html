@@ -238,7 +238,13 @@
 <div id="root"></div>
 
 <!-- MIKRO-FAB -->
-<button onclick="window.location.href='mikro.html'" style="position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 20px;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
+<button id="ghd-mikro-fab" style="position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
+<script>
+document.getElementById('ghd-mikro-fab').addEventListener('click', function(){
+  var ev = new CustomEvent('ghd-sprache-starten');
+  document.dispatchEvent(ev);
+});
+</script>
 
 
 <div class="toast" id="ghd-toast"></div>
@@ -739,6 +745,12 @@ function Woerni() {
   }
 
   // ── Spracheingabe ──
+  useEffect(() => {
+    function onSprache() { spracheStarten(); }
+    document.addEventListener('ghd-sprache-starten', onSprache);
+    return () => document.removeEventListener('ghd-sprache-starten', onSprache);
+  }, []);
+
   function spracheStarten() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { toast('Spracheingabe nicht verfügbar'); return; }
@@ -1032,6 +1044,58 @@ function Woerni() {
       )}
       {neueAufgabe && (
         <AufgabeForm onSave={d => addAufgabe(d).then(() => setNeueAufgabe(false))} onClose={() => setNeueAufgabe(false)} />
+      )}
+
+      {sprache && (
+        <div className="modal-backdrop" onClick={spracheAbbrechen}>
+          <div className="sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-scroll" style={{padding:'10px 24px 6px'}}>
+              <div className="sheet-handle"/>
+              <div style={{textAlign:'center',marginBottom:16}}>
+                <div style={{fontSize:36,marginBottom:8}}>{hoert ? '🎤' : woerniAntwort ? '🤖' : '⏸'}</div>
+                <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>
+                  {hoert ? 'Ich höre zu…' : woerniAntwort ? 'Wörni hat geantwortet' : 'Mikrofon bereit'}
+                </div>
+                <div style={{fontSize:12,color:'var(--text-soft)'}}>
+                  {hoert ? 'Sprich jetzt' : woerniAntwort ? '' : 'Tippe auf das Mikrofon'}
+                </div>
+              </div>
+              {!hoert && !sprachText && !woerniAntwort && (
+                <div style={{textAlign:'center',marginBottom:16}}>
+                  <button onClick={spracheStarten} style={{background:'var(--accent)',color:'#fff',border:'none',borderRadius:999,width:64,height:64,fontSize:24,cursor:'pointer',boxShadow:'0 6px 16px rgba(137,108,50,0.35)'}}>🎤</button>
+                </div>
+              )}
+              {sprachText && (
+                <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:'var(--text-soft)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:4}}>Du hast gesagt</div>
+                  <div style={{fontSize:15,fontWeight:600,color:'var(--text)',lineHeight:1.4}}>{sprachText}</div>
+                </div>
+              )}
+              {woerniLadet && (
+                <div style={{background:'var(--accent-tint)',border:'1px solid rgba(137,108,50,0.2)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{fontSize:13,color:'var(--accent-dark)',fontWeight:600}}>Wörni denkt nach…</div>
+                </div>
+              )}
+              {woerniAntwort && !woerniLadet && (
+                <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:'var(--accent-dark)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:4}}>🤖 Wörni</div>
+                  <div style={{fontSize:14,color:'var(--text)',lineHeight:1.5}}>{woerniAntwort}</div>
+                </div>
+              )}
+              {sprachText && !hoert && !woerniAntwort && !woerniLadet && (
+                <button onClick={spracheStarten} style={{display:'block',width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:10,padding:'10px',fontSize:13,color:'var(--text-soft)',cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>🎤 Nochmal sprechen</button>
+              )}
+            </div>
+            <div className="sheet-actions" style={{flexDirection:'column',gap:8}}>
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn-secondary" onClick={spracheAbbrechen}>Schließen</button>
+                {sprachText && !woerniAntwort && !woerniLadet && (
+                  <button className="btn-primary-save" onClick={spracheBestaetigen}>✓ Als Aufgabe speichern</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       {neueVorlage && (
         <VorlageForm onSave={d => addVorlage(d).then(() => setNeueVorlage(false))} onClose={() => setNeueVorlage(false)} />
