@@ -256,7 +256,7 @@ async function fragenWoerni() {
 
     const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_ANON}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
