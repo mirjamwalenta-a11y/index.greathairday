@@ -241,8 +241,10 @@
 <button id="ghd-mikro-fab" style="position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
 <script>
 document.getElementById('ghd-mikro-fab').addEventListener('click', function(){
-  var ev = new CustomEvent('ghd-sprache-starten');
-  document.dispatchEvent(ev);
+  setTimeout(function(){
+    var ev = new CustomEvent('ghd-sprache-starten');
+    document.dispatchEvent(ev);
+  }, 100);
 });
 </script>
 
