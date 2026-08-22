@@ -236,6 +236,8 @@
 </head>
 <body>
 <div id="root"></div>
+<!-- MIKRO: Vanilla, immer sichtbar, unabhängig von React -->
+<button onclick="window.location.href='mikro.html'" style="position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 20px;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
 
 
 <div class="toast" id="ghd-toast"></div>
@@ -1006,8 +1008,7 @@ function Woerni() {
 
       {/* FAB: Aufgabe + Mikrofon */}
       <div style={{position:'fixed',right:20,bottom:28,display:'flex',gap:10,zIndex:20}}>
-        <button className="fab" style={{background:'var(--bg-soft)',color:'var(--accent-dark)',border:'1.5px solid var(--border)',boxShadow:'0 4px 12px rgba(137,108,50,0.15)'}}
-          onClick={() => window.location.href='mikro.html'}>🎤</button>
+
         <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
       </div>
 
