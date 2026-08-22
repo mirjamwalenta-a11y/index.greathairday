@@ -696,8 +696,8 @@ function showScreen(id) {
   if (id === 'screen-apps')   { renderApps(); setTimeout(ladeBadges, 100); }
   if (id === 'screen-system') { renderSystem(); }
 }
-function goHome() { showScreen('screen-home'); }
-function goPin()  { pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
+function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
+function goPin()  { sessionStorage.removeItem('ghd_unlocked'); pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
 function goWoerni() { window.location.href = 'woerni.html'; }
 function goApp(name) {
   const a = appsByName[name];
@@ -994,7 +994,11 @@ renderPinDots();
 updateGreeting();
 renderNowCard();
 renderHome();
-showScreen('screen-pin');
+if (sessionStorage.getItem('ghd_unlocked')) {
+  showScreen('screen-home');
+} else {
+  showScreen('screen-pin');
+}
 ladeBadges();
 ladeSignale();
 setInterval(ladeBadges, 30000);
