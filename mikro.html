@@ -256,7 +256,7 @@ async function fragenWoerni() {
 
     const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_ANON}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1000,
@@ -277,7 +277,7 @@ async function fragenWoerni() {
     zeige('aktionenBereich', true);
   } catch(e) {
     zeige('bubbleLaden', false);
-    el('antwortText').textContent = 'Verbindung fehlgeschlagen — bitte erneut versuchen.';
+    el('antwortText').textContent = 'Fehler: ' + (e && e.message ? e.message : String(e));
     zeige('bubbleAntwort', true);
     el('btnRow').innerHTML = `<button class="btn-sec" onclick="neuesFragen()">Nochmal versuchen</button>`;
     zeige('aktionenBereich', true);
