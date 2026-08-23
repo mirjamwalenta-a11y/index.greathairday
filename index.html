@@ -854,6 +854,39 @@ async function ladeSignale() {
 
   // Hilfsfunktion: eine Regel → Signal-HTML
   async function regelZuSignal(regel) {
+    // Sonderfall: Lager — Bestand aus salon_lager, stock als jsonb, reorder_point als Zahl
+    if (regel.signal_typ === 'bestand_kritisch') {
+      try {
+        const r = await fetch(`${SIG_URL}/rest/v1/salon_lager?select=name,stock,reorder_point&reorder_point=not.is.null`, {
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+        });
+        const items = await r.json();
+        const unter = Array.isArray(items) ? items.filter(p => {
+          if (!p.reorder_point || p.reorder_point <= 0) return false;
+          const gesamt = p.stock ? Object.values(p.stock).reduce((s,v)=>s+(v||0),0) : 0;
+          return gesamt <= p.reorder_point;
+        }) : [];
+        if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindestbestand`, `goApp('${regel.app_link}')`);
+      } catch(e) { return signalHTML('leer', regel.label); }
+    }
+
+    // Sonderfall: Einkauf — nur anzeigen wenn menge < mindeststand
+    if (regel.signal_typ === 'einkauf_offen') {
+      try {
+        const r = await fetch(`${SIG_URL}/rest/v1/einkauf_items?erledigt=eq.false&mindeststand=not.is.null&menge=not.is.null&select=menge,mindeststand`, {
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+        });
+        const items = await r.json();
+        const unter = Array.isArray(items) ? items.filter(it => {
+          const m = parseFloat(it.menge); const min = parseFloat(it.mindeststand);
+          return !isNaN(m) && !isNaN(min) && m < min;
+        }) : [];
+        if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindeststand`, `goApp('${regel.app_link}')`);
+      } catch(e) { return signalHTML('leer', regel.label); }
+    }
+
     // Sonderfall: Lernquiz braucht eigene Datumslogik
     if (regel.signal_typ === 'lernquiz_diese_woche') {
       const gelernt = await lernquizDieseWoche();
