@@ -285,6 +285,8 @@ const api = {
   deleteAufgabe: (id) => sb(`ghd_aufgaben?id=eq.${id}`, { method:"DELETE", prefer:"" }),
   addVerlauf:    (d) => sb("ghd_aufgaben_verlauf", { method:"POST", body:JSON.stringify(d) }),
   getVorlagen:   () => sb("ghd_aufgaben_vorlagen?order=rhythmus.asc,erstellt_am.asc"),
+  getEreignisse: () => sb("ghd_ereignisse?gelesen=eq.false&order=erstellt_am.desc&limit=20"),
+  ereignisGelesen: (id) => sb(`ghd_ereignisse?id=eq.${id}`, { method:"PATCH", body:JSON.stringify({gelesen:true}), prefer:"" }),
   addVorlage:    (d) => sb("ghd_aufgaben_vorlagen", { method:"POST", body:JSON.stringify(d) }),
   updateVorlage: (id, d) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(d) }),
   deleteVorlage: (id) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"DELETE", prefer:"" }),
@@ -626,11 +628,12 @@ function Abschnitt({ label, stripeColor, kinder }) {
 }
 
 // ─── SCHALTZENTRALE KARTE ─────────────────────────────────────────────────────
-function SchaltzentraleKarte({ aufgaben }) {
+function SchaltzentraleKarte({ aufgaben, ereignisse }) {
   const krit = aufgaben.filter(a => a.prioritaet==="kritisch").length;
   const heute_ = aufgaben.filter(a => a.prioritaet==="heute").length;
   const auto = aufgaben.filter(a => a.app_kontext).length;
   const gesamt = aufgaben.length;
+  const evAnzahl = ereignisse ? ereignisse.length : 0;
 
   return (
     <div className="sz-karte">
@@ -641,11 +644,12 @@ function SchaltzentraleKarte({ aufgaben }) {
           <div className="sz-sub">{gesamt===0 ? 'Alles erledigt — Great Hair Day!' : `offene ${gesamt===1?'Aufgabe':'Aufgaben'}`}</div>
         </div>
       </div>
-      {(krit>0 || heute_>0 || auto>0) && (
+      {(krit>0 || heute_>0 || auto>0 || evAnzahl>0) && (
         <div className="sz-chips">
           {krit>0 && <span className="sz-chip rot">🔴 {krit} kritisch</span>}
           {heute_>0 && <span className="sz-chip gold">⚡ {heute_} heute</span>}
           {auto>0 && <span className="sz-chip">🤖 {auto} automatisch</span>}
+          {evAnzahl>0 && <span className="sz-chip" style={{background:'rgba(78,114,136,0.35)'}}>📡 {evAnzahl} neu</span>}
         </div>
       )}
     </div>
@@ -657,6 +661,7 @@ function Woerni() {
   const [aufgaben, setAufgaben]       = useState([]);
   const [erledigt, setErledigt]       = useState([]);
   const [vorlagen, setVorlagen]       = useState([]);
+  const [ereignisse, setEreignisse]   = useState([]);
   const [laden, setLaden]             = useState(true);
   const [fehler, setFehler]           = useState(null);
   const [ausgewaehlt, setAusgewaehlt] = useState(null);
@@ -699,7 +704,7 @@ function Woerni() {
   async function laden_() {
     try {
       setFehler(null); setLaden(true);
-      const [a, e, v] = await Promise.all([api.getAufgaben(), api.getErledigt(), api.getVorlagen()]);
+      const [a, e, v, ev] = await Promise.all([api.getAufgaben(), api.getErledigt(), api.getVorlagen(), api.getEreignisse().catch(()=>[])]);
       const hatReset = await resetFixAufgaben(a||[]);
       const hatNeu   = await erstelleVorlagenAufgaben(v||[], a||[]);
       if (hatReset || hatNeu) {
@@ -708,7 +713,9 @@ function Woerni() {
       } else {
         setAufgaben(a||[]); setErledigt(e||[]);
       }
+      setEreignisse(ev||[]);
       setVorlagen(v||[]);
+      setEreignisse(ev||[]);
     } catch(err) { setFehler("Verbindung fehlgeschlagen"); }
     finally { setLaden(false); }
   }
@@ -827,7 +834,7 @@ function Woerni() {
       <div style={{padding:'0 20px'}}>
 
         {/* SCHALTZENTRALE KARTE */}
-        {!laden && !fehler && <SchaltzentraleKarte aufgaben={aufgaben} />}
+        {!laden && !fehler && <SchaltzentraleKarte aufgaben={aufgaben} ereignisse={ereignisse} />}
 
         {/* TABS */}
         <div className="tabs">
@@ -856,6 +863,37 @@ function Woerni() {
         {/* TAB: OFFEN */}
         {!laden && tab==="heute" && (
           <>
+            {/* EREIGNISSE aus ghd_ereignisse */}
+            {ereignisse.length > 0 && (
+              <div style={{marginBottom:24}}>
+                <div className="abschnitt-header">
+                  <span className="abschnitt-label" style={{color:'var(--woche)'}}>📡 Neu aus Apps</span>
+                  <span className="abschnitt-count">{ereignisse.length}</span>
+                  <div className="abschnitt-line"/>
+                </div>
+                {ereignisse.map((ev, i) => (
+                  <div key={ev.id} className="aufgabe-card einblenden" style={{animationDelay:`${i*40}ms`}}
+                    onClick={async () => {
+                      await api.ereignisGelesen(ev.id).catch(()=>{});
+                      setEreignisse(prev => prev.filter(e => e.id !== ev.id));
+                    }}>
+                    <div className="aufgabe-stripe" style={{background:'var(--woche)',opacity:0.6}}/>
+                    <div style={{paddingLeft:10}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6,flexWrap:'wrap'}}>
+                        <span className="badge badge-woche">{ev.app.toUpperCase()}</span>
+                        <span style={{fontSize:11,color:'rgba(33,29,23,0.4)',marginLeft:'auto'}}>
+                          {ev.erstellt_am ? new Date(ev.erstellt_am).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}) : ''}
+                        </span>
+                      </div>
+                      <p style={{color:'#211D17',fontWeight:600,fontSize:14,lineHeight:1.35,marginBottom:0}}>
+                        {ev.titel}
+                      </p>
+                      <p style={{fontSize:11,color:'rgba(33,29,23,0.4)',marginTop:4}}>Tippen zum Markieren als gelesen</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <Abschnitt label="Kritisch" stripeColor="var(--crit)"
               kinder={gruppen.kritisch.map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
             <Abschnitt label="Heute" stripeColor="var(--heute)"
