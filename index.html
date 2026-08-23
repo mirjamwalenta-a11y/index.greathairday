@@ -842,31 +842,42 @@ async function ladeSignale() {
   const grid = document.getElementById('signaleGrid');
   if (!grid) return;
 
-  // 1. Urlaubsantrag
-  const abw = await sigFetch('abw_anfragen', 'status=eq.ausstehend');
-  // 2. Einkauf offen
-  const einkauf = await sigFetch('einkauf_items', 'erledigt=eq.false');
-  // 3. Lernquiz diese Woche
-  const gelernt = await lernquizDieseWoche();
+  // Alle aktiven Signalregeln laden
+  let regeln = [];
+  try {
+    const r = await fetch(`${SIG_URL}/rest/v1/ghd_signal_regeln?aktiv=eq.true&order=erstellt_am.asc&select=signal_typ,tabelle,filter,label,app_link`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+    });
+    regeln = await r.json();
+    if (!Array.isArray(regeln)) regeln = [];
+  } catch(e) { regeln = []; }
 
-  let html = '';
+  // Hilfsfunktion: eine Regel → Signal-HTML
+  async function regelZuSignal(regel) {
+    // Sonderfall: Lernquiz braucht eigene Datumslogik
+    if (regel.signal_typ === 'lernquiz_diese_woche') {
+      const gelernt = await lernquizDieseWoche();
+      if (gelernt === null) return signalHTML('leer', regel.label);
+      if (gelernt)          return signalHTML('ok',   `${regel.label}: gemacht`);
+      return signalHTML('warn', `Kein ${regel.label} diese Woche`, `goApp('${regel.app_link}')`);
+    }
+    // Standardfall: Tabelle + Filter abfragen
+    const anzahl = await sigFetch(regel.tabelle, regel.filter);
+    if (anzahl === null)  return signalHTML('leer', regel.label);
+    if (anzahl === 0)     return signalHTML('ok',   `${regel.label}: alles ok`);
+    return signalHTML('warn', `${anzahl} ${regel.label}${anzahl>1?'s':''}`, `goApp('${regel.app_link}')`);
+  }
 
-  // Signal 1: Urlaubsantrag
-  if (abw === null)       html += signalHTML('leer', 'Urlaub');
-  else if (abw === 0)     html += signalHTML('ok',   'Kein Urlaub offen');
-  else                    html += signalHTML('warn',  `${abw} Urlaubsantrag${abw>1?'e':''}`, "goApp('Abwesenheit')");
+  // Fallback-Regeln wenn ghd_signal_regeln leer oder nicht erreichbar
+  const fallback = [
+    { signal_typ: 'abw_ausstehend',      tabelle: 'abw_anfragen',  filter: 'status=eq.ausstehend', label: 'Urlaubsantrag', app_link: 'Abwesenheit' },
+    { signal_typ: 'einkauf_offen',       tabelle: 'einkauf_items', filter: 'erledigt=eq.false',    label: 'Einkauf',       app_link: 'Checklisten' },
+    { signal_typ: 'lernquiz_diese_woche',tabelle: 'verlauf',       filter: '',                      label: 'Lernquiz',      app_link: 'Lernquiz' },
+  ];
+  const aktiveRegeln = regeln.length > 0 ? regeln : fallback;
 
-  // Signal 2: Einkauf
-  if (einkauf === null)   html += signalHTML('leer', 'Einkauf');
-  else if (einkauf === 0) html += signalHTML('ok',   'Kein Einkauf offen');
-  else                    html += signalHTML('warn',  `${einkauf} Einkäufe offen`, "goApp('Checklisten')");
-
-  // Signal 3: Lernquiz
-  if (gelernt === null)   html += signalHTML('leer', 'Lernquiz');
-  else if (gelernt)       html += signalHTML('ok',   'Quiz gemacht');
-  else                    html += signalHTML('warn',  'Kein Quiz diese Woche', "goApp('Lernquiz')");
-
-  grid.innerHTML = html;
+  const signale = await Promise.all(aktiveRegeln.map(r => regelZuSignal(r)));
+  grid.innerHTML = signale.join('');
 }
 
 /* ── Badge-System ── */
