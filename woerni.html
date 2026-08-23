@@ -432,8 +432,13 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
 }
 
 // ─── VORLAGE FORM ─────────────────────────────────────────────────────────────
+const APP_LISTE = [
+  'Reichweite','Checklisten','Abwesenheit','Team','Lernquiz','Lerntool',
+  'Lager','Handbuch','Belege','Innung','Schnuppertag','Schrank','Wörni','Sonstige'
+];
+
 function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
-  const leer = { titel:"", naechster_schritt:"", prioritaet:"diese-woche", typ:"betrieb", rhythmus:"monatlich", aktiv:true };
+  const leer = { titel:"", naechster_schritt:"", prioritaet:"diese-woche", typ:"betrieb", rhythmus:"monatlich", aktiv:true, app:"Sonstige" };
   const [form, setForm] = useState(initial ? {
     titel: initial.titel||"",
     naechster_schritt: initial.naechster_schritt||"",
@@ -441,6 +446,7 @@ function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
     typ: initial.typ||"betrieb",
     rhythmus: initial.rhythmus||"monatlich",
     aktiv: initial.aktiv !== false,
+    app: initial.app||"Sonstige",
   } : leer);
   const [shaking, setShaking] = useState(false);
   const [delConfirm, setDelConfirm] = useState(false);
@@ -483,11 +489,19 @@ function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
               placeholder="z.B. CSV exportieren und per Mail schicken"/>
           </div>
 
-          <div className="field">
-            <label>Typ</label>
-            <select value={form.typ} onChange={e => set("typ", e.target.value)}>
-              {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
-            </select>
+          <div className="two-col">
+            <div className="field">
+              <label>Typ</label>
+              <select value={form.typ} onChange={e => set("typ", e.target.value)}>
+                {Object.entries(TYPEN).map(([id, t]) => <option key={id} value={id}>{t.icon} {t.label}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label>Gehört zu App</label>
+              <select value={form.app} onChange={e => set("app", e.target.value)}>
+                {APP_LISTE.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
           </div>
 
           <div className="toggle-row" onClick={() => set("aktiv", !form.aktiv)}>
@@ -817,7 +831,7 @@ function Woerni() {
 
         {/* TABS */}
         <div className="tabs">
-          {[["heute","Offen"],["vorlagen","Vorlagen"],["erledigt","Erledigt"]].map(([id,label]) => (
+          {[["heute",`Offen${aufgaben.length>0?' ('+aufgaben.length+')':''}`],["vorlagen",`Vorlagen${vorlagen.length>0?' ('+vorlagen.length+')':''}`],["erledigt","Erledigt"]].map(([id,label]) => (
             <button key={id} className={`tab ${tab===id?'active':''}`} onClick={() => setTab(id)}>{label}</button>
           ))}
         </div>

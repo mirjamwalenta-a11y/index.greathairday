@@ -1222,6 +1222,12 @@ function md5(str){
 window.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('ghd_session');
   if(saved){try{currentSession=JSON.parse(saved);showApp();return;}catch(e){localStorage.removeItem('ghd_session');}}
+  // Bereits über index.html (Wörni-OS) eingeloggt → direkt rein als Chefin
+  if(sessionStorage.getItem('ghd_unlocked')==='1'){
+    currentSession={name:'Mirjam',rolle:'chefin'};
+    localStorage.setItem('ghd_session',JSON.stringify(currentSession));
+    showApp();return;
+  }
   document.getElementById('loginScreen').style.display='block';
   document.getElementById('teamPin').addEventListener('keydown',e=>{if(e.key==='Enter')doTeamLogin();});
 });
@@ -1795,8 +1801,7 @@ function systemRendern(){
 
   // Statische App-Liste — unabhängig von ALLE_APPS und Login
   const SYSTEM_APPS_STATIC = [
-    {name:'Aufträge',     icon:'🏠', desc:'Wörni-Aufträge & Tagesübersicht',  action:'showWoerniAuftraege'},
-    {name:'Reichweite',  icon:'✨', desc:'Posts, Storys & Hooks',             url: typeof B!=='undefined'?B+'/moment.greathairday/':'https://mirjamwalenta-a11y.github.io/moment.greathairday/'},
+    {name:'Reichweite', icon:'✨', desc:'Posts, Storys & Hooks',             url: typeof B!=='undefined'?B+'/moment.greathairday/':'https://mirjamwalenta-a11y.github.io/moment.greathairday/'},
     {name:'Checklisten', icon:'✅', desc:'Tagesaufgaben & Bereiche',          url: typeof B!=='undefined'?B+'/salon-checklist/salon-checklist.html':'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
     {name:'Abwesenheit', icon:'📅', desc:'Urlaub & Krankenstand',             url: typeof B!=='undefined'?B+'/abwesenheiten-ghd/abwesenheiten.html':'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
     {name:'Team',        icon:'💬', desc:'Mitteilungen & Besprechungen',      url: typeof B!=='undefined'?B+'/Team/team.html':'https://mirjamwalenta-a11y.github.io/Team/team.html'},

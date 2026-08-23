@@ -359,7 +359,7 @@
     <span></span><span></span><span></span><span></span>
   </div>
   <div class="keypad" id="keypad"></div>
-  <button class="team-btn" onclick="goHome()">Team-Login →</button>
+  <button class="team-btn" onclick="window.location.href='apps.html'">Team-Login →</button>
 </div>
 
 <!-- HOME -->
@@ -997,11 +997,15 @@ renderPinDots();
 updateGreeting();
 renderNowCard();
 renderHome();
-if (sessionStorage.getItem('ghd_unlocked')) {
-  showScreen('screen-home');
-} else {
+// Bereits eingeloggt: entweder via index.html-Session ODER via apps.html (ghd_session)
+(function() {
+  if (sessionStorage.getItem('ghd_unlocked')) { showScreen('screen-home'); return; }
+  try {
+    const s = localStorage.getItem('ghd_session');
+    if (s) { const p = JSON.parse(s); if (p && p.name) { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); return; } }
+  } catch(e) {}
   showScreen('screen-pin');
-}
+})();
 ladeBadges();
 ladeSignale();
 setInterval(ladeBadges, 30000);
