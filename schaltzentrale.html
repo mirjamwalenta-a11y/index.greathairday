@@ -601,6 +601,28 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorl
             </div>
           )}
           <button className="detail-action-primary" onClick={() => aktion("erledigt")}>✓ Erledigt</button>
+          {aufgabe.app_kontext && (() => {
+            const APP_URLS = {
+              'Checklisten': 'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html',
+              'Lager':       'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html',
+              'Reichweite':  'https://mirjamwalenta-a11y.github.io/moment.greathairday/reichweite.html',
+              'Abwesenheit': 'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html',
+              'Team':        'https://mirjamwalenta-a11y.github.io/Team/',
+              'Lernquiz':    'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html',
+              'Lerntool':    'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html',
+              'Belege':      'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html',
+              'Innung':      'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html',
+              'Schnuppertag':'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html',
+              'Schrank':     'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/',
+            };
+            const url = APP_URLS[aufgabe.app_kontext];
+            return url ? (
+              <button className="detail-action-secondary"
+                onClick={() => window.location.href = url}>
+                → {aufgabe.app_kontext} öffnen
+              </button>
+            ) : null;
+          })()}
           <button className="detail-action-secondary" onClick={() => { onClose(); onEdit(aufgabe); }}>✏️ Bearbeiten</button>
           <button className="detail-action-secondary" onClick={() => onAlsVorlage(aufgabe)}>🔁 Als Vorlage speichern</button>
           {aufgabe.status !== "in-arbeit" && (
@@ -917,8 +939,37 @@ function Woerni() {
     erkennung.onresult = e => {
       const text = Array.from(e.results).map(r => r[0].transcript).join('');
       setSprachText(text);
+      erkennung._letzterText = text;
     };
-    erkennung.onend = () => setHoert(false);
+    erkennung.onend = async () => {
+      setHoert(false);
+      const text = erkennungRef.current?._letzterText;
+      if (!text || !text.trim()) return;
+
+      // Wörni antwortet sofort
+      setWoerniAntwort('…');
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': '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',
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 300,
+            system: 'Du bist Wörni, der KI-Assistent von Mirjam Walenta, Friseurmeisterin in Wien. Antworte auf Deutsch, kurz und freundlich. Max. 2–3 Sätze.',
+            messages: [{ role: 'user', content: text.trim() }]
+          })
+        });
+        const data = await res.json();
+        setWoerniAntwort(data?.content?.[0]?.text || 'Erledigt!');
+      } catch {
+        setWoerniAntwort('');
+      }
+    };
     erkennung.onerror = () => { setHoert(false); toast('Sprache nicht erkannt — bitte nochmal'); };
     erkennung.start();
   }
