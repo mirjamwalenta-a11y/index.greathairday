@@ -519,7 +519,7 @@
 <script>
 /* ── Daten ── */
 const apps = [
-  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'woerni.html'},
+  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'schaltzentrale.html'},
   {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks',             url:'https://mirjamwalenta-a11y.github.io/moment.greathairday/reichweite.html'},
   {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
   {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
@@ -529,7 +529,7 @@ const apps = [
   {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html'},
   {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'},
   {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
-  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'woerni.html'},
+  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'schaltzentrale.html'},
   {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
   {em:'🌟', nm:'Schnuppertag', sb:'Lehrlings-Auswahl & Probezeit',    url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
   {em:'🗄', nm:'Schrank',     sb:'Dokumente & Tresor',                url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'},
@@ -754,7 +754,7 @@ function showScreen(id) {
 }
 function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
 function goPin()  { sessionStorage.removeItem('ghd_unlocked'); pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
-function goWoerni() { window.location.href = 'woerni.html'; }
+function goWoerni() { window.location.href = 'schaltzentrale.html'; }
 function goApp(name) {
   if (!name) { toast('App nicht gefunden'); return; }
   // Direkte URL → sofort navigieren
