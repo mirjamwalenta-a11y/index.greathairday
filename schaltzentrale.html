@@ -1371,6 +1371,12 @@ function Woerni() {
                 <button onClick={spracheStarten} style={{display:'block',width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:10,padding:'10px',fontSize:13,color:'var(--text-soft)',cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>🎤 Nochmal sprechen</button>
               )}
             </div>
+            {woerniAntwort && (
+              <div style={{margin:'8px 0',background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px'}}>
+                <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--accent-dark)',marginBottom:4}}>🤖 Wörni antwortet</div>
+                <div style={{fontSize:14,lineHeight:1.6,color:'var(--text)'}}>{woerniAntwort}</div>
+              </div>
+            )}
             <div className="sheet-actions" style={{flexDirection:'column',gap:8}}>
               <div style={{display:'flex',gap:8}}>
                 <button className="btn-secondary" onClick={spracheAbbrechen}>Schließen</button>
