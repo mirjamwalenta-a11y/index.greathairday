@@ -330,6 +330,30 @@
       margin-bottom: 6px; text-transform: uppercase;
     }
 
+    /* ── Sprechen-FAB ── */
+    .sprechen-fab {
+      position: fixed; bottom: 28px; left: 20px;
+      display: none; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 12px 18px;
+      font-size: 14px; font-weight: 600; color: var(--text);
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 16px rgba(33,29,23,0.10);
+      transition: border-color .15s, box-shadow .15s;
+      z-index: 30;
+    }
+    .sprechen-fab.visible { display: flex; }
+    .sprechen-fab:hover { border-color: var(--accent); }
+    .sprechen-fab.active {
+      background: var(--accent); color: #fff;
+      border-color: var(--accent);
+      animation: fab-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes fab-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(137,108,50,0.4); }
+      50%      { box-shadow: 0 0 0 10px rgba(137,108,50,0); }
+    }
+
     /* ── App-Badges ── */
     .app-tile-wrap { position: relative; display: flex; }
     .app-badge {
@@ -478,6 +502,12 @@
     </div>
   </div>
 </div>
+
+<!-- SPRECHEN FAB -->
+<button class="sprechen-fab" id="sprechenFab" onclick="fabToggleMic()">
+  <span id="fabIcon">🎙️</span>
+  <span id="fabLabel">Sprechen</span>
+</button>
 
 <div class="toast" id="toast"></div>
 
@@ -1099,6 +1129,92 @@ sbDashboard
   .on('postgres_changes', { event: '*', schema: 'public', table: 'innungs_seminare' }, () => ladeBadges())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_signal_regeln' }, () => ladeSignale())
   .subscribe();
+
+// ── Sprechen-FAB ──
+const fab        = document.getElementById('sprechenFab');
+const fabIcon    = document.getElementById('fabIcon');
+const fabLabel   = document.getElementById('fabLabel');
+let fabListening = false;
+let fabRec       = null;
+
+// FAB nur auf Home-Screen anzeigen
+function updateFabVisibility() {
+  const homeActive = document.getElementById('screen-home').classList.contains('active');
+  homeActive ? fab.classList.add('visible') : fab.classList.remove('visible');
+}
+
+// showScreen patchen damit FAB mitbekommt wann Home aktiv ist
+const _origShowScreen = showScreen;
+window.showScreen = function(id) {
+  _origShowScreen(id);
+  updateFabVisibility();
+};
+updateFabVisibility();
+
+function fabToggleMic() {
+  if (fabListening) { fabRec?.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Mikrofon nur in Chrome verfügbar'); return; }
+
+  fabRec = new SR();
+  fabRec.lang = 'de-AT';
+  fabRec.interimResults = false;
+  fabRec.maxAlternatives = 1;
+
+  fabRec.onstart = () => {
+    fabListening = true;
+    fab.classList.add('active');
+    fabIcon.textContent  = '⏹';
+    fabLabel.textContent = 'Zuhören …';
+  };
+
+  fabRec.onresult = async (e) => {
+    const text = e.results[0][0].transcript;
+    fabIcon.textContent  = '⏳';
+    fabLabel.textContent = 'Wörni arbeitet …';
+    // Aufgabe in ghd_aufgaben speichern
+    try {
+      await fetch(`${BADGE_SB_URL}/rest/v1/ghd_aufgaben`, {
+        method: 'POST',
+        headers: {
+          'apikey': BADGE_SB_KEY,
+          'Authorization': `Bearer ${BADGE_SB_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          titel: text,
+          status: 'neu',
+          quelle: 'sprache',
+          prioritaet: 'normal',
+          erstellt_am: new Date().toISOString()
+        })
+      });
+      toast('✓ Aufgabe gespeichert – Wörni übernimmt');
+      ladeBadges();
+    } catch {
+      toast('Verbindungsfehler – bitte erneut versuchen');
+    }
+  };
+
+  fabRec.onend = () => {
+    fabListening = false;
+    fab.classList.remove('active');
+    fabIcon.textContent  = '🎙️';
+    fabLabel.textContent = 'Sprechen';
+  };
+
+  fabRec.onerror = (e) => {
+    fabListening = false;
+    fab.classList.remove('active');
+    fabIcon.textContent  = '🎙️';
+    fabLabel.textContent = 'Sprechen';
+    if (e.error !== 'no-speech') toast('Mikrofon-Fehler: ' + e.error);
+  };
+
+  fabRec.start();
+}
 
 // ── Offline-Banner ──
 function offlineBanner(zeigen) {
