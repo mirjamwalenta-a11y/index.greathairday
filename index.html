@@ -330,6 +330,28 @@
       margin-bottom: 6px; text-transform: uppercase;
     }
 
+    /* ── Wörni Antwort-Panel ── */
+    .woerni-panel {
+      display: none; position: fixed; left: 16px; right: 16px; bottom: 90px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      box-shadow: 0 8px 24px rgba(33,29,23,0.12);
+      z-index: 29; animation: einblenden .2s ease;
+    }
+    .woerni-panel.visible { display: block; }
+    .woerni-panel-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+    }
+    .woerni-panel-text {
+      font-size: 14px; line-height: 1.6; color: var(--text);
+    }
+    .woerni-panel-close {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; font-size: 16px;
+      color: var(--text-soft); cursor: pointer;
+    }
+
     /* ── Sprechen-FAB ── */
     .sprechen-fab {
       position: fixed; bottom: 28px; left: 20px;
@@ -501,6 +523,13 @@
       <button class="btn-save" style="flex:1;" onclick="closeNowSheet()">Fertig</button>
     </div>
   </div>
+</div>
+
+<!-- WÖRNI ANTWORT-PANEL -->
+<div class="woerni-panel" id="woerniPanel">
+  <button class="woerni-panel-close" onclick="document.getElementById('woerniPanel').classList.remove('visible')">✕</button>
+  <div class="woerni-panel-tag">🤖 Wörni antwortet</div>
+  <div class="woerni-panel-text" id="woerniPanelText"></div>
 </div>
 
 <!-- SPRECHEN FAB -->
@@ -1172,9 +1201,35 @@ function fabToggleMic() {
   fabRec.onresult = async (e) => {
     const text = e.results[0][0].transcript;
     fabIcon.textContent  = '⏳';
-    fabLabel.textContent = 'Wörni arbeitet …';
-    // Aufgabe in ghd_aufgaben speichern
+    fabLabel.textContent = 'Wörni denkt …';
+
+    // Panel anzeigen mit Ladeindikator
+    const panel     = document.getElementById('woerniPanel');
+    const panelText = document.getElementById('woerniPanelText');
+    panelText.textContent = '…';
+    panel.classList.add('visible');
+
     try {
+      // Claude via Supabase Edge Function aufrufen
+      const res = await fetch(
+        'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${BADGE_SB_KEY}`
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: text }],
+            system: 'Du bist Wörni, der KI-Assistent von Mirjam Walenta, Friseurmeisterin in Wien. Antworte kurz, freundlich und auf Deutsch. Max. 2–3 Sätze.'
+          })
+        }
+      );
+      const data = await res.json();
+      const antwort = data?.content?.[0]?.text || data?.reply || data?.message || 'Keine Antwort erhalten.';
+      panelText.textContent = antwort;
+
+      // Zusätzlich als Aufgabe speichern
       await fetch(`${BADGE_SB_URL}/rest/v1/ghd_aufgaben`, {
         method: 'POST',
         headers: {
@@ -1191,10 +1246,9 @@ function fabToggleMic() {
           erstellt_am: new Date().toISOString()
         })
       });
-      toast('✓ Aufgabe gespeichert – Wörni übernimmt');
       ladeBadges();
     } catch {
-      toast('Verbindungsfehler – bitte erneut versuchen');
+      panelText.textContent = 'Verbindungsfehler – bitte erneut versuchen.';
     }
   };
 
