@@ -1180,8 +1180,83 @@ window.showScreen = function(id) {
 };
 updateFabVisibility();
 
+const ANTHROPIC_KEY = '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';
+
 function fabToggleMic() {
-  window.location.href = 'schaltzentrale.html';
+  if (fabListening) { fabRec?.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Mikrofon nur in Chrome verfügbar'); return; }
+
+  fabRec = new SR();
+  fabRec.lang = 'de-AT';
+  fabRec.interimResults = false;
+  fabRec._letzterText = '';
+
+  fabRec.onstart = () => {
+    fabListening = true;
+    document.getElementById('sprechenFab').classList.add('active');
+    document.getElementById('fabIcon').textContent = '⏹';
+    document.getElementById('fabLabel').textContent = 'Zuhören …';
+  };
+
+  fabRec.onresult = (e) => {
+    fabRec._letzterText = Array.from(e.results).map(r => r[0].transcript).join('');
+  };
+
+  fabRec.onend = async () => {
+    fabListening = false;
+    document.getElementById('sprechenFab').classList.remove('active');
+    document.getElementById('fabIcon').textContent = '🎙️';
+    document.getElementById('fabLabel').textContent = 'Sprechen';
+
+    const text = fabRec._letzterText;
+    if (!text || !text.trim()) return;
+
+    // Panel anzeigen
+    const panel = document.getElementById('woerniPanel');
+    const panelText = document.getElementById('woerniPanelText');
+    panelText.textContent = '…';
+    panel.classList.add('visible');
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 300,
+          system: 'Du bist Wörni, der KI-Assistent von Mirjam Walenta, Friseurmeisterin in Wien. Antworte auf Deutsch, kurz und freundlich. Max. 2–3 Sätze.',
+          messages: [{ role: 'user', content: text.trim() }]
+        })
+      });
+      const data = await res.json();
+      if (data?.content?.[0]?.text) {
+        panelText.textContent = data.content[0].text;
+      } else if (data?.error) {
+        panelText.textContent = 'Fehler: ' + data.error.message;
+      } else {
+        panelText.textContent = JSON.stringify(data).slice(0, 120);
+      }
+    } catch(err) {
+      panelText.textContent = 'Verbindungsfehler: ' + err.message;
+    }
+  };
+
+  fabRec.onerror = (e) => {
+    fabListening = false;
+    document.getElementById('sprechenFab').classList.remove('active');
+    document.getElementById('fabIcon').textContent = '🎙️';
+    document.getElementById('fabLabel').textContent = 'Sprechen';
+    if (e.error !== 'no-speech') toast('Mikrofon-Fehler: ' + e.error);
+  };
+
+  fabRec.start();
 }
 
 // ── Offline-Banner ──

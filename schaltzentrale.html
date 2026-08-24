@@ -965,7 +965,13 @@ function Woerni() {
           })
         });
         const data = await res.json();
-        setWoerniAntwort(data?.content?.[0]?.text || 'Erledigt!');
+        if (data?.content?.[0]?.text) {
+          setWoerniAntwort(data.content[0].text);
+        } else if (data?.error) {
+          setWoerniAntwort('API Fehler: ' + data.error.message);
+        } else {
+          setWoerniAntwort('Fehler: ' + JSON.stringify(data).slice(0,120));
+        }
       } catch {
         setWoerniAntwort('');
       }
