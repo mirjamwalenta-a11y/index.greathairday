@@ -520,6 +520,19 @@ const cardCopy = {
 };
 
 const appsByName = Object.fromEntries(apps.map(a => [a.nm, a]));
+// Alias-Namen die aus Supabase ghd_signal_regeln kommen können
+const appAliases = {
+  'Einkauf':        'Checklisten',
+  'Checklist':      'Checklisten',
+  'Checkliste':     'Checklisten',
+  'Abwesenheiten':  'Abwesenheit',
+  'Urlaub':         'Abwesenheit',
+  'Quiz':           'Lernquiz',
+  'Aufgaben':       'Aufträge',
+  'Wörni':          'Wörni',
+  'Belege':         'Belege',
+  'Innung':         'Innung',
+};
 let priorities = ['Reichweite', 'Team', 'Belege'];
 let appOrder   = apps.map(a => a.nm);
 
@@ -713,9 +726,17 @@ function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('scre
 function goPin()  { sessionStorage.removeItem('ghd_unlocked'); pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
 function goWoerni() { window.location.href = 'woerni.html'; }
 function goApp(name) {
-  const a = appsByName[name];
+  if (!name) { toast('App nicht gefunden'); return; }
+  // Direkte URL → sofort navigieren
+  if (name.startsWith('http')) { window.location.href = name; return; }
+  // Alias auflösen
+  const resolved = appAliases[name] || name;
+  // Exakter Treffer
+  let a = appsByName[resolved];
+  // Partieller Treffer
+  if (!a) a = apps.find(x => x.nm.toLowerCase().includes(resolved.toLowerCase()) || resolved.toLowerCase().includes(x.nm.toLowerCase()));
   if (a && a.url) { window.location.href = a.url; }
-  else { toast('App nicht gefunden'); }
+  else { toast('App nicht gefunden: ' + name); }
 }
 
 /* ── PIN ── */
