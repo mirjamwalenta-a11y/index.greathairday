@@ -968,15 +968,41 @@ function Woerni() {
   async function spracheBestaetigen() {
     if (!sprachText.trim()) { toast('Kein Text erkannt'); return; }
     const { prioritaet, typ, istVorlage, rhythmus } = intentParsing(sprachText);
+
+    // ── Wörni antwortet via Claude ──
+    setWoerniAntwort('…');
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': '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',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 300,
+          system: 'Du bist Wörni, der KI-Assistent von Mirjam Walenta, Friseurmeisterin und Saloninhaberin in Wien. Antworte immer auf Deutsch, kurz, freundlich und handlungsorientiert. Max. 2–3 Sätze.',
+          messages: [{ role: 'user', content: sprachText.trim() }]
+        })
+      });
+      const data = await res.json();
+      const antwort = data?.content?.[0]?.text || 'Erledigt!';
+      setWoerniAntwort(antwort);
+    } catch {
+      setWoerniAntwort('');
+    }
+
+    // ── Aufgabe/Vorlage speichern ──
     if (istVorlage) {
       await addVorlage({ titel: sprachText.trim(), prioritaet, typ, rhythmus, aktiv: true, app: 'Sonstige' });
-      setSprache(false); setSprachText(''); setHoert(false);
       toast(`✓ Vorlage erstellt · ${RHYTHMEN[rhythmus].label}`);
     } else {
       await addAufgabe({ titel: sprachText.trim(), prioritaet, typ });
-      setSprache(false); setSprachText(''); setHoert(false);
       toast(`✓ Aufgabe erstellt · ${PRIORITAETEN[prioritaet].label}`);
     }
+    setSprache(false); setSprachText(''); setHoert(false);
   }
 
   // Fälligkeits-Hinweis: Aufgaben die heute oder morgen fällig sind
