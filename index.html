@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --bg:           #F8F4EA;
@@ -141,7 +142,11 @@
     .signal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .signal-dot.ok   { background: var(--ok); }
     .signal-dot.warn { background: var(--heute); animation: signal-puls 2s ease-in-out infinite; }
+    .signal-dot.krit { background: var(--crit); animation: signal-puls 1.2s ease-in-out infinite; }
     .signal-dot.leer { background: var(--border); }
+    .signal-chip.chip-krit { border-color: var(--crit-tint); background: var(--crit-tint); }
+    .signal-chip.chip-warn { border-color: var(--heute-tint); background: var(--heute-tint); }
+    .signal-chip.chip-ok   { border-color: var(--bg-soft); }
     @keyframes signal-puls { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
     /* ── Now-Card ── */
@@ -475,6 +480,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- OFFLINE-BANNER -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:#B23A2E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;letter-spacing:.03em;">
+  ⚡ Keine Verbindung — Änderungen werden nicht gespeichert
+</div>
 
 <script>
 /* ── Daten ── */
@@ -835,7 +845,8 @@ async function lernquizDieseWoche() {
 
 function signalHTML(dot, label, onclick) {
   const klick = onclick ? `onclick="${onclick}"` : '';
-  return `<div class="signal-chip" ${klick}><div class="signal-dot ${dot}"></div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></div>`;
+  const chipKlasse = dot === 'krit' ? 'chip-krit' : dot === 'warn' ? 'chip-warn' : dot === 'ok' ? 'chip-ok' : '';
+  return `<div class="signal-chip ${chipKlasse}" ${klick}><div class="signal-dot ${dot}"></div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></div>`;
 }
 
 async function ladeSignale() {
@@ -898,7 +909,8 @@ async function ladeSignale() {
     const anzahl = await sigFetch(regel.tabelle, regel.filter);
     if (anzahl === null)  return signalHTML('leer', regel.label);
     if (anzahl === 0)     return signalHTML('ok',   `${regel.label}: alles ok`);
-    return signalHTML('warn', `${anzahl} ${regel.label}${anzahl>1?'s':''}`, `goApp('${regel.app_link}')`);
+    const dot = anzahl >= 3 ? 'krit' : 'warn';
+    return signalHTML(dot, `${anzahl} ${regel.label}${anzahl>1?'s':''}`, `goApp('${regel.app_link}')`);
   }
 
   // Fallback-Regeln wenn ghd_signal_regeln leer oder nicht erreichbar
@@ -1052,7 +1064,29 @@ renderHome();
 })();
 ladeBadges();
 ladeSignale();
-setInterval(ladeBadges, 30000);
+
+// ── Realtime: Badges bei DB-Änderungen sofort aktualisieren ──
+const sbDashboard = supabase.createClient(
+  "https://wrxlaltgtgkdomklgrlj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
+);
+
+sbDashboard
+  .channel('dashboard-badges')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'abw_anfragen' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'innungs_seminare' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_signal_regeln' }, () => ladeSignale())
+  .subscribe();
+
+// ── Offline-Banner ──
+function offlineBanner(zeigen) {
+  const b = document.getElementById('offline-banner');
+  if (b) b.style.display = zeigen ? 'block' : 'none';
+}
+window.addEventListener('offline', () => offlineBanner(true));
+window.addEventListener('online',  () => { offlineBanner(false); ladeBadges(); ladeSignale(); });
+if (!navigator.onLine) offlineBanner(true);
 </script>
 </body>
 </html>

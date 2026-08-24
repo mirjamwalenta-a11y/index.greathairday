@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --bg:#F8F4EA; --bg-soft:#F0E9D8; --card:#FFFFFF; --border:#E4DBC5;
@@ -88,10 +89,10 @@
     .header-sub{font-size:13px;color:rgba(33,29,23,0.35);margin-top:4px;}
     .btn-add-header{background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:12px;
       padding:10px 14px;color:var(--accent-dark);font-size:12px;font-weight:700;cursor:pointer;
-      font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+      font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;min-width:80px;text-align:center;}
     .btn-nav{background:var(--card);border:1px solid var(--border);border-radius:12px;
-      padding:10px 14px;color:var(--text-soft);font-size:12px;font-weight:700;cursor:pointer;
-      font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+      padding:10px 14px;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;
+      font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background 0.15s;min-width:80px;text-align:center;}
     .btn-nav:hover{border-color:var(--accent);}
 
     /* ── FAB ── */
@@ -251,6 +252,20 @@ document.getElementById('ghd-mikro-fab').addEventListener('click', function(){
 
 <div class="toast" id="ghd-toast"></div>
 
+<!-- OFFLINE-BANNER -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:#B23A2E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;letter-spacing:.03em;">
+  ⚡ Keine Verbindung — Änderungen werden nicht gespeichert
+</div>
+<script>
+function offlineBanner(zeigen) {
+  var b = document.getElementById('offline-banner');
+  if (b) b.style.display = zeigen ? 'block' : 'none';
+}
+window.addEventListener('offline', function(){ offlineBanner(true); });
+window.addEventListener('online',  function(){ offlineBanner(false); });
+if (!navigator.onLine) offlineBanner(true);
+</script>
+
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
@@ -265,16 +280,29 @@ function toast(msg) {
 const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
 
+// Supabase Realtime Client
+const sbClient = supabase.createClient(SB_URL, SB_KEY);
+
 async function sb(path, opts = {}) {
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-    cache: "no-store",
-    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`,
-      "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers },
-    ...opts
-  });
-  const t = await r.text();
-  if (!r.ok) throw new Error(t);
-  return t ? JSON.parse(t) : null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+      cache: "no-store",
+      signal: controller.signal,
+      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`,
+        "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers },
+      ...opts
+    });
+    const t = await r.text();
+    if (!r.ok) throw new Error(t);
+    return t ? JSON.parse(t) : null;
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('Zeitüberschreitung — bitte Verbindung prüfen');
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 const api = {
@@ -317,6 +345,14 @@ const RHYTHMEN = {
 const MONATE = ["Jän","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const WOCHENTAGE = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 function heuteStr() { const d=new Date(); return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`; }
+function tageszeitBegruessung() {
+  const h = new Date().getHours();
+  if (h < 11) return 'Guten Morgen, Mirjam ☀️';
+  if (h < 14) return 'Schönen Vormittag, Mirjam';
+  if (h < 17) return 'Guten Nachmittag, Mirjam';
+  if (h < 20) return 'Schönen Abend, Mirjam 🌙';
+  return 'Noch im Salon, Mirjam? 💪';
+}
 function formatDatum(iso) { if(!iso) return null; const d=new Date(iso); return `${d.getDate()}. ${MONATE[d.getMonth()]}`; }
 function isoHeute() { return new Date().toISOString().slice(0,10); }
 function ersterDesMonats() { const d=new Date(); return d.getDate()===1; }
@@ -532,7 +568,7 @@ function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
 }
 
 // ─── AUFGABE DETAIL ───────────────────────────────────────────────────────────
-function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit }) {
+function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorlage }) {
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon:"◎", label:aufgabe.typ };
 
@@ -566,6 +602,7 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit }) {
           )}
           <button className="detail-action-primary" onClick={() => aktion("erledigt")}>✓ Erledigt</button>
           <button className="detail-action-secondary" onClick={() => { onClose(); onEdit(aufgabe); }}>✏️ Bearbeiten</button>
+          <button className="detail-action-secondary" onClick={() => onAlsVorlage(aufgabe)}>🔁 Als Vorlage speichern</button>
           {aufgabe.status !== "in-arbeit" && (
             <button className="detail-action-secondary" onClick={() => onUpdate(aufgabe.id,{status:"in-arbeit"}).then(()=>{toast('In Arbeit');onClose();})}>
               In Arbeit setzen
@@ -664,14 +701,24 @@ function Woerni() {
   const [ereignisse, setEreignisse]   = useState([]);
   const [laden, setLaden]             = useState(true);
   const [fehler, setFehler]           = useState(null);
+  const [liveVerbunden, setLiveVerbunden] = useState(false);
   const [ausgewaehlt, setAusgewaehlt] = useState(null);
   const [bearbeiten, setBearbeiten]   = useState(null);
   const [neueAufgabe, setNeueAufgabe] = useState(false);
   const [neueVorlage, setNeueVorlage] = useState(false);
   const [bearbVorlage, setBearbVorlage] = useState(null);
-  const [tab, setTab] = useState("heute"); // heute | vorlagen | erledigt
+  const TAB_KEY = 'ghd_woerni_tab';
+  const [tab, setTab] = useState(() => {
+    try { return localStorage.getItem(TAB_KEY) || 'heute'; } catch(e) { return 'heute'; }
+  });
+
+  function wechsleTab(id) {
+    setTab(id);
+    try { localStorage.setItem(TAB_KEY, id); } catch(e) {}
+  }
   const [sprache, setSprache] = useState(false); // Spracheingabe aktiv
   const [sprachText, setSprachText] = useState('');
+  const [woerniAntwort, setWoerniAntwort] = useState('');
   const [hoert, setHoert] = useState(false);
   const erkennungRef = useRef(null);
 
@@ -701,7 +748,35 @@ function Woerni() {
     return faellig.length > 0;
   }
 
+  const CACHE_KEY = 'ghd_woerni_cache';
+
+  function cacheSchreiben(a_, e_, v_) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        aufgaben: a_, erledigt: e_, vorlagen: v_,
+        gespeichert: new Date().toISOString()
+      }));
+    } catch(e) {}
+  }
+
+  function cacheLaden() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
   async function laden_() {
+    // Cache sofort anzeigen während geladen wird
+    if (aufgaben.length === 0) {
+      const cache = cacheLaden();
+      if (cache) {
+        setAufgaben(cache.aufgaben||[]);
+        setErledigt(cache.erledigt||[]);
+        setVorlagen(cache.vorlagen||[]);
+      }
+    }
     try {
       setFehler(null); setLaden(true);
       const [a, e, v, ev] = await Promise.all([api.getAufgaben(), api.getErledigt(), api.getVorlagen(), api.getEreignisse().catch(()=>[])]);
@@ -710,17 +785,59 @@ function Woerni() {
       if (hatReset || hatNeu) {
         const [a2, e2] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
         setAufgaben(a2||[]); setErledigt(e2||[]);
+        cacheSchreiben(a2||[], e2||[], v||[]);
       } else {
         setAufgaben(a||[]); setErledigt(e||[]);
+        cacheSchreiben(a||[], e||[], v||[]);
       }
       setEreignisse(ev||[]);
       setVorlagen(v||[]);
-      setEreignisse(ev||[]);
-    } catch(err) { setFehler("Verbindung fehlgeschlagen"); }
+    } catch(err) {
+      const cache = cacheLaden();
+      if (cache) {
+        setAufgaben(cache.aufgaben||[]);
+        setErledigt(cache.erledigt||[]);
+        setVorlagen(cache.vorlagen||[]);
+        const zeit = cache.gespeichert
+          ? new Date(cache.gespeichert).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'})
+          : '';
+        setFehler('Offline — letzte Daten vom ' + zeit);
+      } else {
+        setFehler('Keine Verbindung und noch kein Cache verfügbar');
+      }
+    }
     finally { setLaden(false); }
   }
 
-  useEffect(() => { laden_(); const t=setInterval(()=>laden_(),60000); return ()=>clearInterval(t); }, []);
+  useEffect(() => {
+    // Erstmaliges Laden
+    laden_();
+
+    // Realtime: ghd_aufgaben + ghd_aufgaben_vorlagen → Aufgabenliste neu laden
+    const aufgabenChannel = sbClient
+      .channel('woerni-aufgaben')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben' }, () => laden_())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben_vorlagen' }, () => laden_())
+      .subscribe(status => setLiveVerbunden(status === 'SUBSCRIBED'));
+
+    // Realtime: ghd_ereignisse → nur Ereignisse aktualisieren
+    const ereignisseChannel = sbClient
+      .channel('woerni-ereignisse')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ghd_ereignisse' }, payload => {
+        setEreignisse(prev => [payload.new, ...prev]);
+        toast('📡 Neues Ereignis aus einer App');
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ghd_ereignisse' }, () => {
+        api.getEreignisse().catch(()=>[]).then(ev => setEreignisse(ev||[]));
+      })
+      .subscribe();
+
+    return () => {
+      sbClient.removeChannel(aufgabenChannel);
+      sbClient.removeChannel(ereignisseChannel);
+      if (erkennungRef.current) erkennungRef.current.abort();
+    };
+  }, []);
 
   // Mikro-Modal: Aufgabe speichern via Custom Event
   useEffect(() => {
@@ -729,9 +846,20 @@ function Woerni() {
     return () => document.removeEventListener('ghd-aufgabe-erstellen', onAufgabe);
   }, []);
 
+  // Automatisch alle erledigten außer den 3 neuesten löschen
+  async function aufräumenErledigt() {
+    try {
+      const alle = await api.getErledigt();
+      if (!alle || alle.length <= 3) return;
+      const zuLoeschen = alle.slice(3);
+      for (const a of zuLoeschen) await api.deleteAufgabe(a.id);
+    } catch(e) {}
+  }
+
   async function updateAufgabe(id, daten) {
     await api.updateAufgabe(id, daten);
     try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); } catch(e) {}
+    if (daten.status === "erledigt") await aufräumenErledigt();
     await laden_();
   }
 
@@ -767,6 +895,7 @@ function Woerni() {
   }
 
   // ── Spracheingabe ──
+  // ── Spracheingabe ──
   useEffect(() => {
     function onSprache() { spracheStarten(); }
     document.addEventListener('ghd-sprache-starten', onSprache);
@@ -799,12 +928,62 @@ function Woerni() {
     setSprache(false); setSprachText(''); setHoert(false);
   }
 
+  // ── Intent-Parsing: Priorität & Typ aus gesprochenem Text erkennen ──
+  function intentParsing(text) {
+    const t = text.toLowerCase();
+
+    // Vorlage-Erkennung
+    let istVorlage = false;
+    let rhythmus = 'monatlich';
+    if (/vorlage|wiederkehrend|immer wieder|regelmäßig|regelmassig/.test(t)) istVorlage = true;
+    if (/täglich|taeglich|jeden tag|every day/.test(t)) { istVorlage = true; rhythmus = 'taeglich'; }
+    if (/jeden montag|jede woche|wöchentlich|woechentlich/.test(t)) { istVorlage = true; rhythmus = 'woechentlich'; }
+    if (/jeden monat|monatlich|jeden ersten/.test(t)) { istVorlage = true; rhythmus = 'monatlich'; }
+
+    // Priorität
+    let prioritaet = 'heute'; // Standard
+    if (/dringend|sofort|kritisch|notfall|unbedingt|jetzt|emergency/.test(t))
+      prioritaet = 'kritisch';
+    else if (/heute|heut|asap|bald|schnell/.test(t))
+      prioritaet = 'heute';
+    else if (/diese woche|woche|dienstag|mittwoch|donnerstag|freitag/.test(t))
+      prioritaet = 'diese-woche';
+    else if (/irgendwann|später|nächste woche|nächsten monat|wenn zeit|wann möglich|wann moeglich/.test(t))
+      prioritaet = 'wann-moeglich';
+
+    // Typ
+    let typ = 'betrieb'; // Standard
+    if (/bestell|einkauf|lager|lieferung|nachbestell/.test(t))
+      typ = 'bestellung';
+    else if (/team|mitarbeiter|lehrl|gespräch|besprechung|sagen|schreib|anruf|mail/.test(t))
+      typ = 'kommunikation';
+    else if (/entscheid|wählen|auswählen|überlegen|beschließen/.test(t))
+      typ = 'entscheidung';
+    else if (/lern|quiz|kurs|fortbild|prüfung/.test(t))
+      typ = 'lernen';
+
+    return { prioritaet, typ, istVorlage, rhythmus };
+  }
+
   async function spracheBestaetigen() {
     if (!sprachText.trim()) { toast('Kein Text erkannt'); return; }
-    await addAufgabe({ titel: sprachText.trim(), prioritaet: 'heute', typ: 'betrieb' });
-    setSprache(false); setSprachText(''); setHoert(false);
-    toast('✓ Aufgabe erstellt');
+    const { prioritaet, typ, istVorlage, rhythmus } = intentParsing(sprachText);
+    if (istVorlage) {
+      await addVorlage({ titel: sprachText.trim(), prioritaet, typ, rhythmus, aktiv: true, app: 'Sonstige' });
+      setSprache(false); setSprachText(''); setHoert(false);
+      toast(`✓ Vorlage erstellt · ${RHYTHMEN[rhythmus].label}`);
+    } else {
+      await addAufgabe({ titel: sprachText.trim(), prioritaet, typ });
+      setSprache(false); setSprachText(''); setHoert(false);
+      toast(`✓ Aufgabe erstellt · ${PRIORITAETEN[prioritaet].label}`);
+    }
   }
+
+  // Fälligkeits-Hinweis: Aufgaben die heute oder morgen fällig sind
+  const heute_iso = isoHeute();
+  const morgen_iso = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
+  const faelligBald = aufgaben.filter(a => a.faellig_am && (a.faellig_am.slice(0,10) <= morgen_iso));
+  const faelligHeute = faelligBald.filter(a => a.faellig_am.slice(0,10) === heute_iso);
 
   const gruppen = {
     kritisch:        aufgaben.filter(a => a.prioritaet==="kritisch"),
@@ -818,10 +997,13 @@ function Woerni() {
 
       {/* HEADER */}
       <div className="header">
-        <div className="header-eyebrow">WÖRNI · SCHALTZENTRALE</div>
+        <div className="header-eyebrow" style={{display:'flex',alignItems:'center',gap:6}}>
+          WÖRNI · SCHALTZENTRALE
+          <span title={liveVerbunden ? 'Live' : 'Verbinde…'} style={{width:6,height:6,borderRadius:'50%',background:liveVerbunden?'var(--ok)':'var(--border)',display:'inline-block',transition:'background 0.4s'}}/>
+        </div>
         <div className="header-row">
           <div>
-            <h1 className="header-h1">Hallo, Mirjam</h1>
+            <h1 className="header-h1">{tageszeitBegruessung()}</h1>
             <p className="header-sub">{heuteStr()}</p>
           </div>
           <div style={{display:'flex',gap:8}}>
@@ -836,10 +1018,27 @@ function Woerni() {
         {/* SCHALTZENTRALE KARTE */}
         {!laden && !fehler && <SchaltzentraleKarte aufgaben={aufgaben} ereignisse={ereignisse} />}
 
+        {/* FÄLLIGKEITS-HINWEIS */}
+        {!laden && faelligBald.length > 0 && (
+          <div style={{background:'var(--heute-tint)',border:'1px solid rgba(166,122,34,0.3)',borderRadius:'var(--radius)',padding:'12px 14px',marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:20}}>⏰</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:'var(--heute)'}}>
+                {faelligHeute.length > 0
+                  ? `${faelligHeute.length} Aufgabe${faelligHeute.length>1?'n':''} heute fällig`
+                  : `${faelligBald.length} Aufgabe${faelligBald.length>1?'n':''} morgen fällig`}
+              </div>
+              <div style={{fontSize:11,color:'var(--text-soft)',marginTop:2}}>
+                {faelligBald.map(a => a.titel).join(' · ')}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TABS */}
         <div className="tabs">
           {[["heute",`Offen${aufgaben.length>0?' ('+aufgaben.length+')':''}`],["vorlagen",`Vorlagen${vorlagen.length>0?' ('+vorlagen.length+')':''}`],["erledigt","Erledigt"]].map(([id,label]) => (
-            <button key={id} className={`tab ${tab===id?'active':''}`} onClick={() => setTab(id)}>{label}</button>
+            <button key={id} className={`tab ${tab===id?'active':''}`} onClick={() => wechsleTab(id)}>{label}</button>
           ))}
         </div>
 
@@ -874,8 +1073,28 @@ function Woerni() {
                 {ereignisse.map((ev, i) => (
                   <div key={ev.id} className="aufgabe-card einblenden" style={{animationDelay:`${i*40}ms`}}
                     onClick={async () => {
+                      // Priorität aus Ereignis ableiten
+                      const prio = ev.prioritaet && PRIORITAETEN[ev.prioritaet]
+                        ? ev.prioritaet
+                        : "diese-woche";
+                      // Aufgabe erstellen
+                      try {
+                        await api.addAufgabe({
+                          titel: ev.titel,
+                          typ: "betrieb",
+                          prioritaet: prio,
+                          app_kontext: ev.app || null,
+                          erstellt_von: "woerni",
+                        });
+                        toast('✓ Aufgabe erstellt');
+                      } catch(e) {
+                        toast('⚠ Aufgabe konnte nicht erstellt werden');
+                      }
+                      // Ereignis als gelesen markieren → verschwindet
                       await api.ereignisGelesen(ev.id).catch(()=>{});
                       setEreignisse(prev => prev.filter(e => e.id !== ev.id));
+                      // Aufgabenliste neu laden damit Aufgabe sofort erscheint
+                      laden_();
                     }}>
                     <div className="aufgabe-stripe" style={{background:'var(--woche)',opacity:0.6}}/>
                     <div style={{paddingLeft:10}}>
@@ -888,7 +1107,9 @@ function Woerni() {
                       <p style={{color:'#211D17',fontWeight:600,fontSize:14,lineHeight:1.35,marginBottom:0}}>
                         {ev.titel}
                       </p>
-                      <p style={{fontSize:11,color:'rgba(33,29,23,0.4)',marginTop:4}}>Tippen zum Markieren als gelesen</p>
+                      <p style={{fontSize:11,color:'rgba(33,29,23,0.4)',marginTop:4}}>
+                        Tippen → Wörni erstellt Aufgabe
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -1019,6 +1240,9 @@ function Woerni() {
             <button className="refresh-btn" style={{marginTop:8}} onClick={() => setNeueVorlage(true)}>
               + Neue Vorlage erstellen
             </button>
+            <button className="refresh-btn" style={{marginTop:6}} onClick={spracheStarten}>
+              🎤 Per Sprache erstellen
+            </button>
           </div>
         )}
 
@@ -1047,7 +1271,7 @@ function Woerni() {
         <button className="refresh-btn" onClick={laden_}>↻ Aktualisieren</button>
       </div>
 
-      {/* FAB: Aufgabe */}
+      {/* FABs */}
       <div style={{position:'fixed',right:20,bottom:28,display:'flex',gap:10,zIndex:20}}>
         <button className="fab" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
       </div>
@@ -1061,6 +1285,11 @@ function Woerni() {
           onDelete={() => deleteAufgabe(ausgewaehlt.id)}
           onClose={() => setAusgewaehlt(null)}
           onEdit={a => { setAusgewaehlt(null); setBearbeiten(a); }}
+          onAlsVorlage={async a => {
+            await addVorlage({ titel: a.titel, naechster_schritt: a.naechster_schritt||'', prioritaet: a.prioritaet, typ: a.typ, rhythmus: 'monatlich', aktiv: true, app: 'Sonstige' });
+            setAusgewaehlt(null);
+            toast('🔁 Als Vorlage gespeichert');
+          }}
         />
       )}
       {bearbeiten && (
@@ -1097,6 +1326,19 @@ function Woerni() {
                 <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
                   <div style={{fontSize:10,fontWeight:700,color:'var(--text-soft)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:4}}>Du hast gesagt</div>
                   <div style={{fontSize:15,fontWeight:600,color:'var(--text)',lineHeight:1.4}}>{sprachText}</div>
+                  {(() => {
+                    const { prioritaet, typ, istVorlage, rhythmus } = intentParsing(sprachText);
+                    const p = PRIORITAETEN[prioritaet];
+                    const tp = TYPEN[typ];
+                    return (
+                      <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
+                        {istVorlage
+                          ? <span className="badge badge-auto">🔁 Vorlage · {RHYTHMEN[rhythmus].label}</span>
+                          : <span className={`badge ${p.badgeCls}`}>→ {p.label}</span>}
+                        <span className="badge badge-typ">{tp.icon} {tp.label}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               {sprachText && !hoert && (
