@@ -1000,8 +1000,8 @@ function Woerni() {
         } else {
           setWoerniAntwort('Fehler: ' + JSON.stringify(data).slice(0,120));
         }
-      } catch {
-        setWoerniAntwort('');
+      } catch(err) {
+        setWoerniAntwort('Verbindungsfehler: ' + err.message);
       }
     };
     erkennung.onerror = () => { setHoert(false); toast('Sprache nicht erkannt — bitte nochmal'); };
@@ -1074,8 +1074,8 @@ function Woerni() {
       const data = await res.json();
       const antwort = data?.content?.[0]?.text || 'Erledigt!';
       setWoerniAntwort(antwort);
-    } catch {
-      setWoerniAntwort('');
+    } catch(err) {
+      setWoerniAntwort('Verbindungsfehler: ' + err.message);
     }
 
     // ── Aufgabe/Vorlage speichern ──
