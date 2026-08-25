@@ -600,6 +600,21 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorl
               <div style={{fontSize:14,color:'rgba(33,29,23,0.75)',lineHeight:1.4}}>{aufgabe.naechster_schritt}</div>
             </div>
           )}
+          {aufgabe.fach_kontext==='einkauf' && aufgabe.payload && (() => {
+            let artikel = [];
+            try { artikel = typeof aufgabe.payload === 'string' ? JSON.parse(aufgabe.payload).artikel : aufgabe.payload.artikel; } catch(e) {}
+            if (!artikel || artikel.length === 0) return null;
+            return (
+              <div className="next-step-box" style={{marginBottom:20}}>
+                <div className="next-step-label">🛒 Einkaufsliste — {artikel.length} Artikel</div>
+                <div style={{marginTop:6}}>
+                  {artikel.map((a,i) => (
+                    <div key={i} style={{fontSize:14,color:'rgba(33,29,23,0.75)',lineHeight:1.8,borderBottom:i<artikel.length-1?'1px solid var(--border)':'none',paddingBottom:i<artikel.length-1?2:0}}>· {a}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <button className="detail-action-primary" onClick={() => aktion("erledigt")}>✓ Erledigt</button>
           {aufgabe.app_kontext && (() => {
             const APP_URLS = {
@@ -666,6 +681,20 @@ function AufgabeKarte({ aufgabe, onClick, delay=0 }) {
         {aufgabe.naechster_schritt && (
           <p style={{fontSize:13,color:'rgba(33,29,23,0.55)',lineHeight:1.4}}>→ {aufgabe.naechster_schritt}</p>
         )}
+        {aufgabe.fach_kontext==='einkauf' && aufgabe.payload && (() => {
+          let artikel = [];
+          try { artikel = typeof aufgabe.payload === 'string' ? JSON.parse(aufgabe.payload).artikel : aufgabe.payload.artikel; } catch(e) {}
+          if (!artikel || artikel.length === 0) return null;
+          const vorschau = artikel.slice(0, 3);
+          return (
+            <div style={{marginTop:8,background:'var(--bg-soft)',borderRadius:8,padding:'7px 10px'}}>
+              {vorschau.map((a,i) => (
+                <div key={i} style={{fontSize:12,color:'rgba(33,29,23,0.65)',lineHeight:1.6}}>· {a}</div>
+              ))}
+              {artikel.length > 3 && <div style={{fontSize:11,color:'rgba(33,29,23,0.35)',marginTop:2}}>+{artikel.length-3} weitere</div>}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
