@@ -982,7 +982,7 @@ const ALLE_APPS = [
   },
   {
     icon:'🗄', name:'Schrank', desc:'Dokumente & Tresor',
-    url:`${B}/dokumentenschrank-ghd/`,
+    url:`${B}/dokumentenschrank-ghd/dokumentenschrank.html`,
     rollen:['chefin'], special:true
   }
 ];
@@ -1426,7 +1426,7 @@ const ZG_DEFAULT = [
       {id:'z8',typ:'link', label:'Schnupper Lehrling', wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html?modus=lehrling'},
     ]},
   { id:'zgs4', section:'Haupt-Apps', icon:'📁', name:'Dokumentenschrank',
-    zeilen:[{id:'z9',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'}] },
+    zeilen:[{id:'z9',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html'}] },
   { id:'zgs5', section:'Haupt-Apps', icon:'✅', name:'Checkliste',
     zeilen:[
       {id:'z10',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
@@ -1813,7 +1813,7 @@ function systemRendern(){
     {name:'Belege',      icon:'🧾', desc:'Rechnungen & Steuerberater',        url: typeof B!=='undefined'?B+'/belege.greathairday/belege.html':'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
     {name:'Wörni',       icon:'🤖', desc:'KI-Assistent & Aufgaben',           url: typeof B!=='undefined'?B+'/index.greathairday/':'https://mirjamwalenta-a11y.github.io/index.greathairday/'},
     {name:'Innung',      icon:'🏫', desc:'Seminare & Trainer:innen',          url: typeof B!=='undefined'?B+'/innungsapp.greathairday/innungsapp.html':'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
-    {name:'Schrank',     icon:'🗄', desc:'Dokumente & Tresor',                url: typeof B!=='undefined'?B+'/dokumentenschrank-ghd/':'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/'},
+    {name:'Schrank',     icon:'🗄', desc:'Dokumente & Tresor',                url: typeof B!=='undefined'?B+'/dokumentenschrank-ghd/dokumentenschrank.html':'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html'},
   ];
 
   const eigeneApps = sysEigeneAppsLaden();
