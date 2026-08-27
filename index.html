@@ -95,22 +95,7 @@
     .pin-name  { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
     .pin-brand { font-size: 11px; letter-spacing: .12em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 28px; }
     .pin-label { font-size: 11px; letter-spacing: .1em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px; }
-    .pin-dots  { display: flex; gap: 16px; justify-content: center; margin-bottom: 32px; }
-    .pin-dots span {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--border); display: inline-block;
-      transition: all .15s;
-    }
-    .pin-dots span.filled { background: var(--accent); border-color: var(--accent); }
-    .keypad { display: grid; grid-template-columns: repeat(3, 68px); gap: 14px; justify-content: center; }
-    .key {
-      width: 68px; height: 68px; border-radius: 50%;
-      border: 1px solid var(--border); background: var(--card);
-      font-size: 22px; font-weight: 600; color: var(--text);
-      cursor: pointer; font-family: inherit; transition: background .12s;
-    }
-    .key:hover  { border-color: var(--accent); }
-    .key:active { background: var(--accent-tint); }
+
     .team-btn {
       margin-top: 28px; color: var(--text-soft); font-size: 13.5px;
       background: none; border: none; cursor: pointer; font-family: inherit;
@@ -400,16 +385,28 @@
 </head>
 <body>
 
-<!-- PIN -->
+<!-- LOGIN -->
 <div class="screen" id="screen-pin">
   <div class="avatar-dot"></div>
   <div class="pin-name">Mirjam Walenta</div>
   <div class="pin-brand">A Great Hair Day</div>
-  <div class="pin-label">PIN eingeben</div>
-  <div class="pin-dots" id="pinDots">
-    <span></span><span></span><span></span><span></span>
+  <div class="pin-label">Passwort eingeben</div>
+  <div style="width:100%;max-width:280px;margin:0 auto 16px;">
+    <input type="password" id="pwInput" placeholder="Passwort"
+      style="width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
+      background:var(--card);font-size:16px;font-family:inherit;color:var(--text);
+      outline:none;text-align:center;transition:border-color .15s;"
+      onkeydown="if(event.key==='Enter')pwPruefen()"
+      oninput="document.getElementById('pwFehler').style.display='none'"/>
+    <div id="pwFehler" style="display:none;color:var(--crit);font-size:12px;font-weight:600;margin-top:8px;text-align:center;">
+      Falsches Passwort — bitte nochmal versuchen.
+    </div>
   </div>
-  <div class="keypad" id="keypad"></div>
+  <button onclick="pwPruefen()"
+    style="background:var(--accent);color:#fff;border:none;border-radius:12px;
+    padding:13px 32px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:24px;">
+    Einloggen
+  </button>
   <button class="team-btn" onclick="window.location.href='apps.html'">Team-Login →</button>
 </div>
 
@@ -450,7 +447,6 @@
   <div id="priorityRows"></div>
 
   <div class="footer-links">
-    <button onclick="toast('Zugangsdaten')">🔑 Zugangsdaten</button>
     <button onclick="showScreen('screen-system')">⚙ System</button>
     <button onclick="goPin()">↩ Abmelden</button>
   </div>
@@ -782,7 +778,7 @@ function showScreen(id) {
   if (id === 'screen-system') { renderSystem(); }
 }
 function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
-function goPin()  { sessionStorage.removeItem('ghd_unlocked'); pinCount = 0; renderPinDots(); showScreen('screen-pin'); }
+function goPin()  { sessionStorage.removeItem('ghd_unlocked'); showScreen('screen-pin'); setTimeout(() => { const f = document.getElementById('pwInput'); if(f) f.focus(); }, 100); }
 function goWoerni() { window.location.href = 'schaltzentrale.html'; }
 function goApp(name) {
   if (!name) { toast('App nicht gefunden'); return; }
@@ -798,24 +794,30 @@ function goApp(name) {
   else { toast('App nicht gefunden: ' + name); }
 }
 
-/* ── PIN ── */
-let pinCount = 0;
-function buildKeypad() {
-  const kp = document.getElementById('keypad');
-  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
-  kp.innerHTML = keys.map(k => {
-    if (k === '') return '<div></div>';
-    return `<button class="key" onclick="pinPress('${k}')">${k}</button>`;
-  }).join('');
+/* ── Passwort-Login ── */
+const PW_HASH = "866c3dd03a8e7ffc93d105821105b4aa1ed66f5ba7fd3ed8fbfc4d104819d9f9";
+
+async function hashPW(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
-function pinPress(k) {
-  if (k === '⌫') { if (pinCount > 0) pinCount--; renderPinDots(); return; }
-  if (pinCount < 4) { pinCount++; renderPinDots(); }
-  if (pinCount === 4) { setTimeout(goHome, 220); }
+
+async function pwPruefen() {
+  const eingabe = document.getElementById('pwInput').value;
+  if (!eingabe) return;
+  const h = await hashPW(eingabe);
+  if (h === PW_HASH) {
+    document.getElementById('pwInput').value = '';
+    goHome();
+  } else {
+    document.getElementById('pwFehler').style.display = 'block';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
 }
-function renderPinDots() {
-  document.querySelectorAll('#pinDots span').forEach((d,i) => d.classList.toggle('filled', i < pinCount));
-}
+
+function buildKeypad() {} // leer — nicht mehr benötigt
+function renderPinDots() {} // leer — nicht mehr benötigt
 
 /* ── Sortieren Sheet ── */
 function openSortSheet()  { renderSortList(); document.getElementById('overlaySort').classList.add('active'); }
