@@ -388,26 +388,30 @@
 <!-- LOGIN -->
 <div class="screen" id="screen-pin">
   <div class="avatar-dot"></div>
-  <div class="pin-name">Mirjam Walenta</div>
-  <div class="pin-brand">A Great Hair Day</div>
-  <div class="pin-label">Passwort eingeben</div>
+  <div class="pin-name">A Great Hair Day</div>
+  <div class="pin-brand">Mirjam Walenta</div>
+  <div class="pin-label">Anmelden</div>
   <div style="width:100%;max-width:280px;margin:0 auto 16px;">
-    <input type="password" id="pwInput" placeholder="Passwort"
+    <input type="email" id="loginEmail" placeholder="E-Mail"
       style="width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
       background:var(--card);font-size:16px;font-family:inherit;color:var(--text);
-      outline:none;text-align:center;transition:border-color .15s;"
-      onkeydown="if(event.key==='Enter')pwPruefen()"
-      oninput="document.getElementById('pwFehler').style.display='none'"/>
-    <div id="pwFehler" style="display:none;color:var(--crit);font-size:12px;font-weight:600;margin-top:8px;text-align:center;">
-      Falsches Passwort — bitte nochmal versuchen.
+      outline:none;text-align:center;transition:border-color .15s;margin-bottom:10px;display:block;"
+      onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()"/>
+    <input type="password" id="loginPw" placeholder="Passwort"
+      style="width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
+      background:var(--card);font-size:16px;font-family:inherit;color:var(--text);
+      outline:none;text-align:center;transition:border-color .15s;display:block;"
+      onkeydown="if(event.key==='Enter')loginMitSupabase()"
+      oninput="document.getElementById('loginFehler').style.display='none'"/>
+    <div id="loginFehler" style="display:none;color:var(--crit);font-size:12px;font-weight:600;margin-top:8px;text-align:center;">
+      Falsche E-Mail oder Passwort — bitte nochmal versuchen.
     </div>
   </div>
-  <button onclick="pwPruefen()"
+  <button onclick="loginMitSupabase()" id="loginBtn"
     style="background:var(--accent);color:#fff;border:none;border-radius:12px;
     padding:13px 32px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:24px;">
     Einloggen
   </button>
-  <button class="team-btn" onclick="window.location.href='apps.html'">Team-Login →</button>
 </div>
 
 <!-- HOME -->
@@ -778,7 +782,7 @@ function showScreen(id) {
   if (id === 'screen-system') { renderSystem(); }
 }
 function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
-function goPin()  { sessionStorage.removeItem('ghd_unlocked'); showScreen('screen-pin'); setTimeout(() => { const f = document.getElementById('pwInput'); if(f) f.focus(); }, 100); }
+function goPin()  { abmelden(); }
 function goWoerni() { window.location.href = 'schaltzentrale.html'; }
 function goApp(name) {
   if (!name) { toast('App nicht gefunden'); return; }
@@ -794,26 +798,37 @@ function goApp(name) {
   else { toast('App nicht gefunden: ' + name); }
 }
 
-/* ── Passwort-Login ── */
-const PW_HASH = "866c3dd03a8e7ffc93d105821105b4aa1ed66f5ba7fd3ed8fbfc4d104819d9f9";
+/* ── Supabase Auth Login ── */
+const AUTH_CLIENT = supabase.createClient(
+  "https://wrxlaltgtgkdomklgrlj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
+);
 
-async function hashPW(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+async function loginMitSupabase() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  if (!email || !pw) return;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Wird geprüft…';
+  btn.disabled = true;
+  const { data, error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+  btn.textContent = 'Einloggen';
+  btn.disabled = false;
+  if (error) {
+    document.getElementById('loginFehler').style.display = 'block';
+    document.getElementById('loginPw').value = '';
+    document.getElementById('loginPw').focus();
+    return;
+  }
+  // Session merken und weiter
+  sessionStorage.setItem('ghd_unlocked', '1');
+  goHome();
 }
 
-async function pwPruefen() {
-  const eingabe = document.getElementById('pwInput').value;
-  if (!eingabe) return;
-  const h = await hashPW(eingabe);
-  if (h === PW_HASH) {
-    document.getElementById('pwInput').value = '';
-    goHome();
-  } else {
-    document.getElementById('pwFehler').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
-  }
+async function abmelden() {
+  await AUTH_CLIENT.auth.signOut();
+  sessionStorage.removeItem('ghd_unlocked');
+  showScreen('screen-pin');
 }
 
 function buildKeypad() {} // leer — nicht mehr benötigt
@@ -893,10 +908,16 @@ function toast(msg) {
 const SIG_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
 const SIG_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
 
+async function getAuthToken() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  return data?.session?.access_token || SIG_KEY;
+}
+
 async function sigFetch(table, filter) {
   try {
+    const token = await getAuthToken();
     const r = await fetch(`${SIG_URL}/rest/v1/${table}?${filter}&select=id`, {
-      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}`, "Prefer": "count=exact" }
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}`, "Prefer": "count=exact" }
     });
     const count = r.headers.get("content-range");
     if (count) return parseInt(count.split("/")[1]) || 0;
@@ -912,8 +933,9 @@ async function lernquizDieseWoche() {
     const diffZuMo = (tag === 0) ? -6 : 1 - tag;
     const montag = new Date(heute);
     montag.setDate(heute.getDate() + diffZuMo);
+    const token = await getAuthToken();
     const r = await fetch(`${SIG_URL}/rest/v1/verlauf?select=datum&order=datum.desc&limit=50`, {
-      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
     });
     const eintraege = await r.json();
     if (!Array.isArray(eintraege)) return null;
@@ -925,21 +947,45 @@ async function lernquizDieseWoche() {
   } catch(e) { return null; }
 }
 
-function signalHTML(dot, label, onclick) {
-  const klick = onclick ? `onclick="${onclick}"` : '';
+// APP-WHITELIST für Signal-Chips (verhindert XSS über app_link aus DB)
+const SIGNAL_APP_WHITELIST = [
+  'Aufträge','Reichweite','Checklisten','Abwesenheit','Team','Lernquiz',
+  'Lerntool','Lager','Handbuch','Belege','Wörni','Innung','Schnuppertag','Schrank'
+];
+
+function signalHTML(dot, label, appLink) {
+  // Chip per DOM erzeugen — kein innerHTML mit DB-Werten, XSS-sicher
   const chipKlasse = dot === 'krit' ? 'chip-krit' : dot === 'warn' ? 'chip-warn' : dot === 'ok' ? 'chip-ok' : '';
-  return `<div class="signal-chip ${chipKlasse}" ${klick}><div class="signal-dot ${dot}"></div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></div>`;
+  const div = document.createElement('div');
+  div.className = `signal-chip ${chipKlasse}`;
+
+  const dotEl = document.createElement('div');
+  dotEl.className = `signal-dot ${dot}`;
+  div.appendChild(dotEl);
+
+  const span = document.createElement('span');
+  span.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+  span.textContent = label; // textContent: kein HTML-Parsing, XSS-sicher
+  div.appendChild(span);
+
+  // appLink nur aus Whitelist erlauben — kein onclick-String aus DB
+  if (appLink && SIGNAL_APP_WHITELIST.includes(appLink)) {
+    div.addEventListener('click', () => goApp(appLink));
+    div.style.cursor = 'pointer';
+  }
+  return div;
 }
 
 async function ladeSignale() {
   const grid = document.getElementById('signaleGrid');
   if (!grid) return;
+  const token = await getAuthToken();
 
   // Alle aktiven Signalregeln laden
   let regeln = [];
   try {
     const r = await fetch(`${SIG_URL}/rest/v1/ghd_signal_regeln?aktiv=eq.true&order=erstellt_am.asc&select=signal_typ,tabelle,filter,label,app_link`, {
-      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
     });
     regeln = await r.json();
     if (!Array.isArray(regeln)) regeln = [];
@@ -951,7 +997,7 @@ async function ladeSignale() {
     if (regel.signal_typ === 'bestand_kritisch') {
       try {
         const r = await fetch(`${SIG_URL}/rest/v1/salon_lager?select=name,stock,reorder_point&reorder_point=not.is.null`, {
-          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
         });
         const items = await r.json();
         const unter = Array.isArray(items) ? items.filter(p => {
@@ -960,7 +1006,7 @@ async function ladeSignale() {
           return gesamt <= p.reorder_point;
         }) : [];
         if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
-        return signalHTML('warn', `${unter.length} Artikel unter Mindestbestand`, `goApp('${regel.app_link}')`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindestbestand`, regel.app_link);
       } catch(e) { return signalHTML('leer', regel.label); }
     }
 
@@ -968,7 +1014,7 @@ async function ladeSignale() {
     if (regel.signal_typ === 'einkauf_offen') {
       try {
         const r = await fetch(`${SIG_URL}/rest/v1/einkauf_items?erledigt=eq.false&mindeststand=not.is.null&menge=not.is.null&select=menge,mindeststand`, {
-          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${SIG_KEY}` }
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
         });
         const items = await r.json();
         const unter = Array.isArray(items) ? items.filter(it => {
@@ -976,7 +1022,7 @@ async function ladeSignale() {
           return !isNaN(m) && !isNaN(min) && m < min;
         }) : [];
         if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
-        return signalHTML('warn', `${unter.length} Artikel unter Mindeststand`, `goApp('${regel.app_link}')`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindeststand`, regel.app_link);
       } catch(e) { return signalHTML('leer', regel.label); }
     }
 
@@ -985,14 +1031,14 @@ async function ladeSignale() {
       const gelernt = await lernquizDieseWoche();
       if (gelernt === null) return signalHTML('leer', regel.label);
       if (gelernt)          return signalHTML('ok',   `${regel.label}: gemacht`);
-      return signalHTML('warn', `Kein ${regel.label} diese Woche`, `goApp('${regel.app_link}')`);
+      return signalHTML('warn', `Kein ${regel.label} diese Woche`, regel.app_link);
     }
     // Standardfall: Tabelle + Filter abfragen
     const anzahl = await sigFetch(regel.tabelle, regel.filter);
     if (anzahl === null)  return signalHTML('leer', regel.label);
     if (anzahl === 0)     return signalHTML('ok',   `${regel.label}: alles ok`);
     const dot = anzahl >= 3 ? 'krit' : 'warn';
-    return signalHTML(dot, `${anzahl} ${regel.label}${anzahl>1?'s':''}`, `goApp('${regel.app_link}')`);
+    return signalHTML(dot, `${anzahl} ${regel.label}${anzahl>1?'s':''}`, regel.app_link);
   }
 
   // Fallback-Regeln wenn ghd_signal_regeln leer oder nicht erreichbar
@@ -1004,7 +1050,9 @@ async function ladeSignale() {
   const aktiveRegeln = regeln.length > 0 ? regeln : fallback;
 
   const signale = await Promise.all(aktiveRegeln.map(r => regelZuSignal(r)));
-  grid.innerHTML = signale.join('');
+  // DOM-Elemente einfügen — kein innerHTML mit DB-Inhalten
+  grid.innerHTML = '';
+  signale.forEach(el => grid.appendChild(el));
 }
 
 /* ── Badge-System ── */
@@ -1013,10 +1061,11 @@ const BADGE_SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 async function badgeFetch(table, filter) {
   try {
+    const token = await getAuthToken();
     const r = await fetch(`${BADGE_SB_URL}/rest/v1/${table}?${filter}&select=id`, {
       headers: {
         "apikey": BADGE_SB_KEY,
-        "Authorization": `Bearer ${BADGE_SB_KEY}`,
+        "Authorization": `Bearer ${token}`,
         "Prefer": "count=exact"
       }
     });
@@ -1072,10 +1121,11 @@ async function lernquizBadge() {
     montag.setDate(heute.getDate() + diffZuMo);
 
     // Verlauf dieser Woche abfragen — österreichisches Datum D.M.YYYY
+    const token = await getAuthToken();
     const r = await fetch(`${BADGE_SB_URL}/rest/v1/verlauf?select=datum,lehrling_id&order=datum.desc&limit=50`, {
       headers: {
         "apikey": BADGE_SB_KEY,
-        "Authorization": `Bearer ${BADGE_SB_KEY}`
+        "Authorization": `Bearer ${token}`
       }
     });
     const eintraege = await r.json();
@@ -1098,7 +1148,7 @@ async function lernquizBadge() {
       const abzeichen = await fetch(`${BADGE_SB_URL}/rest/v1/lernquiz_abzeichen?select=created_at&order=created_at.desc&limit=5`, {
         headers: {
           "apikey": BADGE_SB_KEY,
-          "Authorization": `Bearer ${BADGE_SB_KEY}`
+          "Authorization": `Bearer ${token}`
         }
       });
       const abzData = await abzeichen.json();
@@ -1135,25 +1185,22 @@ renderPinDots();
 updateGreeting();
 renderNowCard();
 renderHome();
-// Bereits eingeloggt: entweder via index.html-Session ODER via apps.html (ghd_session)
-(function() {
-  if (sessionStorage.getItem('ghd_unlocked')) { showScreen('screen-home'); return; }
-  try {
-    const s = localStorage.getItem('ghd_session');
-    if (s) { const p = JSON.parse(s); if (p && p.name) { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); return; } }
-  } catch(e) {}
-  showScreen('screen-pin');
+// Bereits eingeloggt: Supabase-Session prüfen
+(async function() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  if (data && data.session) {
+    sessionStorage.setItem('ghd_unlocked', '1');
+    showScreen('screen-home');
+    ladeBadges();
+    ladeSignale();
+  } else {
+    showScreen('screen-pin');
+  }
 })();
-ladeBadges();
-ladeSignale();
 
 // ── Realtime: Badges bei DB-Änderungen sofort aktualisieren ──
-const sbDashboard = supabase.createClient(
-  "https://wrxlaltgtgkdomklgrlj.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
-);
-
-sbDashboard
+// AUTH_CLIENT wiederverwenden — kein zweiter Client (vermeidet GoTrueClient-Warnung)
+AUTH_CLIENT
   .channel('dashboard-badges')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'abw_anfragen' }, () => ladeBadges())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben' }, () => ladeBadges())
