@@ -358,11 +358,11 @@ async function sb(path, opts = {}) {
   const token = sessionData?.session?.access_token || SB_KEY;
   try {
     const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+      ...opts,
       cache: "no-store",
       signal: controller.signal,
       headers: { "apikey": SB_KEY, "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers },
-      ...opts
+        "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers }
     });
     const t = await r.text();
     if (!r.ok) throw new Error(t);
