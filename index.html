@@ -1229,7 +1229,7 @@ window.showScreen = function(id) {
 };
 updateFabVisibility();
 
-const ANTHROPIC_EDGE_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service';
+const ANTHROPIC_EDGE_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function';
 
 function fabToggleMic() {
   if (fabListening) { fabRec?.stop(); return; }
@@ -1273,6 +1273,7 @@ function fabToggleMic() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await getAuthToken()}`,
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',

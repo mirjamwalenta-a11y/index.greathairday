@@ -266,6 +266,7 @@
   .heute-aufgabe-titel { color:#211D17;font-size:13px;font-weight:600;line-height:1.4;flex:1; }
   .heute-aufgabe-prio { font-size:14px;flex-shrink:0; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -274,28 +275,10 @@
   <div class="logo-dot"></div>
   <div class="logo-name">Mirjam Walenta</div>
   <div class="logo-sub">A great hair day</div>
-  <div class="pin-label">PIN eingeben</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="d0"></div>
-    <div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div>
-    <div class="pin-dot" id="d3"></div>
-  </div>
+  <input class="inp" id="chefinEmail" type="email" placeholder="E-Mail" autocapitalize="none" autocorrect="off" style="margin-top:20px">
+  <input class="inp" id="chefinPw" type="password" placeholder="Passwort" autocomplete="current-password">
   <div class="pin-error" id="pinError"></div>
-  <div class="pin-grid">
-    <button class="pin-btn" onclick="pinTap('1')">1</button>
-    <button class="pin-btn" onclick="pinTap('2')">2</button>
-    <button class="pin-btn" onclick="pinTap('3')">3</button>
-    <button class="pin-btn" onclick="pinTap('4')">4</button>
-    <button class="pin-btn" onclick="pinTap('5')">5</button>
-    <button class="pin-btn" onclick="pinTap('6')">6</button>
-    <button class="pin-btn" onclick="pinTap('7')">7</button>
-    <button class="pin-btn" onclick="pinTap('8')">8</button>
-    <button class="pin-btn" onclick="pinTap('9')">9</button>
-    <button class="pin-btn empty"></button>
-    <button class="pin-btn" onclick="pinTap('0')">0</button>
-    <button class="pin-btn" onclick="pinDel()">⌫</button>
-  </div>
+  <button class="login-btn" onclick="chefinLogin()">Anmelden</button>
   <div class="team-login">
     <button class="team-btn" onclick="showTeamLogin()">Team-Login →</button>
   </div>
@@ -611,6 +594,13 @@
     </div>
   </div>
 
+  <!-- Hinweis: Passwörter/PINs liegen jetzt im Tresor -->
+  <div style="background:var(--accent-tint);border:1px solid rgba(137,108,50,0.35);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+    <div style="color:#211D17;font-size:13px;font-weight:700;margin-bottom:4px">🔐 Passwörter & PINs sind jetzt im Tresor</div>
+    <div style="color:rgba(33,29,23,0.6);font-size:12px;line-height:1.5;margin-bottom:10px">Alle Zugangsdaten (Passwörter, PINs, Einladungscode, Datenbank-Zugänge) liegen jetzt verschlüsselt im Dokumentenschrank-Tresor statt hier im Code. Hier stehen nur noch die App-Links.</div>
+    <a href="https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html" target="_blank" style="display:inline-block;background:#896C32;color:#fff;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;text-decoration:none">Tresor öffnen →</a>
+  </div>
+
   <!-- Dynamischer Inhalt -->
   <div id="zgInhalt"></div>
 
@@ -910,7 +900,6 @@
 </div>
 
 <script>
-const MIRJAM_PIN = '3101';
 const B = 'https://mirjamwalenta-a11y.github.io';
 
 // Korrekte URLs aus den Repository-Namen
@@ -1013,10 +1002,11 @@ async function heuteLaden(){
   document.getElementById('heuteLaden').style.display='block';
   document.getElementById('heuteAufgaben').style.display='none';
   const aufgaben=[];
-  // Belege os_aufgaben laden
+  // Belege os_aufgaben laden — echter Session-Token, wenn vorhanden (sonst weiterhin Anon-Key, unkritische Übersicht)
   try{
+    const tok=await belegeToken();
     const r=await fetch(BELEGE_URL+'/rest/v1/os_aufgaben?status=eq.offen&order=prioritaet.asc,erstellt_am.desc&select=*',{
-      headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY,'Accept':'application/json'}
+      headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+(tok||BELEGE_KEY),'Accept':'application/json'}
     });
     const d=await r.json();
     if(Array.isArray(d))d.forEach(a=>aufgaben.push({...a,_quelle:'os'}));
@@ -1180,7 +1170,24 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const BELEGE_URL='https://lpuxvvfrrcnbuzafscyk.supabase.co';
 const BELEGE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdXh2dmZycmNuYnV6YWZzY3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODIxNDcsImV4cCI6MjEwMDI1ODE0N30.6VZUmmXj_x3Q8J55s_tbOHcW5-U5OXllGoEBhypaVfI';
 
-let pinBuffer='';
+// Echtes Supabase-Auth-Login für den Chefin-Zugang (gleiches Konto/Projekt wie index.html u.a.)
+const AUTH_CLIENT = supabase.createClient(SUPA_URL, SUPA_KEY);
+async function supaToken(){
+  try{
+    const { data } = await AUTH_CLIENT.auth.getSession();
+    return (data && data.session) ? data.session.access_token : SUPA_KEY;
+  }catch(e){ return SUPA_KEY; }
+}
+// Zweiter Auth-Client fürs belege-aicircle-Projekt — dasselbe Konto, mit dem man sich auch in belege.html anmeldet.
+// Läuft im selben Browser automatisch mit, wenn dort schon eingeloggt (gleicher Origin, eigener Storage-Key pro Projekt).
+const BELEGE_AUTH_CLIENT = supabase.createClient(BELEGE_URL, BELEGE_KEY);
+async function belegeToken(){
+  try{
+    const { data } = await BELEGE_AUTH_CLIENT.auth.getSession();
+    return (data && data.session) ? data.session.access_token : null;
+  }catch(e){ return null; }
+}
+
 let currentSession=null;
 
 function md5(str){
@@ -1219,42 +1226,50 @@ function md5(str){
   return [a,b,c,d].map(v=>{let h='';for(let j=0;j<4;j++)h+=('0'+((v>>(j*8))&0xFF).toString(16)).slice(-2);return h;}).join('');
 }
 
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded', async ()=>{
+  // Alte gespeicherte Session lesen (Team-Rollen bleiben weiterhin clientseitig vertraut, siehe Statusdokument)
   const saved=localStorage.getItem('ghd_session');
-  if(saved){try{currentSession=JSON.parse(saved);showApp();return;}catch(e){localStorage.removeItem('ghd_session');}}
-  // Bereits über index.html (Wörni-OS) eingeloggt → direkt rein als Chefin
-  if(sessionStorage.getItem('ghd_unlocked')==='1'){
-    currentSession={name:'Mirjam',rolle:'chefin'};
-    localStorage.setItem('ghd_session',JSON.stringify(currentSession));
-    showApp();return;
-  }
-  document.getElementById('loginScreen').style.display='block';
-  document.getElementById('teamPin').addEventListener('keydown',e=>{if(e.key==='Enter')doTeamLogin();});
-});
+  let savedSession=null;
+  if(saved){try{savedSession=JSON.parse(saved);}catch(e){localStorage.removeItem('ghd_session');}}
 
-function pinTap(d){
-  if(pinBuffer.length>=4)return;
-  pinBuffer+=d;
-  updatePinDots();
-  if(pinBuffer.length===4)setTimeout(()=>checkPin(),150);
-}
-function pinDel(){
-  pinBuffer=pinBuffer.slice(0,-1);
-  updatePinDots();
-  document.getElementById('pinError').textContent='';
-}
-function updatePinDots(){
-  for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pinBuffer.length?' filled':'');
-}
-function checkPin(){
-  if(pinBuffer===MIRJAM_PIN){
+  // Chefin-Zugang: nur mit echter, verifizierter Supabase-Auth-Session
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  if(data && data.session){
     currentSession={name:'Mirjam',rolle:'chefin'};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
-  }else{
-    document.getElementById('pinError').textContent='PIN nicht korrekt.';
-    pinBuffer='';updatePinDots();
+    return;
   }
+
+  // Kein echtes Chefin-Login aktiv: eine alte, nicht mehr verifizierbare Chefin-Session verwerfen —
+  // eine gespeicherte Team-Session (Kennung+PIN) bleibt wie bisher gültig.
+  if(savedSession && savedSession.rolle!=='chefin'){
+    currentSession=savedSession;
+    showApp();
+    return;
+  }
+  if(savedSession && savedSession.rolle==='chefin'){
+    localStorage.removeItem('ghd_session');
+  }
+
+  document.getElementById('loginScreen').style.display='block';
+  document.getElementById('teamPin').addEventListener('keydown',e=>{if(e.key==='Enter')doTeamLogin();});
+  document.getElementById('chefinPw').addEventListener('keydown',e=>{if(e.key==='Enter')chefinLogin();});
+});
+
+async function chefinLogin(){
+  const email=document.getElementById('chefinEmail').value.trim();
+  const pw=document.getElementById('chefinPw').value;
+  const err=document.getElementById('pinError');
+  err.textContent='';
+  if(!email||!pw){err.textContent='Bitte E-Mail und Passwort eingeben.';return;}
+  try{
+    const { error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+    if(error){err.textContent='E-Mail oder Passwort falsch.';return;}
+    currentSession={name:'Mirjam',rolle:'chefin'};
+    localStorage.setItem('ghd_session',JSON.stringify(currentSession));
+    showApp();
+  }catch(e){err.textContent='Verbindungsfehler.';}
 }
 
 function showTeamLogin(){
@@ -1264,7 +1279,6 @@ function showTeamLogin(){
 function showPinLogin(){
   document.getElementById('teamLoginScreen').style.display='none';
   document.getElementById('loginScreen').style.display='block';
-  pinBuffer='';updatePinDots();
 }
 
 async function doTeamLogin(){
@@ -1409,7 +1423,7 @@ function hideDash(){
 // ════════════════════════════════════════
 // ZUGANGSDATEN — Dynamisches System
 // ════════════════════════════════════════
-const ZG_DATEN_KEY = 'ghd_zg_daten_v2';
+const ZG_DATEN_KEY = 'ghd_zg_daten_v3'; // Version erhöht: erzwingt frische Defaults ohne die alten Klartext-PINs/Passwörter aus dem Browser-Cache (localStorage) jedes Geräts, auf dem die Zugangsdaten-Seite schon offen war
 
 const ZG_DEFAULT = [
   { id:'zgs1', section:'Haupt-Apps', icon:'✨', name:'Reichweite',
@@ -1419,9 +1433,7 @@ const ZG_DEFAULT = [
   { id:'zgs3', section:'Haupt-Apps', icon:'📚', name:'Lernquiz & Schnuppertag',
     zeilen:[
       {id:'z3',typ:'link', label:'Lerntool',          wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
-      {id:'z4',typ:'pill', label:'PW',                wert:'MW121272-1050'},
       {id:'z5',typ:'link', label:'Meisterin',         wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/meisterin.html'},
-      {id:'z6',typ:'pill', label:'PIN',               wert:'191299'},
       {id:'z7',typ:'link', label:'Schnupper Meisterin',wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
       {id:'z8',typ:'link', label:'Schnupper Lehrling', wert:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html?modus=lehrling'},
     ]},
@@ -1430,7 +1442,6 @@ const ZG_DEFAULT = [
   { id:'zgs5', section:'Haupt-Apps', icon:'✅', name:'Checkliste',
     zeilen:[
       {id:'z10',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
-      {id:'z11',typ:'pill',label:'PW',wert:'walenta 2026'},
     ]},
   { id:'zgs6', section:'Haupt-Apps', icon:'🏪', name:'Lager',
     zeilen:[{id:'z12',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html'}] },
@@ -1439,43 +1450,20 @@ const ZG_DEFAULT = [
   { id:'zgs8', section:'Haupt-Apps', icon:'🧾', name:'Belege',
     zeilen:[
       {id:'z14',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/belege.greathairday'},
-      {id:'z15',typ:'pill',label:'PW',wert:'2002'},
     ]},
   { id:'zgs9', section:'Haupt-Apps', icon:'📖', name:'Mitarbeiterhandbuch',
     zeilen:[{id:'z16',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'}] },
   { id:'zgs10', section:'Haupt-Apps', icon:'👥', name:'Teambesprechung',
     zeilen:[
       {id:'z17',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/Team/team.html'},
-      {id:'z18',typ:'pill',label:'PW',wert:'MW121272-1050'},
     ]},
   { id:'zgs11', section:'Salon & Innung', icon:'✂️', name:'Salonapp',
     zeilen:[
       {id:'z19',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/salonapp.greathairday/salonapp.html'},
-      {id:'z20',typ:'text',label:'Zugang',wert:'Mirjam · PIN 3101'},
     ]},
   { id:'zgs12', section:'Salon & Innung', icon:'🏅', name:'Innungsapp',
     zeilen:[
       {id:'z21',typ:'link',label:'Link',wert:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
-      {id:'z22',typ:'text',label:'Zugänge',wert:'guelten · PIN 1801 | alina · PIN 0310 | Mirjam · PIN 1212'},
-    ]},
-  { id:'zgs13', section:'Team-PINs', icon:'🔑', name:'Alle Mitarbeiter',
-    zeilen:[
-      {id:'z23',typ:'pill',label:'Mirjam',wert:'1212'},
-      {id:'z24',typ:'pill',label:'Mazen', wert:'1706'},
-      {id:'z25',typ:'pill',label:'Alina', wert:'0310'},
-      {id:'z26',typ:'pill',label:'Hassan',wert:'1007'},
-      {id:'z27',typ:'pill',label:'Ronya', wert:'0802'},
-    ]},
-  { id:'zgs14', section:'Datenbank', icon:'🗄️', name:'Supabase',
-    zeilen:[
-      {id:'z28',typ:'link',label:'Projekt 1',wert:'https://supabase.com/dashboard/project/wrxlaltgtgkdomklgrlj/sql/new'},
-      {id:'z29',typ:'link',label:'Projekt 2',wert:'https://supabase.com/dashboard/project/lpuxvvfrrcnbuzafscyk/sql/787a7789-579d-443c-9404-6702f1fa4b85'},
-      {id:'z30',typ:'link',label:'URL',wert:'https://wrxlaltgtgkdomklgrlj.supabase.co'},
-    ]},
-  { id:'zgs15', section:'Registrierung', icon:'👤', name:'Freunde-Zugang',
-    zeilen:[
-      {id:'z31',typ:'pill',label:'Einladungs-Code',wert:'GREATHAIR2026'},
-      {id:'z32',typ:'text',label:'Ablauf',wert:'1. Link öffnen → Registrieren\n2. E-Mail + Passwort\n3. Code eingeben\n4. Betrieb + PIN wählen'},
     ]},
 ];
 
@@ -2164,8 +2152,9 @@ async function belegeStatusLaden(){
     const monatsEnde=new Date(jetzt.getFullYear(),jetzt.getMonth()+1,0).toISOString().slice(0,10);
     const monatsName=jetzt.toLocaleDateString('de-AT',{month:'long',year:'numeric'});
 
+    const tok=await supaToken();
     const res=await fetch(`${SUPA_URL}/rest/v1/belege_neu?datum=gte.${monatsStart}&datum=lte.${monatsEnde}&select=id,ampel`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`}
     });
 
     if(!res.ok) throw new Error('no data');
@@ -2319,8 +2308,9 @@ async function impulsAusDatenLaden(){
     const monatsStart=new Date(jetzt.getFullYear(),jetzt.getMonth(),1).toISOString().slice(0,10);
     const monatsEnde=new Date(jetzt.getFullYear(),jetzt.getMonth()+1,0).toISOString().slice(0,10);
     const monatsName=jetzt.toLocaleDateString('de-AT',{month:'long'});
+    const tok=await supaToken();
     const res=await fetch(`${SUPA_URL}/rest/v1/belege_neu?datum=gte.${monatsStart}&datum=lte.${monatsEnde}&select=id,ampel`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`}
     });
     if(res.ok){
       const d=await res.json();
@@ -2389,8 +2379,9 @@ async function belegeSubLaden(){
     const jetzt=new Date();
     const monatsStart=new Date(jetzt.getFullYear(),jetzt.getMonth(),1).toISOString().slice(0,10);
     const monatsEnde=new Date(jetzt.getFullYear(),jetzt.getMonth()+1,0).toISOString().slice(0,10);
+    const tok=await supaToken();
     const res=await fetch(`${SUPA_URL}/rest/v1/belege_neu?datum=gte.${monatsStart}&datum=lte.${monatsEnde}&select=id,ampel`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`}
     });
     if(!res.ok) return;
     const d=await res.json();
@@ -2403,14 +2394,16 @@ async function belegeSubLaden(){
   }catch(e){}
 }
 
-function doLogout(){
+async function doLogout(){
+  try{ await AUTH_CLIENT.auth.signOut(); }catch(e){}
   currentSession=null;
   localStorage.removeItem('ghd_session');
   document.getElementById('dashScreen').style.display='none';
-  pinBuffer='';updatePinDots();
   document.getElementById('appScreen').style.display='none';
   document.getElementById('loginScreen').style.display='block';
   document.getElementById('pinError').textContent='';
+  document.getElementById('chefinEmail').value='';
+  document.getElementById('chefinPw').value='';
 }
 
 // === AUFGABEN-ZENTRALE ===
@@ -2802,16 +2795,17 @@ async function azSenden(){
   if(azAktuelleAuswahl && azAktuelleAuswahl.app==='reichweite'){
     try{
       const anlassId=azAktuelleAuswahl.id;
-      const vorlagen=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.reichweite&anlass=eq.${anlassId}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+      const tok=await supaToken();
+      const vorlagen=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.reichweite&anlass=eq.${anlassId}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`}}).then(r=>r.json()).catch(()=>[]);
       if(vorlagen&&vorlagen.length){
         const gewaehlt=vorlagen[Math.floor(Math.random()*vorlagen.length)];
-        await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'erledigt',ergebnis:gewaehlt.text,erledigt_am:new Date().toISOString()})});
+        await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'erledigt',ergebnis:gewaehlt.text,erledigt_am:new Date().toISOString()})});
       } else {
-        const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'offen'})});
+        const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:anlassId,status:'offen'})});
         const neu=(await res.json())[0];
         if(neu){
           try{
-            const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
+            const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
             if(!fnRes.ok)alert('Wörni konnte nicht gestartet werden (Fehler '+fnRes.status+').');
           }catch(e){alert('Wörni konnte nicht erreicht werden: '+e.message);}
         }
@@ -2873,16 +2867,17 @@ async function woerniAufgabeErstellen(){
   if(!woerniGewaehlterAnlass)return;
   const btn=document.getElementById('woerniErstellenBtn');btn.disabled=true;btn.textContent='Wird erstellt...';
   try{
-    const vorlagen=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.reichweite&anlass=eq.${woerniGewaehlterAnlass}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+    const tok=await supaToken();
+    const vorlagen=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.reichweite&anlass=eq.${woerniGewaehlterAnlass}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`}}).then(r=>r.json()).catch(()=>[]);
     if(vorlagen&&vorlagen.length){
       const gewaehlt=vorlagen[Math.floor(Math.random()*vorlagen.length)];
-      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'erledigt',ergebnis:gewaehlt.text,erledigt_am:new Date().toISOString()})});
+      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'erledigt',ergebnis:gewaehlt.text,erledigt_am:new Date().toISOString()})});
     }else{
-      const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
+      const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${tok}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({app:'reichweite',typ:'post_erstellen',anlass:woerniGewaehlterAnlass,status:'offen'})});
       const neu=(await res.json())[0];
       if(neu){
         try{
-          const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
+          const fnRes=await fetch(`${SUPA_URL}/functions/v1/super-action`,{method:'POST',headers:{'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify({record:neu})});
           if(!fnRes.ok)alert('Wörni konnte nicht gestartet werden (Fehler '+fnRes.status+'). Die Aufgabe bleibt vorerst "Offen".');
         }catch(fnErr){alert('Wörni konnte nicht erreicht werden: '+fnErr.message+'. Die Aufgabe bleibt vorerst "Offen".');}
       }
@@ -3442,7 +3437,9 @@ async function woerniBelegeKategorien(){
   txt.textContent='Wörni lädt Belege...'; div.style.display='block';
 
   try{
-    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis+'&order=kategorie.asc',{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY}}).then(r=>r.json());
+    const tok=await belegeToken();
+    if(!tok){txt.textContent='Bitte zuerst in belege.html einloggen (gleiches Konto) — erst danach kann Wörni auf die Belege zugreifen.';return;}
+    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis+'&order=kategorie.asc',{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+tok}}).then(r=>r.json());
     if(!rows||!rows.length){txt.textContent='Keine Belege gefunden.';return;}
     const kat={};
     rows.forEach(b=>{
@@ -3484,7 +3481,9 @@ async function woerniSteuermailGenerieren(){
   txt.textContent='Wörni formuliert die Mail...'; div.style.display='block';
 
   try{
-    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis,{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+BELEGE_KEY}}).then(r=>r.json());
+    const tok=await belegeToken();
+    if(!tok){txt.textContent='Bitte zuerst in belege.html einloggen (gleiches Konto) — erst danach kann Wörni die Steuerberater-Mail erstellen.';return;}
+    const rows=await fetch(BELEGE_URL+'/rest/v1/belege_neu?select=*&datum=gte.'+von+'&datum=lte.'+bis,{headers:{'apikey':BELEGE_KEY,'Authorization':'Bearer '+tok}}).then(r=>r.json());
     const monatsname=new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'});
     if(!rows||!rows.length){
       txt.textContent='Betreff: Belege '+monatsname+' – Mirjam Walenta\n\nGuten Tag,\n\nfür '+monatsname+' liegen leider noch keine Belege vor.\n\nMit freundlichen Grüßen,\nMirjam Walenta\nA Great Hair Day\nRechte Wienzeile 47, 1050 Wien';
@@ -3586,8 +3585,14 @@ async function woerniBelegeMonatsabschluss(){
   document.getElementById('belegeErgebnis').style.display='none';
 
   try{
+    const tok=await belegeToken();
+    if(!tok){
+      alert('Bitte zuerst in belege.html einloggen (gleiches Konto) — erst danach kann Wörni den Monatsabschluss erstellen.');
+      btn.disabled=false;btn.textContent='Monatsabschluss erstellen';
+      return;
+    }
     const url=`${BELEGE_URL}/rest/v1/belege_neu?select=*&datum=gte.${vonDatum}&datum=lte.${bisDatum}&order=datum.asc`;
-    const rows=await fetch(url,{headers:{'apikey':BELEGE_KEY,'Authorization':`Bearer ${BELEGE_KEY}`}}).then(r=>r.json());
+    const rows=await fetch(url,{headers:{'apikey':BELEGE_KEY,'Authorization':`Bearer ${tok}`}}).then(r=>r.json());
 
     if(!rows||rows.length===0){
       alert(`Für ${new Date(+jahr,+mon-1,1).toLocaleString('de-AT',{month:'long',year:'numeric'})} wurden keine Belege gefunden.`);
