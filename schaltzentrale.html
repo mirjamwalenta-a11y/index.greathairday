@@ -655,12 +655,14 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorl
   const p = PRIORITAETEN[aufgabe.prioritaet] || PRIORITAETEN["heute"];
   const typ = TYPEN[aufgabe.typ] || { icon:"◎", label:aufgabe.typ };
 
-  async function aktion(status) {
+  function aktion(status) {
     const update = { status };
     if (status === "erledigt") { update.erledigt_am = new Date().toISOString(); update.erledigt_von = "mirjam"; }
-    await onUpdate(aufgabe.id, update);
-    toast(status === "erledigt" ? '✓ Erledigt' : 'Status aktualisiert');
+    // Fenster sofort schließen und bestätigen — unabhängig vom Netzwerk, damit "Erledigt"
+    // nie hängen wirkt. Die eigentliche Änderung läuft im Hintergrund weiter.
     onClose();
+    toast(status === "erledigt" ? '✓ Erledigt' : 'Status aktualisiert');
+    onUpdate(aufgabe.id, update);
   }
 
   return (
@@ -724,12 +726,12 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorl
           <button className="detail-action-secondary" onClick={() => { onClose(); onEdit(aufgabe); }}>✏️ Bearbeiten</button>
           <button className="detail-action-secondary" onClick={() => onAlsVorlage(aufgabe)}>🔁 Als Vorlage speichern</button>
           {aufgabe.status !== "in-arbeit" && (
-            <button className="detail-action-secondary" onClick={() => onUpdate(aufgabe.id,{status:"in-arbeit"}).then(()=>{toast('In Arbeit');onClose();})}>
+            <button className="detail-action-secondary" onClick={() => { onClose(); toast('In Arbeit'); onUpdate(aufgabe.id,{status:"in-arbeit"}); }}>
               In Arbeit setzen
             </button>
           )}
           {aufgabe.status !== "wartet" && (
-            <button className="detail-action-secondary" onClick={() => onUpdate(aufgabe.id,{status:"wartet"}).then(()=>{toast('Wartet');onClose();})}>
+            <button className="detail-action-secondary" onClick={() => { onClose(); toast('Wartet'); onUpdate(aufgabe.id,{status:"wartet"}); }}>
               Wartet auf jemanden
             </button>
           )}
@@ -916,7 +918,10 @@ function Woerni() {
       setFehler(null); setLaden(true);
       const [a, e, v, ev] = await Promise.all([api.getAufgaben(), api.getErledigt(), api.getVorlagen(), api.getEreignisse().catch(()=>[])]);
       const hatReset = await resetFixAufgaben(a||[]);
-      const hatNeu   = await erstelleVorlagenAufgaben(v||[], a||[]);
+      // Für die "schon erledigt heute?"-Prüfung auch die zuletzt erledigten Aufgaben
+      // mitgeben, nicht nur die offenen — sonst legt Wörni eine gerade erledigte
+      // Vorlagen-Aufgabe am selben Tag sofort wieder neu an.
+      const hatNeu   = await erstelleVorlagenAufgaben(v||[], [...(a||[]), ...(e||[])]);
       if (hatReset || hatNeu) {
         const [a2, e2] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
         setAufgaben(a2||[]); setErledigt(e2||[]);
@@ -992,6 +997,13 @@ function Woerni() {
   }
 
   async function updateAufgabe(id, daten) {
+    // Sofort optimistisch aus der sichtbaren Liste nehmen bzw. aktualisieren — unabhängig
+    // vom Netzwerk, damit eine Status-Änderung (v.a. "Erledigt") nie hängen wirkt.
+    if (daten.status === "erledigt") {
+      setAufgaben(prev => prev.filter(a => a.id !== id));
+    } else {
+      setAufgaben(prev => prev.map(a => a.id === id ? { ...a, ...daten } : a));
+    }
     await api.updateAufgabe(id, daten);
     try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); } catch(e) {}
     if (daten.status === "erledigt") await aufräumenErledigt();
@@ -1010,8 +1022,11 @@ function Woerni() {
   }
 
   async function deleteAufgabe(id) {
+    // Sofort optimistisch aus der sichtbaren Liste nehmen — unabhängig vom Netzwerk.
+    setAufgaben(prev => prev.filter(a => a.id !== id));
+    toast('Gelöscht');
     await api.deleteAufgabe(id);
-    await laden_(); toast('Gelöscht');
+    await laden_();
   }
 
   async function addVorlage(daten) {
