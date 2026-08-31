@@ -391,10 +391,13 @@ const api = {
 };
 
 const PRIORITAETEN = {
-  "kritisch":      { rang:0, label:"Kritisch",     badgeCls:"badge-krit",  prioCls:"sel-krit",  stripeColor:"#B23A2E" },
-  "heute":         { rang:1, label:"Heute",         badgeCls:"badge-heute", prioCls:"sel-heute", stripeColor:"#A67A22" },
-  "diese-woche":   { rang:2, label:"Diese Woche",  badgeCls:"badge-woche", prioCls:"sel-woche", stripeColor:"#4E7288" },
-  "wann-moeglich": { rang:3, label:"Wann möglich", badgeCls:"badge-wann",  prioCls:"sel-wann",  stripeColor:"#8B8172" },
+  "kritisch":       { rang:0, label:"Kritisch",       badgeCls:"badge-krit",  prioCls:"sel-krit",  stripeColor:"#B23A2E" },
+  "heute":          { rang:1, label:"Heute",           badgeCls:"badge-heute", prioCls:"sel-heute", stripeColor:"#A67A22" },
+  "diesen-monat":   { rang:2, label:"Diesen Monat",   badgeCls:"badge-woche", prioCls:"sel-woche", stripeColor:"#4E7288" },
+  "speziell":       { rang:3, label:"Speziell",        badgeCls:"badge-wann",  prioCls:"sel-wann",  stripeColor:"#8B8172" },
+  // Kompatibilität mit alten DB-Einträgen
+  "diese-woche":    { rang:2, label:"Diesen Monat",   badgeCls:"badge-woche", prioCls:"sel-woche", stripeColor:"#4E7288" },
+  "wann-moeglich":  { rang:3, label:"Speziell",        badgeCls:"badge-wann",  prioCls:"sel-wann",  stripeColor:"#8B8172" },
 };
 
 const TYPEN = {
@@ -474,14 +477,50 @@ function RhythmusOptions({ selected, onChange }) {
   </div>;
 }
 
+// ─── WANN-CHIPS (neue vereinfachte Prioritätsauswahl) ────────────────────────
+const WANN_CHIPS = [
+  { key:"kritisch",     emoji:"🔴", label:"Sofort" },
+  { key:"heute",        emoji:"🟠", label:"Heute" },
+  { key:"diesen-monat", emoji:"📅", label:"Diesen Monat" },
+  { key:"speziell",     emoji:"🎯", label:"Speziell" },
+];
+
+function WannChips({ selected, onChange }) {
+  return (
+    <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:14}}>
+      {WANN_CHIPS.map(c => (
+        <button key={c.key}
+          onClick={() => onChange(c.key)}
+          style={{
+            flex:1, minWidth:72, padding:'10px 6px', borderRadius:12,
+            border: selected===c.key ? '2px solid var(--accent)' : '1.5px solid var(--border)',
+            background: selected===c.key ? 'var(--accent-tint)' : 'var(--card)',
+            color: selected===c.key ? 'var(--accent-dark)' : 'var(--text-soft)',
+            fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit',
+            transition:'all 0.12s', textAlign:'center',
+          }}>
+          <div style={{fontSize:18,marginBottom:2}}>{c.emoji}</div>
+          {c.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── AUFGABE FORM ─────────────────────────────────────────────────────────────
 function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
+  // Alte DB-Werte kompatibel mappen
+  function normPrio(p) {
+    if (p==="diese-woche") return "diesen-monat";
+    if (p==="wann-moeglich") return "speziell";
+    return p || "heute";
+  }
   const leer = { typ:"betrieb", titel:"", naechster_schritt:"", prioritaet:"heute", faellig_am:"" };
   const [form, setForm] = useState(initial ? {
     typ: initial.typ||"betrieb",
     titel: initial.titel||"",
     naechster_schritt: initial.naechster_schritt||"",
-    prioritaet: initial.prioritaet||"heute",
+    prioritaet: normPrio(initial.prioritaet),
     faellig_am: initial.faellig_am ? initial.faellig_am.slice(0,10) : "",
   } : leer);
   const [moreOpen, setMoreOpen] = useState(isEdit);
@@ -501,25 +540,33 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
         <div className="sheet-scroll">
           <div className="sheet-handle"/>
           <h2>{isEdit ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'}</h2>
-          <p className="sheet-hint">{isEdit ? 'Änderungen werden sofort gespeichert.' : 'Titel reicht — Rest optional.'}</p>
+          <p className="sheet-hint">{isEdit ? 'Änderungen werden sofort gespeichert.' : 'Titel eingeben, Wann wählen — fertig.'}</p>
+
+          {/* TITEL — groß und klar */}
           <div className="field">
             <input type="text" className={shaking ? 'shake' : ''}
               value={form.titel} onChange={e => set("titel", e.target.value)}
-              placeholder="Was ist zu tun?" style={{ fontSize:16, padding:'14px 13px' }}/>
+              placeholder="Was soll Wörni erledigen?"
+              style={{ fontSize:16, padding:'16px 14px' }}
+              autoFocus={!isEdit}/>
           </div>
+
+          {/* WANN — die einzige Pflichtauswahl */}
           <div className="field">
-            <label>Priorität</label>
-            <PrioOptions selected={form.prioritaet} onChange={v => set("prioritaet", v)} />
+            <label>Wann?</label>
+            <WannChips selected={form.prioritaet} onChange={v => set("prioritaet", v)} />
           </div>
+
+          {/* MEHR DETAILS — optional, eingeklappt */}
           <button className="more-toggle" onClick={() => setMoreOpen(o => !o)}>
-            {moreOpen ? '－ Weniger' : '＋ Mehr Details'}
+            {moreOpen ? '－ Weniger' : '＋ Mehr Details (optional)'}
           </button>
           <div className={`more-details ${moreOpen ? 'open' : ''}`}>
             <div className="field">
               <label>Nächster Schritt</label>
               <input type="text" value={form.naechster_schritt}
                 onChange={e => set("naechster_schritt", e.target.value)}
-                placeholder="Konkreter nächster Schritt (optional)"/>
+                placeholder="Konkreter nächster Schritt"/>
             </div>
             <div className="two-col">
               <div className="field">
@@ -1130,10 +1177,10 @@ function Woerni() {
       prioritaet = 'kritisch';
     else if (/heute|heut|asap|bald|schnell/.test(t))
       prioritaet = 'heute';
-    else if (/diese woche|woche|dienstag|mittwoch|donnerstag|freitag/.test(t))
-      prioritaet = 'diese-woche';
-    else if (/irgendwann|später|nächste woche|nächsten monat|wenn zeit|wann möglich|wann moeglich/.test(t))
-      prioritaet = 'wann-moeglich';
+    else if (/diesen monat|monat|bis ende|monatsende/.test(t))
+      prioritaet = 'diesen-monat';
+    else if (/speziell|besonderer|einmalig|event|termin|irgendwann|später|wenn zeit/.test(t))
+      prioritaet = 'speziell';
 
     // Typ
     let typ = 'betrieb'; // Standard
@@ -1195,10 +1242,10 @@ function Woerni() {
   const faelligHeute = faelligBald.filter(a => a.faellig_am.slice(0,10) === heute_iso);
 
   const gruppen = {
-    kritisch:        aufgaben.filter(a => a.prioritaet==="kritisch"),
-    heute:           aufgaben.filter(a => a.prioritaet==="heute"),
-    "diese-woche":   aufgaben.filter(a => a.prioritaet==="diese-woche"),
-    "wann-moeglich": aufgaben.filter(a => a.prioritaet==="wann-moeglich"),
+    kritisch:       aufgaben.filter(a => a.prioritaet==="kritisch"),
+    heute:          aufgaben.filter(a => a.prioritaet==="heute"),
+    "diesen-monat": aufgaben.filter(a => a.prioritaet==="diesen-monat" || a.prioritaet==="diese-woche"),
+    "speziell":     aufgaben.filter(a => a.prioritaet==="speziell" || a.prioritaet==="wann-moeglich"),
   };
 
   return (
@@ -1364,14 +1411,14 @@ function Woerni() {
                 ))}
               </div>
             )}
-            <Abschnitt label="Kritisch" stripeColor="var(--crit)"
+            <Abschnitt label="🔴 Kritisch" stripeColor="var(--crit)"
               kinder={gruppen.kritisch.map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
-            <Abschnitt label="Heute" stripeColor="var(--heute)"
+            <Abschnitt label="🟠 Heute" stripeColor="var(--heute)"
               kinder={gruppen.heute.map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
-            <Abschnitt label="Diese Woche" stripeColor="var(--woche)"
-              kinder={gruppen["diese-woche"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
-            <Abschnitt label="Wann möglich" stripeColor="var(--wann)"
-              kinder={gruppen["wann-moeglich"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            <Abschnitt label="📅 Diesen Monat" stripeColor="var(--woche)"
+              kinder={gruppen["diesen-monat"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
+            <Abschnitt label="🎯 Speziell" stripeColor="var(--wann)"
+              kinder={gruppen["speziell"].map((a,i) => <AufgabeKarte key={a.id} aufgabe={a} delay={i*55} onClick={() => setAusgewaehlt(a)}/>)} />
             {aufgaben.length===0 && !fehler && (
               <div className="empty-state einblenden">
                 <div className="empty-icon">✓</div>
