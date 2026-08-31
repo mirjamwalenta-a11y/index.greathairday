@@ -479,23 +479,27 @@ function RhythmusOptions({ selected, onChange }) {
 
 // ─── WANN-CHIPS (neue vereinfachte Prioritätsauswahl) ────────────────────────
 const WANN_CHIPS = [
-  { key:"kritisch",     emoji:"🔴", label:"Sofort" },
-  { key:"heute",        emoji:"🟠", label:"Heute" },
-  { key:"diesen-monat", emoji:"📅", label:"Diesen Monat" },
-  { key:"speziell",     emoji:"🎯", label:"Speziell" },
+  { key:"kritisch",     dbKey:"kritisch",     emoji:"🔴", label:"Sofort" },
+  { key:"heute",        dbKey:"heute",         emoji:"🟠", label:"Heute" },
+  { key:"diesen-monat", dbKey:"diese-woche",   emoji:"📅", label:"Diesen Monat" },
+  { key:"speziell",     dbKey:"wann-moeglich", emoji:"🎯", label:"Speziell" },
 ];
 
 function WannChips({ selected, onChange }) {
+  // Normalisierung: alte DB-Werte auf Chip-Keys mappen
+  const norm = selected==="diese-woche" ? "diesen-monat"
+             : selected==="wann-moeglich" ? "speziell"
+             : selected;
   return (
     <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:14}}>
       {WANN_CHIPS.map(c => (
         <button key={c.key}
-          onClick={() => onChange(c.key)}
+          onClick={() => onChange(c.dbKey)}
           style={{
             flex:1, minWidth:72, padding:'10px 6px', borderRadius:12,
-            border: selected===c.key ? '2px solid var(--accent)' : '1.5px solid var(--border)',
-            background: selected===c.key ? 'var(--accent-tint)' : 'var(--card)',
-            color: selected===c.key ? 'var(--accent-dark)' : 'var(--text-soft)',
+            border: norm===c.key ? '2px solid var(--accent)' : '1.5px solid var(--border)',
+            background: norm===c.key ? 'var(--accent-tint)' : 'var(--card)',
+            color: norm===c.key ? 'var(--accent-dark)' : 'var(--text-soft)',
             fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit',
             transition:'all 0.12s', textAlign:'center',
           }}>
@@ -509,10 +513,8 @@ function WannChips({ selected, onChange }) {
 
 // ─── AUFGABE FORM ─────────────────────────────────────────────────────────────
 function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
-  // Alte DB-Werte kompatibel mappen
   function normPrio(p) {
-    if (p==="diese-woche") return "diesen-monat";
-    if (p==="wann-moeglich") return "speziell";
+    // Nur für Anzeige: keine Umwandlung nötig, DB-Werte bleiben wie sie sind
     return p || "heute";
   }
   const leer = { typ:"betrieb", titel:"", naechster_schritt:"", prioritaet:"heute", faellig_am:"" };
