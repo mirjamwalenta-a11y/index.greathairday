@@ -528,12 +528,20 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
   const [moreOpen, setMoreOpen] = useState(isEdit);
   const [shaking, setShaking] = useState(false);
   const [delConfirm, setDelConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const valid = form.titel.trim().length > 1;
 
   async function speichern() {
     if (!valid) { setShaking(true); setTimeout(()=>setShaking(false),400); toast('Bitte einen Titel eingeben'); return; }
-    await onSave({ ...form, faellig_am: form.faellig_am || null });
+    setSaving(true);
+    try {
+      await onSave({ ...form, faellig_am: form.faellig_am || null });
+    } catch(err) {
+      toast('⚠ Speichern fehlgeschlagen: ' + err.message.slice(0,60));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -592,8 +600,8 @@ function AufgabeForm({ initial, onSave, onDelete, onClose, isEdit }) {
             </button>
           )}
           {!isEdit && <button className="btn-secondary" onClick={onClose}>Abbrechen</button>}
-          <button className="btn-primary-save" onClick={speichern} disabled={!valid}>
-            {isEdit ? 'Speichern' : 'Aufgabe erstellen'}
+          <button className="btn-primary-save" onClick={speichern} disabled={!valid || saving}>
+            {saving ? '…' : isEdit ? 'Speichern' : 'Aufgabe erstellen'}
           </button>
         </div>
       </div>
@@ -620,6 +628,7 @@ function VorlageForm({ initial, onSave, onDelete, onClose, isEdit }) {
   } : leer);
   const [shaking, setShaking] = useState(false);
   const [delConfirm, setDelConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const valid = form.titel.trim().length > 1;
 
@@ -1060,9 +1069,16 @@ function Woerni() {
   }
 
   async function addAufgabe(daten) {
-    const neu = await api.addAufgabe({ ...daten, status:"neu", erstellt_von:"mirjam" });
-    try { await api.addVerlauf({ aufgabe_id:neu[0].id, von:"mirjam", aktion:"erstellt", zu_status:"neu" }); } catch(e) {}
-    await laden_(); toast('Aufgabe erstellt');
+    try {
+      const neu = await api.addAufgabe({ ...daten, status:"neu", erstellt_von:"mirjam" });
+      if (!neu || !neu[0]) throw new Error('Keine Antwort von Supabase');
+      try { await api.addVerlauf({ aufgabe_id:neu[0].id, von:"mirjam", aktion:"erstellt", zu_status:"neu" }); } catch(e) {}
+      await laden_(); toast('✓ Aufgabe erstellt');
+    } catch(err) {
+      console.error('addAufgabe Fehler:', err);
+      toast('⚠ Fehler: ' + err.message.slice(0, 80));
+      setFehler('Aufgabe konnte nicht gespeichert werden: ' + err.message.slice(0, 120));
+    }
   }
 
   async function editAufgabe(id, daten) {
