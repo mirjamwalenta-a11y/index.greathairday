@@ -1267,6 +1267,11 @@ function Woerni() {
                 {ereignisse.map((ev, i) => (
                   <div key={ev.id} className="aufgabe-card einblenden" style={{animationDelay:`${i*40}ms`}}
                     onClick={async () => {
+                      // Karte sofort aus der Ansicht nehmen — unabhängig vom Netzwerk, damit
+                      // ein Antippen nie hängen/blockiert wirkt. Alles Weitere (Aufgabe anlegen,
+                      // als gelesen markieren) läuft im Hintergrund weiter wie bisher.
+                      setEreignisse(prev => prev.filter(e => e.id !== ev.id));
+
                       // Priorität aus Ereignis ableiten
                       const prio = ev.prioritaet && PRIORITAETEN[ev.prioritaet]
                         ? ev.prioritaet
@@ -1284,7 +1289,6 @@ function Woerni() {
                         const bereitsOffen = aufgaben.some(a => a.signal_key === signalKey);
                         if (bereitsOffen) {
                           await api.ereignisGelesen(ev.id).catch(()=>{});
-                          setEreignisse(prev => prev.filter(e => e.id !== ev.id));
                           toast('Für diesen Monat ist schon eine Belege-Aufgabe offen');
                           return;
                         }
@@ -1302,7 +1306,6 @@ function Woerni() {
                         const bereitsOffen = aufgaben.some(a => a.signal_key === signalKey);
                         if (bereitsOffen) {
                           await api.ereignisGelesen(ev.id).catch(()=>{});
-                          setEreignisse(prev => prev.filter(e => e.id !== ev.id));
                           toast('Für diese Woche ist schon eine Reichweite-Aufgabe offen');
                           return;
                         }
@@ -1322,9 +1325,8 @@ function Woerni() {
                       } catch(e) {
                         toast('⚠ Aufgabe konnte nicht erstellt werden');
                       }
-                      // Ereignis als gelesen markieren → verschwindet
+                      // Ereignis als gelesen markieren (Karte ist bereits entfernt)
                       await api.ereignisGelesen(ev.id).catch(()=>{});
-                      setEreignisse(prev => prev.filter(e => e.id !== ev.id));
                       // Aufgabenliste neu laden damit Aufgabe sofort erscheint
                       laden_();
                     }}>
