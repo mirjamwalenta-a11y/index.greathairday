@@ -934,7 +934,7 @@ function Woerni() {
         naechster_schritt: v.naechster_schritt||"",
         prioritaet: v.prioritaet,
         typ: v.typ,
-        status: "neu",
+        status: "offen",
         erstellt_von: "wörni-auto",
         app_kontext: `vorlage_${v.rhythmus}`,
         signal_key: `vorlage_${v.id}_${isoHeute()}`,
@@ -985,7 +985,8 @@ function Woerni() {
         setAufgaben(a2||[]); setErledigt(e2||[]);
         cacheSchreiben(a2||[], e2||[], v||[]);
       } else {
-        setAufgaben(a||[]); setErledigt(e||[]);
+        console.log('[DEBUG] Aufgaben aus Supabase:', (a||[]).map(x => ({id:x.id, titel:x.titel?.slice(0,20), prioritaet:x.prioritaet, status:x.status})));
+      setAufgaben(a||[]); setErledigt(e||[]);
         cacheSchreiben(a||[], e||[], v||[]);
       }
       setEreignisse(ev||[]);
@@ -1070,7 +1071,7 @@ function Woerni() {
 
   async function addAufgabe(daten) {
     try {
-      const neu = await api.addAufgabe({ ...daten, status:"neu", erstellt_von:"mirjam" });
+      const neu = await api.addAufgabe({ ...daten, status:"offen", erstellt_von:"mirjam" });
       if (!neu || !neu[0]) throw new Error('Keine Antwort von Supabase');
       try { await api.addVerlauf({ aufgabe_id:neu[0].id, von:"mirjam", aktion:"erstellt", zu_status:"neu" }); } catch(e) {}
       await laden_(); toast('✓ Aufgabe erstellt');
