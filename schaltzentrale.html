@@ -358,11 +358,11 @@ async function sb(path, opts = {}) {
   const token = sessionData?.session?.access_token || SB_KEY;
   try {
     const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-      ...opts,
       cache: "no-store",
       signal: controller.signal,
       headers: { "apikey": SB_KEY, "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers }
+        "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...opts.headers },
+      ...opts
     });
     const t = await r.text();
     if (!r.ok) throw new Error(t);
@@ -436,6 +436,19 @@ function vorlageFaellig(vorlage, aufgaben) {
   if (vorlage.rhythmus === 'taeglich') return true;
   if (vorlage.rhythmus === 'woechentlich' && istMontag()) return true;
   if (vorlage.rhythmus === 'monatlich' && ersterDesMonats()) return true;
+  return false;
+}
+
+// Nur für die Anzeige im Vorlagen-Tab: dieselbe Rhythmus-Tageslogik wie oben
+// (rhythmus + istMontag()/ersterDesMonats()), aber bewusst OHNE den Duplikat-Schutz
+// (exists-Check) — der gehört zur automatischen Aufgaben-Erzeugung, nicht zur Frage
+// "steht das laut Rhythmus heute an". vorlageFaellig() bleibt unverändert und wird
+// weiterhin unverändert für die automatische Aufgaben-Erzeugung verwendet.
+function rhythmusHeuteDran(vorlage) {
+  if (!vorlage.aktiv) return false;
+  if (vorlage.rhythmus === 'taeglich') return true;
+  if (vorlage.rhythmus === 'woechentlich') return istMontag();
+  if (vorlage.rhythmus === 'monatlich') return ersterDesMonats();
   return false;
 }
 
@@ -828,6 +841,7 @@ function Woerni() {
   const [neueAufgabe, setNeueAufgabe] = useState(false);
   const [neueVorlage, setNeueVorlage] = useState(false);
   const [bearbVorlage, setBearbVorlage] = useState(null);
+  const [vorlagenAlleZeigen, setVorlagenAlleZeigen] = useState(false);
   const TAB_KEY = 'ghd_woerni_tab';
   const [tab, setTab] = useState(() => {
     try { return localStorage.getItem(TAB_KEY) || 'heute'; } catch(e) { return 'heute'; }
@@ -1048,11 +1062,12 @@ function Woerni() {
       // Wörni antwortet sofort
       setWoerniAntwort('…');
       try {
-        const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
+        const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await SZ_AUTH.auth.getSession()).data?.session?.access_token || SB_KEY}`,
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
           },
           body: JSON.stringify({
             model: 'claude-sonnet-4-6',
@@ -1126,11 +1141,12 @@ function Woerni() {
     // ── Wörni antwortet via Claude ──
     setWoerniAntwort('…');
     try {
-      const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
+      const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await SZ_AUTH.auth.getSession()).data?.session?.access_token || SB_KEY}`,
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
@@ -1255,6 +1271,43 @@ function Woerni() {
                       const prio = ev.prioritaet && PRIORITAETEN[ev.prioritaet]
                         ? ev.prioritaet
                         : "diese-woche";
+
+                      // Nur für Belege: doppelte offene Aufgabe für denselben Kalendermonat
+                      // verhindern. Schlüssel aus dem bestehenden Ereignis-Zeitstempel
+                      // (erstellt_am), nicht aus dem Antipp-Zeitpunkt. Für alle anderen
+                      // Ereignis-Typen (u.a. Reichweite) bleibt signalKey null und der
+                      // Ablauf exakt wie bisher.
+                      let signalKey = null;
+                      if (ev.app === "Belege") {
+                        const monat = (ev.erstellt_am || new Date().toISOString()).slice(0,7);
+                        signalKey = `belege-pruefbedarf-${monat}`;
+                        const bereitsOffen = aufgaben.some(a => a.signal_key === signalKey);
+                        if (bereitsOffen) {
+                          await api.ereignisGelesen(ev.id).catch(()=>{});
+                          setEreignisse(prev => prev.filter(e => e.id !== ev.id));
+                          toast('Für diesen Monat ist schon eine Belege-Aufgabe offen');
+                          return;
+                        }
+                      } else if (ev.app === "Reichweite") {
+                        // Nur für Reichweite: doppelte offene Aufgabe für dieselbe Kalenderwoche
+                        // verhindern. Schlüssel aus dem bestehenden Ereignis-Zeitstempel
+                        // (erstellt_am), nicht aus dem Antipp-Zeitpunkt. Dieselbe KW-Berechnung
+                        // wie getKwKey() in Reichweite.html, nur mit dem Ereignis-Datum statt
+                        // new Date().
+                        const evDatum = new Date(ev.erstellt_am || Date.now());
+                        const jahresstart = new Date(evDatum.getFullYear(), 0, 1);
+                        const kw = Math.ceil(((evDatum - jahresstart) / 86400000 + jahresstart.getDay() + 1) / 7);
+                        const kwKey = evDatum.getFullYear() + '-W' + String(kw).padStart(2, '0');
+                        signalKey = `reichweite-luecke-${kwKey}`;
+                        const bereitsOffen = aufgaben.some(a => a.signal_key === signalKey);
+                        if (bereitsOffen) {
+                          await api.ereignisGelesen(ev.id).catch(()=>{});
+                          setEreignisse(prev => prev.filter(e => e.id !== ev.id));
+                          toast('Für diese Woche ist schon eine Reichweite-Aufgabe offen');
+                          return;
+                        }
+                      }
+
                       // Aufgabe erstellen
                       try {
                         await api.addAufgabe({
@@ -1263,6 +1316,7 @@ function Woerni() {
                           prioritaet: prio,
                           app_kontext: ev.app || null,
                           erstellt_von: "woerni",
+                          ...(signalKey ? { signal_key: signalKey } : {}),
                         });
                         toast('✓ Aufgabe erstellt');
                       } catch(e) {
@@ -1315,8 +1369,7 @@ function Woerni() {
         {!laden && tab==="vorlagen" && (
           <div>
             {(() => {
-              // Nach App gruppieren
-              const apps = [...new Set(vorlagen.map(v => v.app||'Sonstige'))].sort();
+              if (vorlagen.length === 0) return null;
               const appIcons = {
                 'Aufträge':'🏠','Reichweite':'✨','Checklisten':'✅','Abwesenheit':'📅',
                 'Team':'💬','Lernquiz':'✂️','Lerntool':'📖','Lager':'📦',
@@ -1338,75 +1391,109 @@ function Woerni() {
                 'Schnuppertag':'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html',
                 'Schrank':     'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/',
               };
-              return apps.map(app => {
-                const gruppe = vorlagen.filter(v => (v.app||'Sonstige')===app);
-                if (gruppe.length===0) return null;
+
+              // Eine Vorlage-Karte — unverändertes Markup, nur einmal herausgezogen,
+              // damit "Heute dran" und die vollständige Liste exakt gleich aussehen.
+              const renderVorlageCard = (v) => {
+                const r = RHYTHMEN[v.rhythmus]||RHYTHMEN['spontan'];
+                const appKey = v.app || 'Sonstige';
                 return (
-                  <div key={app} style={{marginBottom:28}}>
-                    <div className="abschnitt-header">
-                      <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>
-                        {appIcons[app]||'📋'} {app}
+                  <div key={v.id} className={`vorlage-card ${!v.aktiv?'inaktiv':''}`}
+                    style={{flexDirection:'column',alignItems:'stretch',gap:8}}
+                    onClick={() => setBearbVorlage(v)}>
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      <span className={`vorlage-rhythmus ${r.cls}`}>{r.label}</span>
+                      <div style={{flex:1}}>
+                        <p style={{margin:0,fontWeight:600,fontSize:14,color:'var(--text)'}}>{v.titel}</p>
+                        {v.naechster_schritt && <p style={{margin:'2px 0 0',fontSize:12,color:'var(--text-soft)'}}>{v.naechster_schritt}</p>}
+                      </div>
+                      <span className={`badge ${(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).badgeCls}`} style={{fontSize:9}}>
+                        {(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).label}
                       </span>
-                      <span className="abschnitt-count">{gruppe.length}</span>
+                      <span style={{color:'var(--text-soft)',fontSize:18}}>›</span>
+                    </div>
+                    {v.aktiv && (
+                      <button
+                        onClick={async e => {
+                          e.stopPropagation();
+                          await addAufgabe({
+                            titel: v.titel,
+                            naechster_schritt: v.naechster_schritt||'',
+                            prioritaet: v.prioritaet,
+                            typ: v.typ,
+                          });
+                          toast('✓ Aufgabe erstellt — jetzt in Offen');
+                        }}
+                        style={{
+                          background:'var(--accent)',color:'#fff',border:'none',
+                          borderRadius:10,padding:'9px 14px',fontWeight:700,
+                          fontSize:13,cursor:'pointer',fontFamily:'inherit',
+                          width:'100%',marginTop:2
+                        }}>
+                        ▶ Jetzt als Aufgabe erstellen
+                      </button>
+                    )}
+                    {appUrls[appKey] && (
+                      <button
+                        onClick={e => { e.stopPropagation(); window.location.href = appUrls[appKey]; }}
+                        style={{
+                          background:'var(--card)',color:'var(--accent-dark)',
+                          border:'1.5px solid var(--border)',
+                          borderRadius:10,padding:'9px 14px',fontWeight:700,
+                          fontSize:13,cursor:'pointer',fontFamily:'inherit',
+                          width:'100%',marginTop:4
+                        }}>
+                        → {appKey} öffnen
+                      </button>
+                    )}
+                  </div>
+                );
+              };
+
+              // Nach App gruppieren — für die vollständige Liste, unverändert wie bisher.
+              const apps = [...new Set(vorlagen.map(v => v.app||'Sonstige'))].sort();
+              // Nur die bestehende Rhythmus-Tageslogik (wie in vorlageFaellig, ohne den
+              // Duplikat-Schutz) — bestimmt, was heute im Vordergrund steht.
+              const vorlagenHeute = vorlagen.filter(rhythmusHeuteDran);
+
+              return (
+                <div>
+                  {/* HEUTE DRAN — verdichtete Führungsansicht, steht zuerst */}
+                  <div style={{marginBottom:28}}>
+                    <div className="abschnitt-header">
+                      <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>📆 Heute dran</span>
+                      <span className="abschnitt-count">{vorlagenHeute.length}</span>
                       <div className="abschnitt-line"/>
                     </div>
-                    {gruppe.map(v => {
-                      const r = RHYTHMEN[v.rhythmus]||RHYTHMEN['spontan'];
+                    {vorlagenHeute.length > 0
+                      ? vorlagenHeute.map(renderVorlageCard)
+                      : <p className="prio-empty-hint">Heute steht laut Rhythmus keine Vorlage an.</p>}
+                  </div>
+
+                  {/* VOLLSTÄNDIGE LISTE — bleibt erhalten, tritt aber in den Hintergrund */}
+                  <button className="more-toggle" onClick={() => setVorlagenAlleZeigen(o => !o)}>
+                    {vorlagenAlleZeigen ? '－ Alle Vorlagen ausblenden' : `＋ Alle Vorlagen anzeigen (${vorlagen.length})`}
+                  </button>
+                  <div className={`more-details ${vorlagenAlleZeigen ? 'open' : ''}`}>
+                    {apps.map(app => {
+                      const gruppe = vorlagen.filter(v => (v.app||'Sonstige')===app);
+                      if (gruppe.length===0) return null;
                       return (
-                        <div key={v.id} className={`vorlage-card ${!v.aktiv?'inaktiv':''}`}
-                          style={{flexDirection:'column',alignItems:'stretch',gap:8}}
-                          onClick={() => setBearbVorlage(v)}>
-                          <div style={{display:'flex',alignItems:'center',gap:12}}>
-                            <span className={`vorlage-rhythmus ${r.cls}`}>{r.label}</span>
-                            <div style={{flex:1}}>
-                              <p style={{margin:0,fontWeight:600,fontSize:14,color:'var(--text)'}}>{v.titel}</p>
-                              {v.naechster_schritt && <p style={{margin:'2px 0 0',fontSize:12,color:'var(--text-soft)'}}>{v.naechster_schritt}</p>}
-                            </div>
-                            <span className={`badge ${(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).badgeCls}`} style={{fontSize:9}}>
-                              {(PRIORITAETEN[v.prioritaet]||PRIORITAETEN["diese-woche"]).label}
+                        <div key={app} style={{marginBottom:28}}>
+                          <div className="abschnitt-header">
+                            <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>
+                              {appIcons[app]||'📋'} {app}
                             </span>
-                            <span style={{color:'var(--text-soft)',fontSize:18}}>›</span>
+                            <span className="abschnitt-count">{gruppe.length}</span>
+                            <div className="abschnitt-line"/>
                           </div>
-                          {v.aktiv && (
-                            <button
-                              onClick={async e => {
-                                e.stopPropagation();
-                                await addAufgabe({
-                                  titel: v.titel,
-                                  naechster_schritt: v.naechster_schritt||'',
-                                  prioritaet: v.prioritaet,
-                                  typ: v.typ,
-                                });
-                                toast('✓ Aufgabe erstellt — jetzt in Offen');
-                              }}
-                              style={{
-                                background:'var(--accent)',color:'#fff',border:'none',
-                                borderRadius:10,padding:'9px 14px',fontWeight:700,
-                                fontSize:13,cursor:'pointer',fontFamily:'inherit',
-                                width:'100%',marginTop:2
-                              }}>
-                              ▶ Jetzt als Aufgabe erstellen
-                            </button>
-                          )}
-                          {appUrls[app] && (
-                            <button
-                              onClick={e => { e.stopPropagation(); window.location.href = appUrls[app]; }}
-                              style={{
-                                background:'var(--card)',color:'var(--accent-dark)',
-                                border:'1.5px solid var(--border)',
-                                borderRadius:10,padding:'9px 14px',fontWeight:700,
-                                fontSize:13,cursor:'pointer',fontFamily:'inherit',
-                                width:'100%',marginTop:4
-                              }}>
-                              → {app} öffnen
-                            </button>
-                          )}
+                          {gruppe.map(renderVorlageCard)}
                         </div>
                       );
                     })}
                   </div>
-                );
-              });
+                </div>
+              );
             })()}
             {vorlagen.length===0 && (
               <div className="empty-state einblenden">
