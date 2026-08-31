@@ -780,6 +780,11 @@ function showScreen(id) {
   if (id === 'screen-home')   { renderHome(); ladeSignale(); }
   if (id === 'screen-apps')   { renderApps(); setTimeout(ladeBadges, 100); }
   if (id === 'screen-system') { renderSystem(); }
+  // Zuletzt aktiven Screen merken (außer PIN) — damit man nach dem Öffnen einer App
+  // wieder genau dort landet, wo man war, statt jedes Mal neu zur Startseite zu müssen.
+  if (id !== 'screen-pin') {
+    try { sessionStorage.setItem('ghd_letzter_screen', id); } catch(e) {}
+  }
 }
 function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
 function goPin()  { abmelden(); }
@@ -828,6 +833,7 @@ async function loginMitSupabase() {
 async function abmelden() {
   await AUTH_CLIENT.auth.signOut();
   sessionStorage.removeItem('ghd_unlocked');
+  sessionStorage.removeItem('ghd_letzter_screen');
   showScreen('screen-pin');
 }
 
@@ -1190,7 +1196,14 @@ renderHome();
   const { data } = await AUTH_CLIENT.auth.getSession();
   if (data && data.session) {
     sessionStorage.setItem('ghd_unlocked', '1');
-    showScreen('screen-home');
+    // Zuletzt aktiven Screen wiederherstellen (z.B. "Apps"), statt immer bei der
+    // Startseite zu landen — z.B. nach der Rückkehr aus einer anderen App.
+    let ziel = 'screen-home';
+    try {
+      const letzter = sessionStorage.getItem('ghd_letzter_screen');
+      if (letzter && letzter !== 'screen-pin' && document.getElementById(letzter)) ziel = letzter;
+    } catch(e) {}
+    showScreen(ziel);
     ladeBadges();
     ladeSignale();
   } else {
@@ -1229,7 +1242,7 @@ window.showScreen = function(id) {
 };
 updateFabVisibility();
 
-const ANTHROPIC_EDGE_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function';
+const ANTHROPIC_EDGE_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service';
 
 function fabToggleMic() {
   if (fabListening) { fabRec?.stop(); return; }
@@ -1273,7 +1286,6 @@ function fabToggleMic() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await getAuthToken()}`,
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
