@@ -187,6 +187,7 @@
     <div class="header-title">A Great Hair Day</div>
     <div class="header-user">
       <span class="header-name" id="user-name"></span>
+      <button class="btn-logout" onclick="window.location.href='https://mirjamwalenta-a11y.github.io/index.greathairday/'">← Startseite</button>
       <button class="btn-logout" onclick="logout()">Abmelden</button>
     </div>
   </div>
@@ -224,9 +225,11 @@ if (params.get('reason') === 'kein-zugang') {
 
 // Beim Laden prüfen ob bereits eingeloggt
 document.addEventListener('DOMContentLoaded', async () => {
-  // Beim Laden der Mitarbeiter-Seite immer zuerst ausloggen
-  // damit jeder seinen eigenen Login eingeben kann
+  // Immer ausloggen damit jeder frisch einloggen kann
   await AUTH.auth.signOut();
+  // Login-Screen sicherstellen
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
 });
 
 async function login() {
@@ -322,14 +325,17 @@ async function zeigeApps(session) {
   // Screens tauschen
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display   = 'block';
+  document.getElementById('btn-zurueck').style.display  = 'inline-block';
 }
 
 async function logout() {
   await AUTH.auth.signOut();
-  window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/index.html';
-  document.getElementById('app-screen').style.display   = 'none';
-  document.getElementById('email').value    = '';
-  document.getElementById('passwort').value = '';
+  window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
+}
+
+function zeigeAppGrid() {
+  document.getElementById('app-screen').style.display = 'block';
+  window.history.back();
 }
 
 function zeigeFehler(msg) {
