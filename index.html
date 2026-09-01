@@ -207,7 +207,7 @@
 
 <!-- ── SCRIPTS ── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="/ghd-core.js"></script>
+<!-- ghd-core.js wird später eingebunden -->
 <script>
 
 const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
@@ -286,7 +286,7 @@ async function zeigeApps(session) {
 
   // Boss direkt zu Wörni
   if (profil.rolle === 'boss') {
-    window.location.href = '/schaltzentrale.html';
+    window.location.href = '/index.greathairday/schaltzentrale.html';
     return;
   }
 
