@@ -257,9 +257,21 @@ async function login() {
   try {
     const { data, error } = await AUTH.auth.signInWithPassword({ email, password: passwort });
     if (error) throw error;
-    await zeigeApps(data.session);
   } catch (err) {
     zeigeFehler('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.');
+    btn.disabled    = false;
+    btn.textContent = 'Anmelden';
+    return;
+  }
+
+  // Ab hier ist die Anmeldung erfolgreich — Fehler beim Laden der Apps
+  // dürfen nicht mehr als "Anmeldung fehlgeschlagen" angezeigt werden.
+  try {
+    const { data: { session } } = await AUTH.auth.getSession();
+    await zeigeApps(session);
+  } catch (err) {
+    console.error('Fehler beim Laden der Apps:', err);
+    zeigeFehler('Anmeldung ok, aber die Apps konnten nicht geladen werden. Bitte Mirjam Bescheid geben.');
     btn.disabled    = false;
     btn.textContent = 'Anmelden';
   }
@@ -299,14 +311,39 @@ async function zeigeApps(session) {
     return;
   }
 
-  // Apps laden
-  const appsRes = await fetch(
-    `${SB_URL}/rest/v1/ghd_app_berechtigungen?rolle=eq.${profil.rolle}&select=app_id,ghd_apps(*)`,
-    { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` } }
+  // Apps laden — zwei getrennte Abfragen statt eingebettetem Join.
+  // In ghd_app_berechtigungen ist app_id ein Text-Slug ("team", "lernquiz"),
+  // kein Fremdschlüssel — ein PostgREST-Join (ghd_apps(*)) funktioniert damit nicht.
+  const headers = { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` };
+
+  // 1) Erlaubte App-Slugs für die Rolle
+  const rechteRes = await fetch(
+    `${SB_URL}/rest/v1/ghd_app_berechtigungen?rolle=eq.${encodeURIComponent(profil.rolle)}&select=app_id`,
+    { headers }
   );
-  const appsData = await appsRes.json();
-  const apps = (appsData || []).map(d => d.ghd_apps).filter(Boolean);
-  apps.sort((a, b) => a.sortierung - b.sortierung);
+  if (!rechteRes.ok) {
+    console.error('Berechtigungen-Fetch Fehler:', rechteRes.status, await rechteRes.text());
+    throw new Error('Berechtigungen konnten nicht geladen werden (' + rechteRes.status + ')');
+  }
+  const rechte = await rechteRes.json();
+  const erlaubt = (rechte || []).map(r => String(r.app_id).toLowerCase());
+  console.log('Rolle:', profil.rolle, '· erlaubte Apps:', erlaubt);
+
+  // 2) Alle Apps holen und clientseitig filtern
+  const appsRes = await fetch(`${SB_URL}/rest/v1/ghd_apps?select=*`, { headers });
+  if (!appsRes.ok) {
+    console.error('Apps-Fetch Fehler:', appsRes.status, await appsRes.text());
+    throw new Error('Apps konnten nicht geladen werden (' + appsRes.status + ')');
+  }
+  const alleApps = await appsRes.json();
+  console.log('Apps in ghd_apps:', alleApps);
+
+  // Schlüssel tolerant vergleichen: id, app_id, slug oder name
+  const schluessel = a => [a.id, a.app_id, a.slug, a.name]
+    .filter(v => v != null).map(v => String(v).toLowerCase());
+
+  const apps = (alleApps || []).filter(a => schluessel(a).some(k => erlaubt.includes(k)));
+  apps.sort((a, b) => (a.sortierung || 0) - (b.sortierung || 0));
 
   // Begrüßung
   const stunde = new Date().getHours();
@@ -332,7 +369,6 @@ async function zeigeApps(session) {
   // Screens tauschen
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display   = 'block';
-  document.getElementById('btn-zurueck').style.display  = 'inline-block';
 }
 
 async function logout() {
