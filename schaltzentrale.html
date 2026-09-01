@@ -1065,8 +1065,14 @@ function Woerni() {
     }
     await api.updateAufgabe(id, daten);
     try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); } catch(e) {}
-    if (daten.status === "erledigt") await aufräumenErledigt();
-    await laden_();
+    if (daten.status === "erledigt") {
+      await aufräumenErledigt();
+      // Erledigt: Liste NICHT neu laden — optimistisches Update bleibt bestehen
+      const [e2] = await Promise.all([api.getErledigt()]);
+      setErledigt(e2||[]);
+    } else {
+      await laden_();
+    }
   }
 
   async function addAufgabe(daten) {
