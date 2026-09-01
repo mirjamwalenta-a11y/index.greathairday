@@ -284,7 +284,11 @@ async function zeigeApps(session) {
     return;
   }
 
-  // Boss sieht alle Apps auf der Startseite (keine automatische Weiterleitung)
+  // Boss gehört nicht hierher — zurück zur originalen Startseite
+  if (profil.rolle === 'boss') {
+    window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
+    return;
+  }
 
   // Apps laden
   const appsRes = await fetch(
@@ -307,10 +311,8 @@ async function zeigeApps(session) {
   if (apps.length === 0) {
     grid.innerHTML = '<p style="color:var(--accent);grid-column:1/-1;text-align:center;padding:40px;">Keine Apps verfügbar.</p>';
   } else {
-    // App-URLs auf vollständige GitHub Pages URLs setzen
-    const baseUrl = 'https://mirjamwalenta-a11y.github.io/index.greathairday';
     grid.innerHTML = apps.map(app => `
-      <a href="${baseUrl}${app.url}" class="app-kachel">
+      <a href="${app.url}" class="app-kachel">
         <div class="app-icon">${app.icon}</div>
         <div class="app-name">${app.name}</div>
         <div class="app-desc">${app.beschreibung || ''}</div>
