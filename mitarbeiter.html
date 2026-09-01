@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Great Hair Day · Mitarbeiter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #FAF8F3;
+      --card:    #FFFFFF;
+      --accent:  #896c32;
+      --text:    #1a1610;
+      --soft:    #5a4a28;
+      --border:  #e8e0d0;
+      --radius:  16px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh; padding:24px;
+    }
+    .login-card {
+      background:var(--card);
+      border:1.5px solid var(--border);
+      border-radius:var(--radius);
+      padding:40px 32px;
+      width:100%; max-width:380px;
+      box-shadow:0 8px 32px rgba(137,108,50,0.08);
+    }
+    .login-logo {
+      text-align:center; margin-bottom:32px;
+    }
+    .login-logo h1 {
+      font-size:20px; font-weight:700; color:var(--text);
+    }
+    .login-logo p {
+      font-size:12px; color:var(--accent); margin-top:4px;
+    }
+    .field { margin-bottom:16px; }
+    .field label {
+      display:block; font-size:12px; font-weight:600;
+      color:var(--soft); margin-bottom:6px;
+    }
+    .field input {
+      width:100%; padding:14px 12px;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-size:15px; font-family:'Poppins',sans-serif;
+      background:var(--bg); color:var(--text);
+      outline:none; transition:border-color 0.15s;
+    }
+    .field input:focus { border-color:var(--accent); }
+    .btn-login {
+      width:100%; padding:16px;
+      background:var(--accent); color:#fff;
+      border:none; border-radius:10px;
+      font-size:15px; font-weight:700;
+      font-family:'Poppins',sans-serif;
+      cursor:pointer; margin-top:8px;
+      transition:opacity 0.15s;
+    }
+    .btn-login:hover { opacity:0.9; }
+    .btn-login:disabled { opacity:0.5; cursor:not-allowed; }
+    .login-fehler {
+      background:#fde8e8; color:#c0392b;
+      border-radius:8px; padding:10px 12px;
+      font-size:12px; margin-top:12px;
+      display:none;
+    }
+
+    /* ── APP DASHBOARD ── */
+    #app-screen { display:none; }
+
+    .header {
+      background:var(--card);
+      border-bottom:1.5px solid var(--border);
+      padding:16px 20px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .header-title { font-size:16px; font-weight:700; }
+    .header-user {
+      display:flex; align-items:center; gap:10px;
+    }
+    .header-name {
+      font-size:12px; color:var(--accent); font-weight:600;
+    }
+    .btn-logout {
+      background:none; border:1.5px solid var(--border);
+      border-radius:8px; padding:6px 12px;
+      font-size:12px; cursor:pointer; color:var(--soft);
+      font-family:'Poppins',sans-serif;
+    }
+
+    .main { padding:24px 20px; max-width:600px; margin:0 auto; }
+
+    .begruessung {
+      margin-bottom:28px;
+    }
+    .begruessung h2 {
+      font-size:22px; font-weight:700;
+    }
+    .begruessung p {
+      font-size:13px; color:var(--accent); margin-top:4px;
+    }
+
+    .apps-grid {
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:14px;
+    }
+    .app-kachel {
+      display:flex; flex-direction:column; gap:8px;
+      background:var(--card);
+      border:1.5px solid var(--border);
+      border-radius:var(--radius);
+      padding:20px 16px;
+      text-decoration:none; color:var(--text);
+      transition:border-color 0.15s, box-shadow 0.15s;
+      cursor:pointer;
+    }
+    .app-kachel:active {
+      border-color:var(--accent);
+      box-shadow:0 4px 16px rgba(137,108,50,0.12);
+    }
+    .app-icon { font-size:28px; }
+    .app-name { font-weight:700; font-size:14px; }
+    .app-desc { font-size:11px; color:var(--accent); }
+
+    .kein-zugang {
+      text-align:center; padding:60px 20px;
+      color:var(--accent);
+    }
+
+    /* Kein-Zugang Hinweis */
+    .hinweis {
+      background:#fff8e8;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px 16px;
+      font-size:12px;
+      color:var(--soft);
+      margin-top:12px;
+      display:none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>A Great Hair Day</h1>
+      <p>Mitarbeiter-Login</p>
+    </div>
+
+    <div class="field">
+      <label>E-Mail</label>
+      <input type="email" id="email" placeholder="deine@email.at"
+        onkeydown="if(event.key==='Enter') document.getElementById('passwort').focus()">
+    </div>
+    <div class="field">
+      <label>Passwort</label>
+      <input type="password" id="passwort" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter') login()">
+    </div>
+
+    <button class="btn-login" id="login-btn" onclick="login()">
+      Anmelden
+    </button>
+
+    <div class="login-fehler" id="login-fehler"></div>
+  </div>
+</div>
+
+<!-- ── APP DASHBOARD ── -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-title">A Great Hair Day</div>
+    <div class="header-user">
+      <span class="header-name" id="user-name"></span>
+      <button class="btn-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="begruessung">
+      <h2 id="begruessung-text">Hallo!</h2>
+      <p id="begruessung-sub"></p>
+    </div>
+
+    <div class="apps-grid" id="apps-grid">
+      <!-- Apps werden dynamisch geladen -->
+    </div>
+
+    <div class="hinweis" id="hinweis"></div>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- ghd-core.js wird später eingebunden -->
+<script>
+
+const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
+const AUTH  = supabase.createClient(SB_URL, SB_KEY);
+
+// Grund für Weiterleitung anzeigen
+const params = new URLSearchParams(window.location.search);
+if (params.get('reason') === 'kein-zugang') {
+  const h = document.getElementById('hinweis');
+  h.style.display = 'block';
+  h.textContent = 'Du hast keinen Zugang zu dieser App. Bitte wende dich an Mirjam.';
+}
+
+// Beim Laden prüfen ob bereits eingeloggt
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data } = await AUTH.auth.getSession();
+  if (data?.session) {
+    await zeigeApps(data.session);
+  }
+});
+
+async function login() {
+  const email    = document.getElementById('email').value.trim();
+  const passwort = document.getElementById('passwort').value;
+  const btn      = document.getElementById('login-btn');
+  const fehler   = document.getElementById('login-fehler');
+
+  if (!email || !passwort) {
+    zeigeFehler('Bitte E-Mail und Passwort eingeben.');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Anmelden …';
+  fehler.style.display = 'none';
+
+  try {
+    const { data, error } = await AUTH.auth.signInWithPassword({ email, password: passwort });
+    if (error) throw error;
+    await zeigeApps(data.session);
+  } catch (err) {
+    zeigeFehler('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.');
+    btn.disabled    = false;
+    btn.textContent = 'Anmelden';
+  }
+}
+
+async function zeigeApps(session) {
+  // Profil laden — mit echtem Session-Token
+  const token = session.access_token;
+  const res = await fetch(
+    `${SB_URL}/rest/v1/profiles?auth_user_id=eq.${session.user.id}&aktiv=eq.true&select=*&limit=1`,
+    { headers: { 
+        'apikey': SB_KEY, 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      } 
+    }
+  );
+  if (!res.ok) {
+    console.error('Profil-Fetch Fehler:', res.status, await res.text());
+    zeigeFehler('Verbindungsfehler. Bitte Seite neu laden.');
+    await AUTH.auth.signOut();
+    return;
+  }
+  const profile = await res.json();
+  const profil  = profile?.[0];
+  console.log('Profil geladen:', profil);
+
+  if (!profil) {
+    zeigeFehler('Kein aktives Profil gefunden. Bitte wende dich an Mirjam.');
+    await AUTH.auth.signOut();
+    return;
+  }
+
+  // Boss sieht alle Apps auf der Startseite (keine automatische Weiterleitung)
+
+  // Apps laden
+  const appsRes = await fetch(
+    `${SB_URL}/rest/v1/ghd_app_berechtigungen?rolle=eq.${profil.rolle}&select=app_id,ghd_apps(*)`,
+    { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` } }
+  );
+  const appsData = await appsRes.json();
+  const apps = (appsData || []).map(d => d.ghd_apps).filter(Boolean);
+  apps.sort((a, b) => a.sortierung - b.sortierung);
+
+  // Begrüßung
+  const stunde = new Date().getHours();
+  const gruss  = stunde < 11 ? 'Guten Morgen' : stunde < 17 ? 'Hallo' : 'Guten Abend';
+  document.getElementById('begruessung-text').textContent = `${gruss}, ${profil.vorname}! 👋`;
+  document.getElementById('begruessung-sub').textContent  = 'Deine Apps heute:';
+  document.getElementById('user-name').textContent        = profil.vorname;
+
+  // Apps rendern
+  const grid = document.getElementById('apps-grid');
+  if (apps.length === 0) {
+    grid.innerHTML = '<p style="color:var(--accent);grid-column:1/-1;text-align:center;padding:40px;">Keine Apps verfügbar.</p>';
+  } else {
+    // App-URLs auf vollständige GitHub Pages URLs setzen
+    const baseUrl = 'https://mirjamwalenta-a11y.github.io/index.greathairday';
+    grid.innerHTML = apps.map(app => `
+      <a href="${baseUrl}${app.url}" class="app-kachel">
+        <div class="app-icon">${app.icon}</div>
+        <div class="app-name">${app.name}</div>
+        <div class="app-desc">${app.beschreibung || ''}</div>
+      </a>
+    `).join('');
+  }
+
+  // Screens tauschen
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display   = 'block';
+}
+
+async function logout() {
+  await AUTH.auth.signOut();
+  window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/index.html';
+  document.getElementById('app-screen').style.display   = 'none';
+  document.getElementById('email').value    = '';
+  document.getElementById('passwort').value = '';
+}
+
+function zeigeFehler(msg) {
+  const el = document.getElementById('login-fehler');
+  el.textContent     = msg;
+  el.style.display   = 'block';
+}
+
+</script>
+</body>
+</html>

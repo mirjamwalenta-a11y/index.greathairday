@@ -1,344 +1,1332 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Great Hair Day</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>A Great Hair Day · Mirjam Walenta</title>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Great Hair Day"/>
+  <meta name="theme-color" content="#F8F4EA"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
-      --bg:      #FAF8F3;
-      --card:    #FFFFFF;
-      --accent:  #896c32;
-      --text:    #1a1610;
-      --soft:    #5a4a28;
-      --border:  #e8e0d0;
-      --radius:  16px;
-    }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      font-family:'Poppins',sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      min-height:100vh;
+      --bg:           #F8F4EA;
+      --bg-soft:      #F0E9D8;
+      --card:         #FFFFFF;
+      --border:       #E4DBC5;
+      --text:         #211D17;
+      --text-soft:    #7C7565;
+      --accent:       #896C32;
+      --accent-dark:  #6E5527;
+      --accent-tint:  #EEE6CD;
+      --ok:           #4C7A5B;
+      --crit:         #B23A2E;
+      --crit-tint:    #F5DAD5;
+      --heute:        #A67A22;
+      --heute-tint:   #F1E4C4;
+      --woche:        #4E7288;
+      --woche-tint:   #DCE7EC;
+      --wann:         #8B8172;
+      --wann-tint:    #EAE3D6;
+      --radius:       14px;
     }
 
-    /* ── LOGIN ── */
-    #login-screen {
-      display:flex; align-items:center; justify-content:center;
-      min-height:100vh; padding:24px;
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      min-height: 100vh;
     }
-    .login-card {
-      background:var(--card);
-      border:1.5px solid var(--border);
-      border-radius:var(--radius);
-      padding:40px 32px;
-      width:100%; max-width:380px;
-      box-shadow:0 8px 32px rgba(137,108,50,0.08);
+
+    @keyframes einblenden {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .login-logo {
-      text-align:center; margin-bottom:32px;
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .login-logo h1 {
-      font-size:20px; font-weight:700; color:var(--text);
+
+    /* ── Seiten ── */
+    .screen { display: none; min-height: 100vh; flex-direction: column; padding: 56px 20px 100px; animation: fade .18s ease; }
+    .screen.active { display: flex; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
     }
-    .login-logo p {
-      font-size:12px; color:var(--accent); margin-top:4px;
+    .back-btn {
+      background: none; border: none; color: var(--text-soft);
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      font-family: inherit; padding: 6px 0;
     }
-    .field { margin-bottom:16px; }
+    .back-btn:hover { color: var(--accent-dark); }
+    .topbar-title { font-weight: 700; font-size: 15px; }
+    .icon-btn {
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); border-radius: 999px;
+      padding: 8px 14px; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; font-family: inherit;
+    }
+    .icon-btn:hover { border-color: var(--accent); }
+
+    /* ── PIN Screen ── */
+    #screen-pin {
+      align-items: center; text-align: center;
+      justify-content: center; padding-top: 80px;
+    }
+    .avatar-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); margin: 0 auto 20px;
+    }
+    .pin-name  { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+    .pin-brand { font-size: 11px; letter-spacing: .12em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 28px; }
+    .pin-label { font-size: 11px; letter-spacing: .1em; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px; }
+
+    .team-btn {
+      margin-top: 28px; color: var(--text-soft); font-size: 13.5px;
+      background: none; border: none; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Home: Begrüßung ── */
+    .greet       { font-size: 22px; font-weight: 700; margin: 0; }
+    .greet-sub   { color: var(--text-soft); font-size: 13.5px; margin-top: 2px; margin-bottom: 20px; }
+    .home-pills  { display: flex; gap: 8px; }
+    .pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 8px 14px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; color: var(--text);
+    }
+    .pill:hover { border-color: var(--accent); }
+
+    /* ── Signale ── */
+    .signale-grid { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .signal-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 7px 12px;
+      font-size: 12px; font-weight: 600; color: var(--text-soft);
+      cursor: pointer; flex: 1; min-width: 0;
+    }
+    .signal-chip:active { background: var(--bg-soft); }
+    .signal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .signal-dot.ok   { background: var(--ok); }
+    .signal-dot.warn { background: var(--heute); animation: signal-puls 2s ease-in-out infinite; }
+    .signal-dot.krit { background: var(--crit); animation: signal-puls 1.2s ease-in-out infinite; }
+    .signal-dot.leer { background: var(--border); }
+    .signal-chip.chip-krit { border-color: var(--crit-tint); background: var(--crit-tint); }
+    .signal-chip.chip-warn { border-color: var(--heute-tint); background: var(--heute-tint); }
+    .signal-chip.chip-ok   { border-color: var(--bg-soft); }
+    @keyframes signal-puls { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    /* ── Now-Card ── */
+    .now-card {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      color: #fff; border-radius: var(--radius);
+      padding: 20px; margin: 18px 0 20px;
+      box-shadow: 0 12px 28px rgba(137,108,50,0.30);
+    }
+    .now-tag   { font-size: 11px; letter-spacing: .14em; opacity: .9; font-weight: 700; }
+    .now-title { font-size: 19px; font-weight: 700; margin: 8px 0 16px; line-height: 1.35; }
+    .now-actions { display: flex; align-items: center; justify-content: space-between; }
+    .now-btn-primary {
+      background: #fff; color: var(--accent-dark); border: none;
+      border-radius: 999px; padding: 11px 18px;
+      font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit;
+    }
+    .now-btn-quiet {
+      background: none; border: none; color: #fff; opacity: .9;
+      font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit;
+    }
+
+    /* ── Prioritäten-Header ── */
+    .prio-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 4px 2px 10px;
+    }
+    .prio-header-label { font-size: 12px; font-weight: 700; color: var(--text-soft); letter-spacing: .04em; text-transform: uppercase; }
+    .prio-edit-btn {
+      background: none; border: none; color: var(--accent-dark);
+      font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Row-Karte (Prioritäten) ── */
+    .row-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 10px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .row-card:hover { border-color: var(--accent); }
+    .row-card:active { background: var(--bg-soft); }
+    .row-emoji { font-size: 22px; width: 36px; text-align: center; }
+    .row-title { font-weight: 700; font-size: 15px; }
+    .row-sub   { color: var(--text-soft); font-size: 12.5px; margin-top: 1px; }
+    .row-chev  { margin-left: auto; color: var(--text-soft); font-size: 18px; }
+
+    .prio-empty-hint { color: var(--text-soft); font-size: 13px; padding: 8px 2px; }
+
+    /* ── Footer Links ── */
+    .footer-links {
+      margin-top: auto; display: flex; gap: 10px;
+      justify-content: center; padding-top: 24px; flex-wrap: wrap;
+    }
+    .footer-links button {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-soft); border-radius: 999px;
+      padding: 8px 14px; font-size: 12.5px;
+      cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .footer-links button:hover { border-color: var(--accent); }
+
+    /* ── Apps Grid ── */
+    .apps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; grid-auto-rows: 1fr; }
+    .app-tile {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 14px;
+      cursor: pointer; text-align: left; font-family: inherit;
+      transition: border-color .15s;
+      min-height: 110px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
+    }
+    .app-tile:hover  { border-color: var(--accent); }
+    .app-tile:active { background: var(--bg-soft); }
+    .app-tile .em  { font-size: 24px; }
+    .app-tile .nm  { font-weight: 700; font-size: 13.5px; margin-top: 8px; color: var(--text); }
+    .app-tile .sb  { color: var(--text-soft); font-size: 11px; margin-top: 2px; }
+    .manage-link {
+      margin-top: 16px; text-align: center; color: var(--text-soft);
+      font-size: 12.5px; background: none; border: none;
+      text-decoration: underline; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── System Screen ── */
+    .system-note {
+      background: var(--bg-soft); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      font-size: 13px; color: var(--text-soft); margin-bottom: 16px; line-height: 1.5;
+    }
+    .add-app {
+      border: 1.5px dashed var(--accent); color: var(--accent-dark);
+      background: var(--accent-tint); border-radius: var(--radius);
+      padding: 14px; text-align: center; font-weight: 700;
+      font-size: 13.5px; margin-bottom: 16px; cursor: pointer;
+    }
+    .sys-row {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+    }
+    .sys-row .em  { font-size: 20px; }
+    .sys-row .nm  { font-weight: 700; font-size: 14px; }
+    .sys-row .sb  { color: var(--text-soft); font-size: 11.5px; }
+    .sys-open {
+      margin-left: auto; border: 1px solid var(--border); background: #fff;
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .sys-open:hover { border-color: var(--accent); }
+
+    /* ── Sheet / Overlay ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(33,29,23,.45);
+      display: none; align-items: flex-end; z-index: 40;
+    }
+    .overlay.active { display: flex; }
+    .sheet {
+      background: var(--bg); width: 100%; border-radius: 22px 22px 0 0;
+      max-height: 88vh; display: flex; flex-direction: column;
+      animation: einblenden .2s ease;
+    }
+    .sheet-scroll { overflow-y: auto; padding: 10px 20px 6px; flex: 1; }
+    .sheet-handle {
+      width: 38px; height: 4px; background: var(--border);
+      border-radius: 99px; margin: 8px auto 18px;
+    }
+    .sheet h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+    .sheet-hint { font-size: 12px; color: var(--text-soft); margin: 0 0 16px; }
+    .sheet-actions {
+      display: flex; gap: 10px;
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+      background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .btn-save {
+      flex: 1; padding: 14px; border-radius: 12px; border: none;
+      background: var(--accent); color: #fff; font-weight: 700;
+      font-size: 14.5px; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-save:hover { background: var(--accent-dark); }
+
+    /* ── Prio-Rows im Sheet ── */
+    .prio-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .prio-row .em { font-size: 18px; width: 24px; text-align: center; }
+    .prio-row .nm { font-weight: 700; font-size: 13.5px; flex: 1; }
+    .prio-row .sb { color: var(--text-soft); font-size: 11px; }
+    .prio-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff;
+      font-size: 14px; cursor: pointer; font-family: inherit; color: var(--text);
+      transition: border-color .12s;
+    }
+    .prio-btn:disabled { opacity: .3; cursor: default; }
+    .prio-btn.remove { color: var(--crit); border-color: var(--crit-tint); }
+    .prio-btn.add    { color: var(--accent-dark); border-color: var(--accent-tint); background: var(--accent-tint); }
+    .prio-empty-hint { color: var(--text-soft); font-size: 12px; padding: 6px 2px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; left: 50%; bottom: 28px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: #fff;
+      padding: 11px 18px; border-radius: 12px; font-size: 13px;
+      font-weight: 600; max-width: 88%; text-align: center;
+      opacity: 0; transition: .25s; pointer-events: none; z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Field (sort sheet) ── */
+    .field { margin-bottom: 14px; }
     .field label {
-      display:block; font-size:12px; font-weight:600;
-      color:var(--soft); margin-bottom:6px;
-    }
-    .field input {
-      width:100%; padding:14px 12px;
-      border:1.5px solid var(--border); border-radius:10px;
-      font-size:15px; font-family:'Poppins',sans-serif;
-      background:var(--bg); color:var(--text);
-      outline:none; transition:border-color 0.15s;
-    }
-    .field input:focus { border-color:var(--accent); }
-    .btn-login {
-      width:100%; padding:16px;
-      background:var(--accent); color:#fff;
-      border:none; border-radius:10px;
-      font-size:15px; font-weight:700;
-      font-family:'Poppins',sans-serif;
-      cursor:pointer; margin-top:8px;
-      transition:opacity 0.15s;
-    }
-    .btn-login:hover { opacity:0.9; }
-    .btn-login:disabled { opacity:0.5; cursor:not-allowed; }
-    .login-fehler {
-      background:#fde8e8; color:#c0392b;
-      border-radius:8px; padding:10px 12px;
-      font-size:12px; margin-top:12px;
-      display:none;
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--text-soft); letter-spacing: .04em;
+      margin-bottom: 6px; text-transform: uppercase;
     }
 
-    /* ── APP DASHBOARD ── */
-    #app-screen { display:none; }
-
-    .header {
-      background:var(--card);
-      border-bottom:1.5px solid var(--border);
-      padding:16px 20px;
-      display:flex; align-items:center; justify-content:space-between;
+    /* ── Wörni Antwort-Panel ── */
+    .woerni-panel {
+      display: none; position: fixed; left: 16px; right: 16px; bottom: 90px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      box-shadow: 0 8px 24px rgba(33,29,23,0.12);
+      z-index: 29; animation: einblenden .2s ease;
     }
-    .header-title { font-size:16px; font-weight:700; }
-    .header-user {
-      display:flex; align-items:center; gap:10px;
+    .woerni-panel.visible { display: block; }
+    .woerni-panel-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
     }
-    .header-name {
-      font-size:12px; color:var(--accent); font-weight:600;
+    .woerni-panel-text {
+      font-size: 14px; line-height: 1.6; color: var(--text);
     }
-    .btn-logout {
-      background:none; border:1.5px solid var(--border);
-      border-radius:8px; padding:6px 12px;
-      font-size:12px; cursor:pointer; color:var(--soft);
-      font-family:'Poppins',sans-serif;
-    }
-
-    .main { padding:24px 20px; max-width:600px; margin:0 auto; }
-
-    .begruessung {
-      margin-bottom:28px;
-    }
-    .begruessung h2 {
-      font-size:22px; font-weight:700;
-    }
-    .begruessung p {
-      font-size:13px; color:var(--accent); margin-top:4px;
+    .woerni-panel-close {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; font-size: 16px;
+      color: var(--text-soft); cursor: pointer;
     }
 
-    .apps-grid {
-      display:grid;
-      grid-template-columns:repeat(2, 1fr);
-      gap:14px;
+    /* ── Sprechen-FAB ── */
+    .sprechen-fab {
+      position: fixed; bottom: 28px; left: 20px;
+      display: none; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 999px; padding: 12px 18px;
+      font-size: 14px; font-weight: 600; color: var(--text);
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 16px rgba(33,29,23,0.10);
+      transition: border-color .15s, box-shadow .15s;
+      z-index: 30;
     }
-    .app-kachel {
-      display:flex; flex-direction:column; gap:8px;
-      background:var(--card);
-      border:1.5px solid var(--border);
-      border-radius:var(--radius);
-      padding:20px 16px;
-      text-decoration:none; color:var(--text);
-      transition:border-color 0.15s, box-shadow 0.15s;
-      cursor:pointer;
+    .sprechen-fab.visible { display: flex; }
+    .sprechen-fab:hover { border-color: var(--accent); }
+    .sprechen-fab.active {
+      background: var(--accent); color: #fff;
+      border-color: var(--accent);
+      animation: fab-pulse 1.2s ease-in-out infinite;
     }
-    .app-kachel:active {
-      border-color:var(--accent);
-      box-shadow:0 4px 16px rgba(137,108,50,0.12);
-    }
-    .app-icon { font-size:28px; }
-    .app-name { font-weight:700; font-size:14px; }
-    .app-desc { font-size:11px; color:var(--accent); }
-
-    .kein-zugang {
-      text-align:center; padding:60px 20px;
-      color:var(--accent);
+    @keyframes fab-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(137,108,50,0.4); }
+      50%      { box-shadow: 0 0 0 10px rgba(137,108,50,0); }
     }
 
-    /* Kein-Zugang Hinweis */
-    .hinweis {
-      background:#fff8e8;
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:12px 16px;
-      font-size:12px;
-      color:var(--soft);
-      margin-top:12px;
-      display:none;
+    /* ── App-Badges ── */
+    .app-tile-wrap { position: relative; display: flex; }
+    .app-badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      background: #B23A2E;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid var(--bg);
+      z-index: 5;
+      animation: einblenden 0.3s ease;
     }
   </style>
 </head>
 <body>
 
-<!-- ── LOGIN SCREEN ── -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <h1>A Great Hair Day</h1>
-      <p>Betriebssystem · Bitte anmelden</p>
+<!-- LOGIN -->
+<div class="screen" id="screen-pin">
+  <div class="avatar-dot"></div>
+  <div class="pin-name">A Great Hair Day</div>
+  <div class="pin-brand">Mirjam Walenta</div>
+  <div class="pin-label">Anmelden</div>
+  <div style="width:100%;max-width:280px;margin:0 auto 16px;">
+    <input type="email" id="loginEmail" placeholder="E-Mail"
+      style="width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
+      background:var(--card);font-size:16px;font-family:inherit;color:var(--text);
+      outline:none;text-align:center;transition:border-color .15s;margin-bottom:10px;display:block;"
+      onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()"/>
+    <input type="password" id="loginPw" placeholder="Passwort"
+      style="width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
+      background:var(--card);font-size:16px;font-family:inherit;color:var(--text);
+      outline:none;text-align:center;transition:border-color .15s;display:block;"
+      onkeydown="if(event.key==='Enter')loginMitSupabase()"
+      oninput="document.getElementById('loginFehler').style.display='none'"/>
+    <div id="loginFehler" style="display:none;color:var(--crit);font-size:12px;font-weight:600;margin-top:8px;text-align:center;">
+      Falsche E-Mail oder Passwort — bitte nochmal versuchen.
     </div>
+  </div>
+  <button onclick="loginMitSupabase()" id="loginBtn"
+    style="background:var(--accent);color:#fff;border:none;border-radius:12px;
+    padding:13px 32px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:24px;">
+    Einloggen
+  </button>
+</div>
 
-    <div class="field">
-      <label>E-Mail</label>
-      <input type="email" id="email" placeholder="deine@email.at"
-        onkeydown="if(event.key==='Enter') document.getElementById('passwort').focus()">
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <div class="topbar">
+    <div>
+      <div class="greet">A Great Hair Day</div>
+      <div class="greet-sub" id="greetSub">Guten Tag, Mirjam!</div>
     </div>
-    <div class="field">
-      <label>Passwort</label>
-      <input type="password" id="passwort" placeholder="••••••••"
-        onkeydown="if(event.key==='Enter') login()">
+    <div class="home-pills">
+      <button class="pill" onclick="showScreen('screen-apps')">⊞ Apps</button>
+      <button class="pill" onclick="goApp('Wörni')">🤖 Wörni</button>
+      <button class="pill" onclick="window.location.href='mitarbeiter.html'">👥 Mitarbeiter</button>
     </div>
+  </div>
 
-    <button class="btn-login" id="login-btn" onclick="login()">
-      Anmelden
-    </button>
+  <!-- SIGNALE -->
+  <div class="signale-grid" id="signaleGrid">
+    <div class="signal-row"><div class="signal-dot leer"></div><div><div class="signal-text">Wird geladen…</div></div></div>
+  </div>
 
-    <div class="login-fehler" id="login-fehler"></div>
+  <div class="now-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+      <div class="now-tag">JETZT · PRIORITÄT 1</div>
+      <button onclick="openNowSheet()" style="background:rgba(255,255,255,0.18);border:none;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.04em;">↕ Sortieren</button>
+    </div>
+    <div class="now-title" id="nowTitle">Abschluss: Sind die Belege diesen Monat vollständig?</div>
+    <div class="now-actions">
+      <button class="now-btn-primary" id="nowBtnPrimary" onclick="goApp('Belege')">→ Belege prüfen</button>
+      <button class="now-btn-quiet" id="nowBtnQuiet" onclick="goApp('Belege')">Belege ordnen</button>
+    </div>
+  </div>
+
+  <div class="prio-header">
+    <span class="prio-header-label">Deine Prioritäten</span>
+    <button class="prio-edit-btn" onclick="openPrioSheet()">✏️ Bearbeiten</button>
+  </div>
+  <div id="priorityRows"></div>
+
+  <div class="footer-links">
+    <button onclick="showScreen('screen-system')">⚙ System</button>
+    <button onclick="goPin()">↩ Abmelden</button>
   </div>
 </div>
 
-<!-- ── APP DASHBOARD ── -->
-<div id="app-screen">
-  <div class="header">
-    <div class="header-title">A Great Hair Day</div>
-    <div class="header-user">
-      <span class="header-name" id="user-name"></span>
-      <button class="btn-logout" onclick="logout()">Abmelden</button>
-    </div>
+<!-- APPS -->
+<div class="screen" id="screen-apps">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('screen-home')">← Start</button>
+    <div class="topbar-title">Apps</div>
+    <button class="icon-btn" onclick="openSortSheet()">↕ Sortieren</button>
   </div>
+  <div class="apps-grid" id="appsGrid"></div>
+  <button class="manage-link" onclick="showScreen('screen-system')">Baukasten verwalten (Apps hinzufügen / bearbeiten)</button>
+</div>
 
-  <div class="main">
-    <div class="begruessung">
-      <h2 id="begruessung-text">Hallo!</h2>
-      <p id="begruessung-sub"></p>
+<!-- SYSTEM -->
+<div class="screen" id="screen-system">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('screen-apps')">← Apps</button>
+    <div class="topbar-title">⚙ System</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div class="system-note">Hier verwaltest du alle Apps als Baukasten — öffnen, bearbeiten, hinzufügen, löschen. Dies ist kein alltäglicher Einstieg, sondern dein Arbeitsraum für Pflege.</div>
+  <div class="add-app" onclick="toast('Neue App hinzufügen')">+ Neue App hinzufügen</div>
+  <div id="systemList"></div>
+</div>
+
+<!-- OVERLAY: Apps sortieren -->
+<div class="overlay" id="overlaySort" onclick="closeSortSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Apps sortieren</h2>
+      <p class="sheet-hint">Reihenfolge der Kacheln — mit den Pfeilen verschieben.</p>
+      <div id="sortList"></div>
     </div>
-
-    <div class="apps-grid" id="apps-grid">
-      <!-- Apps werden dynamisch geladen -->
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closeSortSheet()">Fertig</button>
     </div>
-
-    <div class="hinweis" id="hinweis"></div>
   </div>
 </div>
 
-<!-- ── SCRIPTS ── -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- ghd-core.js wird später eingebunden -->
+<!-- OVERLAY: Prioritäten -->
+<div class="overlay" id="overlayPrio" onclick="closePrioSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Prioritäten anpassen</h2>
+      <p class="sheet-hint">Bis zu 3 Apps — die Reihenfolge bestimmt, was oben steht.</p>
+      <div class="field"><label>Ausgewählt</label><div id="prioSelectedList"></div></div>
+      <div class="field"><label>Weitere Apps</label><div id="prioAvailableList"></div></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closePrioSheet()">Fertig</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: Now-Card Priorität -->
+<div class="overlay" id="overlayNow" onclick="closeNowSheetBg(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-scroll">
+      <div class="sheet-handle"></div>
+      <h2>Morgennachrichten sortieren</h2>
+      <p class="sheet-hint">Was gerade am wichtigsten ist, steht oben — das siehst du jeden Morgen zuerst.</p>
+      <div id="nowSortList"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-save" style="flex:1;" onclick="closeNowSheet()">Fertig</button>
+    </div>
+  </div>
+</div>
+
+<!-- WÖRNI ANTWORT-PANEL -->
+<div class="woerni-panel" id="woerniPanel">
+  <button class="woerni-panel-close" onclick="document.getElementById('woerniPanel').classList.remove('visible')">✕</button>
+  <div class="woerni-panel-tag">🤖 Wörni antwortet</div>
+  <div class="woerni-panel-text" id="woerniPanelText"></div>
+</div>
+
+<!-- SPRECHEN FAB -->
+<button class="sprechen-fab" id="sprechenFab" onclick="fabToggleMic()">
+  <span id="fabIcon">🎙️</span>
+  <span id="fabLabel">Sprechen</span>
+</button>
+
+<div class="toast" id="toast"></div>
+
+<!-- OFFLINE-BANNER -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:#B23A2E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;letter-spacing:.03em;">
+  ⚡ Keine Verbindung — Änderungen werden nicht gespeichert
+</div>
+
 <script>
+/* ── Daten ── */
+const apps = [
+  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'schaltzentrale.html'},
+  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks',             url:'https://mirjamwalenta-a11y.github.io/moment.greathairday/'},
+  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
+  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
+  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/'},
+  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
+  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
+  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html'},
+  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'},
+  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
+  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'schaltzentrale.html'},
+  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
+  {em:'🌟', nm:'Schnuppertag', sb:'Lehrlings-Auswahl & Probezeit',    url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
+  {em:'🗄', nm:'Schrank',     sb:'Dokumente & Tresor',                url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html'},
+];
 
-const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
-const AUTH  = supabase.createClient(SB_URL, SB_KEY);
+const cardCopy = {
+  'Reichweite':  {title:'Sichtbar werden',        sub:'Heute einen Anlass in Content'},
+  'Team':        {title:'Team führen',             sub:'Was meine Entscheidung braucht'},
+  'Belege':      {title:'Belege ordnen',           sub:'Ordnung und Abschluss'},
+  'Abwesenheit': {title:'Abwesenheiten steuern',   sub:'Urlaub & Krankenstand im Blick'},
+  'Lager':       {title:'Lager im Griff',          sub:'Bestand & Bestellungen'},
+  'Checklisten': {title:'Tag abschließen',         sub:'Checklisten & Standards'},
+  'Aufträge':    {title:'Aufträge steuern',        sub:'Tagesübersicht'},
+  'Lernquiz':    {title:'Prüfung vorbereiten',     sub:'Quiz & Fragen'},
+  'Lerntool':    {title:'Weiterbilden',            sub:'Lernkarten & Themen'},
+  'Handbuch':    {title:'Standards nachschlagen',  sub:'Richtlinien'},
+  'Innung':      {title:'Seminare planen',         sub:'Trainer:innen & Termine'},
+};
 
-// Grund für Weiterleitung anzeigen
-const params = new URLSearchParams(window.location.search);
-if (params.get('reason') === 'kein-zugang') {
-  const h = document.getElementById('hinweis');
-  h.style.display = 'block';
-  h.textContent = 'Du hast keinen Zugang zu dieser App. Bitte wende dich an Mirjam.';
+const appsByName = Object.fromEntries(apps.map(a => [a.nm, a]));
+// Alias-Namen die aus Supabase ghd_signal_regeln kommen können
+const appAliases = {
+  'Einkauf':        'Checklisten',
+  'Checklist':      'Checklisten',
+  'Checkliste':     'Checklisten',
+  'Abwesenheiten':  'Abwesenheit',
+  'Urlaub':         'Abwesenheit',
+  'Quiz':           'Lernquiz',
+  'Aufgaben':       'Aufträge',
+  'Wörni':          'Wörni',
+  'Belege':         'Belege',
+  'Innung':         'Innung',
+};
+let priorities = ['Reichweite', 'Team', 'Belege'];
+let appOrder   = apps.map(a => a.nm);
+
+function orderedApps() { return appOrder.map(n => appsByName[n]); }
+
+/* ── Begrüßung ── */
+function updateGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+  document.getElementById('greetSub').textContent = `${greet}, Mirjam!`;
 }
 
-// Beim Laden prüfen ob bereits eingeloggt
-document.addEventListener('DOMContentLoaded', async () => {
-  const { data } = await AUTH.auth.getSession();
-  if (data?.session) {
-    await zeigeApps(data.session);
-  }
-});
+/* ── Now-Card: priorisierbar, alle Apps ── */
+const NOW_CARDS_ALLE = [
+  {id:'mitarbeiter', title:'Team: Läuft gerade die Mitarbeitersuche — wo stehen wir?', btn:'→ Team öffnen',        quiet:'Später ansehen',   app:'Team'},
+  {id:'belege',      title:'Abschluss: Sind die Belege diesen Monat vollständig?',     btn:'→ Belege prüfen',     quiet:'Belege ordnen',    app:'Belege'},
+  {id:'reichweite',  title:'Reichweite: Gibt es heute einen Anlass für einen Post?',   btn:'→ Post erstellen',    quiet:'Ideen sammeln',    app:'Reichweite'},
+  {id:'checklisten', title:'Team: Steht etwas Wichtiges für heute auf dem Plan?',      btn:'→ Checkliste öffnen', quiet:'Später erledigen', app:'Checklisten'},
+  {id:'woerni',      title:'Wörni: Welche Aufgabe wartet schon länger auf dich?',      btn:'→ Aufgaben ansehen',  quiet:'Überspringen',     app:'Wörni'},
+  {id:'einkauf',     title:'Einkauf: Was fehlt im Salon — ist die Liste aktuell?',     btn:'→ Einkauf prüfen',    quiet:'Überspringen',     app:'Checklisten'},
+  {id:'lernquiz',    title:'Lehrling: Hat der Lehrling diese Woche schon gelernt?',    btn:'→ Lernquiz öffnen',   quiet:'Morgen erledigen', app:'Lernquiz'},
+  {id:'innung',      title:'Innung: Gibt es offene Seminare oder Trainer-Anfragen?',   btn:'→ Innung öffnen',     quiet:'Überspringen',     app:'Innung'},
+  {id:'schrank',     title:'Dokumente: Gibt es etwas Wichtiges abzulegen oder zu finden?', btn:'→ Schrank öffnen', quiet:'Später',          app:'Schrank'},
+  {id:'lager',       title:'Lager: Stimmt der Bestand — fehlt etwas Wichtiges?',       btn:'→ Lager prüfen',      quiet:'Überspringen',     app:'Lager'},
+  {id:'handbuch',    title:'Handbuch: Gibt es Standards die aktualisiert werden sollten?', btn:'→ Handbuch öffnen', quiet:'Später',          app:'Handbuch'},
+  {id:'abwesenheit', title:'Abwesenheit: Gibt es offene Urlaubsanträge im Team?',      btn:'→ Abwesenheit öffnen', quiet:'Später prüfen',   app:'Abwesenheit'},
+  {id:'lerntool',    title:'Lerntool: Gibt es neue Lernkarten oder Themen zu pflegen?',btn:'→ Lerntool öffnen',   quiet:'Überspringen',     app:'Lerntool'},
+  {id:'schnuppertag',title:'Schnuppertag: Steht bald ein neuer Schnuppertag an?',      btn:'→ Schnuppertag öffnen',quiet:'Später',          app:'Schnuppertag'},
+];
 
-async function login() {
-  const email    = document.getElementById('email').value.trim();
-  const passwort = document.getElementById('passwort').value;
-  const btn      = document.getElementById('login-btn');
-  const fehler   = document.getElementById('login-fehler');
+const NOW_PRIO_KEY    = 'ghd_now_reihenfolge';
+const NOW_AKTIV_KEY   = 'ghd_now_aktiv';
 
-  if (!email || !passwort) {
-    zeigeFehler('Bitte E-Mail und Passwort eingeben.');
-    return;
-  }
-
-  btn.disabled    = true;
-  btn.textContent = 'Anmelden …';
-  fehler.style.display = 'none';
-
+function nowLadeEinstellungen() {
+  let reihenfolge = NOW_CARDS_ALLE.map(c => c.id);
+  let aktiv = ['mitarbeiter','belege','reichweite','checklisten','woerni'];
   try {
-    const { data, error } = await AUTH.auth.signInWithPassword({ email, password: passwort });
-    if (error) throw error;
-    await zeigeApps(data.session);
-  } catch (err) {
-    zeigeFehler('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.');
-    btn.disabled    = false;
-    btn.textContent = 'Anmelden';
-  }
+    const sr = localStorage.getItem(NOW_PRIO_KEY);
+    const sa = localStorage.getItem(NOW_AKTIV_KEY);
+    if (sr) reihenfolge = JSON.parse(sr);
+    if (sa) aktiv = JSON.parse(sa);
+    // neue Karten hinzufügen die noch nicht in der Liste sind
+    NOW_CARDS_ALLE.forEach(c => { if (!reihenfolge.includes(c.id)) reihenfolge.push(c.id); });
+  } catch(e) {}
+  return { reihenfolge, aktiv };
 }
 
-async function zeigeApps(session) {
-  // Profil laden — mit echtem Session-Token
-  const token = session.access_token;
-  const res = await fetch(
-    `${SB_URL}/rest/v1/profiles?auth_user_id=eq.${session.user.id}&aktiv=eq.true&select=*&limit=1`,
-    { headers: { 
-        'apikey': SB_KEY, 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      } 
+function nowSpeichern() {
+  try {
+    localStorage.setItem(NOW_PRIO_KEY,  JSON.stringify(nowOrder.map(c => c.id)));
+    localStorage.setItem(NOW_AKTIV_KEY, JSON.stringify(nowAktiv));
+  } catch(e) {}
+}
+
+let { reihenfolge: _r, aktiv: _a } = nowLadeEinstellungen();
+let nowOrder = _r.map(id => NOW_CARDS_ALLE.find(c => c.id === id)).filter(Boolean);
+let nowAktiv = _a;
+
+function nowErsteAktive() {
+  return nowOrder.find(c => nowAktiv.includes(c.id)) || nowOrder[0];
+}
+
+function renderNowCard() {
+  const nc = nowErsteAktive();
+  document.getElementById('nowTitle').textContent = nc.title;
+  document.getElementById('nowBtnPrimary').textContent = nc.btn;
+  document.getElementById('nowBtnPrimary').onclick = () => goApp(nc.app);
+  document.getElementById('nowBtnQuiet').textContent = nc.quiet;
+  document.getElementById('nowBtnQuiet').onclick = () => goApp(nc.app);
+}
+
+/* ── Now-Sort-Sheet ── */
+function openNowSheet()  { renderNowSortList(); document.getElementById('overlayNow').classList.add('active'); }
+function closeNowSheet() { document.getElementById('overlayNow').classList.remove('active'); renderNowCard(); }
+function closeNowSheetBg(e) { if (e.target.id === 'overlayNow') closeNowSheet(); }
+
+function renderNowSortList() {
+  const aktiveKarten  = nowOrder.filter(c => nowAktiv.includes(c.id));
+  const inaktiveKarten = nowOrder.filter(c => !nowAktiv.includes(c.id));
+
+  let html = `<div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">Aktiv — wird angezeigt</div>`;
+
+  aktiveKarten.forEach((nc, i) => {
+    html += `<div class="prio-row" style="align-items:flex-start;gap:8px;">
+      <div style="font-size:13px;width:22px;text-align:center;color:${i===0?'var(--accent-dark)':'var(--text-soft)'};padding-top:2px;flex-shrink:0;">${i===0?'★':'·'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:var(--text);line-height:1.35;">${nc.title}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <div style="display:flex;gap:4px;">
+          <button class="prio-btn" ${i===0?'disabled':''} onclick="moveNowCard('${nc.id}',-1)">↑</button>
+          <button class="prio-btn" ${i===aktiveKarten.length-1?'disabled':''} onclick="moveNowCard('${nc.id}',1)">↓</button>
+        </div>
+        <button class="prio-btn remove" title="Ausblenden" onclick="nowDeaktivieren('${nc.id}')">✕</button>
+      </div>
+    </div>`;
+  });
+
+  if (inaktiveKarten.length > 0) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase;margin:16px 0 8px;">Ausgeblendet — tippe + zum Aktivieren</div>`;
+    inaktiveKarten.forEach(nc => {
+      html += `<div class="prio-row" style="opacity:.55;align-items:center;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:13px;color:var(--text);line-height:1.35;">${nc.title}</div>
+        </div>
+        <button class="prio-btn add" title="Aktivieren" onclick="nowAktivieren('${nc.id}')">+</button>
+      </div>`;
+    });
+  }
+
+  document.getElementById('nowSortList').innerHTML = html;
+}
+
+function moveNowCard(id, dir) {
+  const aktiveKarten = nowOrder.filter(c => nowAktiv.includes(c.id));
+  const i = aktiveKarten.findIndex(c => c.id === id);
+  const j = i + dir;
+  if (j < 0 || j >= aktiveKarten.length) return;
+  // Tausch in nowOrder
+  const oi = nowOrder.findIndex(c => c.id === aktiveKarten[i].id);
+  const oj = nowOrder.findIndex(c => c.id === aktiveKarten[j].id);
+  [nowOrder[oi], nowOrder[oj]] = [nowOrder[oj], nowOrder[oi]];
+  nowSpeichern();
+  renderNowSortList();
+}
+
+function nowDeaktivieren(id) {
+  nowAktiv = nowAktiv.filter(a => a !== id);
+  if (nowAktiv.length === 0) { toast('Mindestens 1 Thema muss aktiv bleiben'); nowAktiv.push(id); return; }
+  nowSpeichern();
+  renderNowSortList();
+}
+
+function nowAktivieren(id) {
+  if (!nowAktiv.includes(id)) nowAktiv.push(id);
+  nowSpeichern();
+  renderNowSortList();
+}
+
+/* ── Home: Prioritäten ── */
+function renderHome() {
+  const el = document.getElementById('priorityRows');
+  if (priorities.length === 0) {
+    el.innerHTML = `<div class="prio-empty-hint">Keine Priorität — tippe oben auf "Bearbeiten".</div>`;
+    return;
+  }
+  el.innerHTML = priorities.map(name => {
+    const a = appsByName[name];
+    const c = cardCopy[name] || {title: name, sub: a.sb};
+    const dest = `goApp('${name}')`;
+    return `
+      <div class="row-card" onclick="${dest}">
+        <div class="row-emoji">${a.em}</div>
+        <div>
+          <div class="row-title">${c.title}</div>
+          <div class="row-sub">${c.sub}</div>
+        </div>
+        <div class="row-chev">›</div>
+      </div>`;
+  }).join('');
+}
+
+/* ── Apps ── */
+function renderApps() {
+  document.getElementById('appsGrid').innerHTML = orderedApps().map(a => `
+    <div class="app-tile-wrap"><button class="app-tile" onclick="goApp('${a.nm}')">
+      <div class="em">${a.em}</div>
+      <div class="nm">${a.nm}</div>
+      <div class="sb">${a.sb}</div>
+    </button></div>`).join('');
+}
+
+function renderSystem() {
+  document.getElementById('systemList').innerHTML = orderedApps().map(a => `
+    <div class="sys-row">
+      <div class="em">${a.em}</div>
+      <div><div class="nm">${a.nm}</div><div class="sb">${a.sb}</div></div>
+      <button class="sys-open" onclick="goApp('${a.nm}')">Öffnen</button>
+    </div>`).join('');
+}
+
+/* ── Navigation ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-home')   { renderHome(); ladeSignale(); }
+  if (id === 'screen-apps')   { renderApps(); setTimeout(ladeBadges, 100); }
+  if (id === 'screen-system') { renderSystem(); }
+  // Zuletzt aktiven Screen merken (außer PIN) — damit man nach dem Öffnen einer App
+  // wieder genau dort landet, wo man war, statt jedes Mal neu zur Startseite zu müssen.
+  if (id !== 'screen-pin') {
+    try { sessionStorage.setItem('ghd_letzter_screen', id); } catch(e) {}
+  }
+}
+function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
+function goPin()  { abmelden(); }
+function goWoerni() { window.location.href = 'schaltzentrale.html'; }
+function goApp(name) {
+  if (!name) { toast('App nicht gefunden'); return; }
+  // Direkte URL → sofort navigieren
+  if (name.startsWith('http')) { window.location.href = name; return; }
+  // Alias auflösen
+  const resolved = appAliases[name] || name;
+  // Exakter Treffer
+  let a = appsByName[resolved];
+  // Partieller Treffer
+  if (!a) a = apps.find(x => x.nm.toLowerCase().includes(resolved.toLowerCase()) || resolved.toLowerCase().includes(x.nm.toLowerCase()));
+  if (a && a.url) { window.location.href = a.url; }
+  else { toast('App nicht gefunden: ' + name); }
+}
+
+/* ── Supabase Auth Login ── */
+const AUTH_CLIENT = supabase.createClient(
+  "https://wrxlaltgtgkdomklgrlj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
+);
+
+async function loginMitSupabase() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  if (!email || !pw) return;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Wird geprüft…';
+  btn.disabled = true;
+  const { data, error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+  btn.textContent = 'Einloggen';
+  btn.disabled = false;
+  if (error) {
+    document.getElementById('loginFehler').style.display = 'block';
+    document.getElementById('loginPw').value = '';
+    document.getElementById('loginPw').focus();
+    return;
+  }
+  // Session merken und weiter
+  sessionStorage.setItem('ghd_unlocked', '1');
+  goHome();
+}
+
+async function abmelden() {
+  await AUTH_CLIENT.auth.signOut();
+  sessionStorage.removeItem('ghd_unlocked');
+  sessionStorage.removeItem('ghd_letzter_screen');
+  showScreen('screen-pin');
+}
+
+function buildKeypad() {} // leer — nicht mehr benötigt
+function renderPinDots() {} // leer — nicht mehr benötigt
+
+/* ── Sortieren Sheet ── */
+function openSortSheet()  { renderSortList(); document.getElementById('overlaySort').classList.add('active'); }
+function closeSortSheet() { document.getElementById('overlaySort').classList.remove('active'); renderApps(); renderSystem(); }
+function closeSortSheetBg(e) { if (e.target.id === 'overlaySort') closeSortSheet(); }
+function renderSortList() {
+  document.getElementById('sortList').innerHTML = appOrder.map((name,i) => {
+    const a = appsByName[name];
+    return `<div class="prio-row">
+      <div class="em">${a.em}</div>
+      <div class="nm">${name}</div>
+      <button class="prio-btn" ${i===0?'disabled':''} onclick="moveAppOrder('${name}',-1)">↑</button>
+      <button class="prio-btn" ${i===appOrder.length-1?'disabled':''} onclick="moveAppOrder('${name}',1)">↓</button>
+    </div>`;
+  }).join('');
+}
+function moveAppOrder(name, dir) {
+  const i = appOrder.indexOf(name), j = i + dir;
+  if (j < 0 || j >= appOrder.length) return;
+  [appOrder[i], appOrder[j]] = [appOrder[j], appOrder[i]];
+  renderSortList();
+}
+
+/* ── Prioritäten Sheet ── */
+function openPrioSheet()  { renderPrioSheet(); document.getElementById('overlayPrio').classList.add('active'); }
+function closePrioSheet() { document.getElementById('overlayPrio').classList.remove('active'); renderHome(); }
+function closePrioSheetBg(e) { if (e.target.id === 'overlayPrio') closePrioSheet(); }
+function renderPrioSheet() {
+  const selEl   = document.getElementById('prioSelectedList');
+  const availEl = document.getElementById('prioAvailableList');
+  selEl.innerHTML = priorities.length === 0
+    ? `<div class="prio-empty-hint">Noch keine Priorität gewählt.</div>`
+    : priorities.map((name,i) => {
+        const a = appsByName[name];
+        return `<div class="prio-row">
+          <div class="em">${a.em}</div>
+          <div class="nm">${name}</div>
+          <button class="prio-btn" ${i===0?'disabled':''} onclick="movePriority('${name}',-1)">↑</button>
+          <button class="prio-btn" ${i===priorities.length-1?'disabled':''} onclick="movePriority('${name}',1)">↓</button>
+          <button class="prio-btn remove" onclick="removePriority('${name}')">✕</button>
+        </div>`;
+      }).join('');
+  const available = orderedApps().filter(a => a.nm !== 'Wörni' && !priorities.includes(a.nm));
+  availEl.innerHTML = available.length === 0
+    ? `<div class="prio-empty-hint">Alle Apps sind bereits ausgewählt.</div>`
+    : available.map(a => `<div class="prio-row">
+        <div class="em">${a.em}</div>
+        <div class="nm">${a.nm}</div>
+        <div class="sb">${a.sb}</div>
+        <button class="prio-btn add" onclick="addPriority('${a.nm}')" ${priorities.length>=3?'disabled title="Maximal 3"':''}>+</button>
+      </div>`).join('');
+}
+function addPriority(name)    { if (priorities.length >= 3) { toast('Maximal 3 — zuerst eine entfernen'); return; } priorities.push(name); renderPrioSheet(); }
+function removePriority(name) { priorities = priorities.filter(n => n !== name); renderPrioSheet(); }
+function movePriority(name, dir) {
+  const i = priorities.indexOf(name), j = i + dir;
+  if (j < 0 || j >= priorities.length) return;
+  [priorities[i], priorities[j]] = [priorities[j], priorities[i]];
+  renderPrioSheet();
+}
+
+/* ── Toast ── */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+
+/* ── Signale ── */
+const SIG_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const SIG_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
+
+async function getAuthToken() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  return data?.session?.access_token || SIG_KEY;
+}
+
+async function sigFetch(table, filter) {
+  try {
+    const token = await getAuthToken();
+    const r = await fetch(`${SIG_URL}/rest/v1/${table}?${filter}&select=id`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}`, "Prefer": "count=exact" }
+    });
+    const count = r.headers.get("content-range");
+    if (count) return parseInt(count.split("/")[1]) || 0;
+    const data = await r.json();
+    return Array.isArray(data) ? data.length : 0;
+  } catch(e) { return null; }
+}
+
+async function lernquizDieseWoche() {
+  try {
+    const heute = new Date();
+    const tag = heute.getDay();
+    const diffZuMo = (tag === 0) ? -6 : 1 - tag;
+    const montag = new Date(heute);
+    montag.setDate(heute.getDate() + diffZuMo);
+    const token = await getAuthToken();
+    const r = await fetch(`${SIG_URL}/rest/v1/verlauf?select=datum&order=datum.desc&limit=50`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
+    });
+    const eintraege = await r.json();
+    if (!Array.isArray(eintraege)) return null;
+    return eintraege.some(e => {
+      if (!e.datum) return false;
+      const [d, m, y] = e.datum.split('.').map(Number);
+      return new Date(y, m - 1, d) >= montag;
+    });
+  } catch(e) { return null; }
+}
+
+// APP-WHITELIST für Signal-Chips (verhindert XSS über app_link aus DB)
+const SIGNAL_APP_WHITELIST = [
+  'Aufträge','Reichweite','Checklisten','Abwesenheit','Team','Lernquiz',
+  'Lerntool','Lager','Handbuch','Belege','Wörni','Innung','Schnuppertag','Schrank'
+];
+
+function signalHTML(dot, label, appLink) {
+  // Chip per DOM erzeugen — kein innerHTML mit DB-Werten, XSS-sicher
+  const chipKlasse = dot === 'krit' ? 'chip-krit' : dot === 'warn' ? 'chip-warn' : dot === 'ok' ? 'chip-ok' : '';
+  const div = document.createElement('div');
+  div.className = `signal-chip ${chipKlasse}`;
+
+  const dotEl = document.createElement('div');
+  dotEl.className = `signal-dot ${dot}`;
+  div.appendChild(dotEl);
+
+  const span = document.createElement('span');
+  span.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+  span.textContent = label; // textContent: kein HTML-Parsing, XSS-sicher
+  div.appendChild(span);
+
+  // appLink nur aus Whitelist erlauben — kein onclick-String aus DB
+  if (appLink && SIGNAL_APP_WHITELIST.includes(appLink)) {
+    div.addEventListener('click', () => goApp(appLink));
+    div.style.cursor = 'pointer';
+  }
+  return div;
+}
+
+async function ladeSignale() {
+  const grid = document.getElementById('signaleGrid');
+  if (!grid) return;
+  const token = await getAuthToken();
+
+  // Alle aktiven Signalregeln laden
+  let regeln = [];
+  try {
+    const r = await fetch(`${SIG_URL}/rest/v1/ghd_signal_regeln?aktiv=eq.true&order=erstellt_am.asc&select=signal_typ,tabelle,filter,label,app_link`, {
+      headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
+    });
+    regeln = await r.json();
+    if (!Array.isArray(regeln)) regeln = [];
+  } catch(e) { regeln = []; }
+
+  // Hilfsfunktion: eine Regel → Signal-HTML
+  async function regelZuSignal(regel) {
+    // Sonderfall: Lager — Bestand aus salon_lager, stock als jsonb, reorder_point als Zahl
+    if (regel.signal_typ === 'bestand_kritisch') {
+      try {
+        const r = await fetch(`${SIG_URL}/rest/v1/salon_lager?select=name,stock,reorder_point&reorder_point=not.is.null`, {
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
+        });
+        const items = await r.json();
+        const unter = Array.isArray(items) ? items.filter(p => {
+          if (!p.reorder_point || p.reorder_point <= 0) return false;
+          const gesamt = p.stock ? Object.values(p.stock).reduce((s,v)=>s+(v||0),0) : 0;
+          return gesamt <= p.reorder_point;
+        }) : [];
+        if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindestbestand`, regel.app_link);
+      } catch(e) { return signalHTML('leer', regel.label); }
     }
-  );
-  if (!res.ok) {
-    console.error('Profil-Fetch Fehler:', res.status, await res.text());
-    zeigeFehler('Verbindungsfehler. Bitte Seite neu laden.');
-    await AUTH.auth.signOut();
-    return;
+
+    // Sonderfall: Einkauf — nur anzeigen wenn menge < mindeststand
+    if (regel.signal_typ === 'einkauf_offen') {
+      try {
+        const r = await fetch(`${SIG_URL}/rest/v1/einkauf_items?erledigt=eq.false&mindeststand=not.is.null&menge=not.is.null&select=menge,mindeststand`, {
+          headers: { "apikey": SIG_KEY, "Authorization": `Bearer ${token}` }
+        });
+        const items = await r.json();
+        const unter = Array.isArray(items) ? items.filter(it => {
+          const m = parseFloat(it.menge); const min = parseFloat(it.mindeststand);
+          return !isNaN(m) && !isNaN(min) && m < min;
+        }) : [];
+        if (unter.length === 0) return signalHTML('ok', `${regel.label}: alles ok`);
+        return signalHTML('warn', `${unter.length} Artikel unter Mindeststand`, regel.app_link);
+      } catch(e) { return signalHTML('leer', regel.label); }
+    }
+
+    // Sonderfall: Lernquiz braucht eigene Datumslogik
+    if (regel.signal_typ === 'lernquiz_diese_woche') {
+      const gelernt = await lernquizDieseWoche();
+      if (gelernt === null) return signalHTML('leer', regel.label);
+      if (gelernt)          return signalHTML('ok',   `${regel.label}: gemacht`);
+      return signalHTML('warn', `Kein ${regel.label} diese Woche`, regel.app_link);
+    }
+    // Standardfall: Tabelle + Filter abfragen
+    const anzahl = await sigFetch(regel.tabelle, regel.filter);
+    if (anzahl === null)  return signalHTML('leer', regel.label);
+    if (anzahl === 0)     return signalHTML('ok',   `${regel.label}: alles ok`);
+    const dot = anzahl >= 3 ? 'krit' : 'warn';
+    return signalHTML(dot, `${anzahl} ${regel.label}${anzahl>1?'s':''}`, regel.app_link);
   }
-  const profile = await res.json();
-  const profil  = profile?.[0];
-  console.log('Profil geladen:', profil);
 
-  if (!profil) {
-    zeigeFehler('Kein aktives Profil gefunden. Bitte wende dich an Mirjam.');
-    await AUTH.auth.signOut();
-    return;
-  }
+  // Fallback-Regeln wenn ghd_signal_regeln leer oder nicht erreichbar
+  const fallback = [
+    { signal_typ: 'abw_ausstehend',      tabelle: 'abw_anfragen',  filter: 'status=eq.ausstehend', label: 'Urlaubsantrag', app_link: 'Abwesenheit' },
+    { signal_typ: 'einkauf_offen',       tabelle: 'einkauf_items', filter: 'erledigt=eq.false',    label: 'Einkauf',       app_link: 'Checklisten' },
+    { signal_typ: 'lernquiz_diese_woche',tabelle: 'verlauf',       filter: '',                      label: 'Lernquiz',      app_link: 'Lernquiz' },
+  ];
+  const aktiveRegeln = regeln.length > 0 ? regeln : fallback;
 
-  // Boss direkt zu Wörni
-  if (profil.rolle === 'boss') {
-    window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/schaltzentrale.html';
-    return;
-  }
+  const signale = await Promise.all(aktiveRegeln.map(r => regelZuSignal(r)));
+  // DOM-Elemente einfügen — kein innerHTML mit DB-Inhalten
+  grid.innerHTML = '';
+  signale.forEach(el => grid.appendChild(el));
+}
 
-  // Apps laden
-  const appsRes = await fetch(
-    `${SB_URL}/rest/v1/ghd_app_berechtigungen?rolle=eq.${profil.rolle}&select=app_id,ghd_apps(*)`,
-    { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` } }
-  );
-  const appsData = await appsRes.json();
-  const apps = (appsData || []).map(d => d.ghd_apps).filter(Boolean);
-  apps.sort((a, b) => a.sortierung - b.sortierung);
+/* ── Badge-System ── */
+const BADGE_SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
+const BADGE_SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
 
-  // Begrüßung
-  const stunde = new Date().getHours();
-  const gruss  = stunde < 11 ? 'Guten Morgen' : stunde < 17 ? 'Hallo' : 'Guten Abend';
-  document.getElementById('begruessung-text').textContent = `${gruss}, ${profil.vorname}! 👋`;
-  document.getElementById('begruessung-sub').textContent  = 'Deine Apps heute:';
-  document.getElementById('user-name').textContent        = profil.vorname;
+async function badgeFetch(table, filter) {
+  try {
+    const token = await getAuthToken();
+    const r = await fetch(`${BADGE_SB_URL}/rest/v1/${table}?${filter}&select=id`, {
+      headers: {
+        "apikey": BADGE_SB_KEY,
+        "Authorization": `Bearer ${token}`,
+        "Prefer": "count=exact"
+      }
+    });
+    const count = r.headers.get("content-range");
+    if (count) return parseInt(count.split("/")[1]) || 0;
+    const data = await r.json();
+    return Array.isArray(data) ? data.length : 0;
+  } catch(e) { return 0; }
+}
 
-  // Apps rendern
-  const grid = document.getElementById('apps-grid');
-  if (apps.length === 0) {
-    grid.innerHTML = '<p style="color:var(--accent);grid-column:1/-1;text-align:center;padding:40px;">Keine Apps verfügbar.</p>';
+function setBadge(appName, count) {
+  if (count <= 0) return;
+  const tiles = document.querySelectorAll('.app-tile-wrap');
+  tiles.forEach(wrap => {
+    const nm = wrap.querySelector('.nm');
+    if (nm && nm.textContent.trim() === appName) {
+      // alten Badge entfernen falls vorhanden
+      const old = wrap.querySelector('.app-badge');
+      if (old) old.remove();
+      const badge = document.createElement('div');
+      badge.className = 'app-badge';
+      badge.textContent = count > 9 ? '9+' : count;
+      wrap.appendChild(badge);
+    }
+  });
+}
+
+async function ladeBadges() {
+  // Abwesenheit: offene Anträge
+  const abw = await badgeFetch('abw_anfragen', 'status=eq.ausstehend');
+  setBadge('Abwesenheit', abw);
+
+  // Wörni: kritische Aufgaben
+  const woerni = await badgeFetch('ghd_aufgaben', 'status=neq.erledigt&prioritaet=eq.kritisch');
+  setBadge('Aufträge', woerni);
+  setBadge('Wörni', woerni);
+
+  // Innung: Seminare ohne Trainer
+  const innung = await badgeFetch('innungs_seminare', 'bestaetigte_person_id=is.null');
+  setBadge('Innung', innung);
+
+  // Lernquiz: hat Lehrling diese Woche Quiz gemacht?
+  await lernquizBadge();
+}
+
+async function lernquizBadge() {
+  try {
+    // Montag dieser Woche berechnen (österreichisches Format: D.M.YYYY)
+    const heute = new Date();
+    const tag = heute.getDay(); // 0=So, 1=Mo...
+    const diffZuMo = (tag === 0) ? -6 : 1 - tag;
+    const montag = new Date(heute);
+    montag.setDate(heute.getDate() + diffZuMo);
+
+    // Verlauf dieser Woche abfragen — österreichisches Datum D.M.YYYY
+    const token = await getAuthToken();
+    const r = await fetch(`${BADGE_SB_URL}/rest/v1/verlauf?select=datum,lehrling_id&order=datum.desc&limit=50`, {
+      headers: {
+        "apikey": BADGE_SB_KEY,
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    const eintraege = await r.json();
+    if (!Array.isArray(eintraege)) return;
+
+    // Prüfen ob diese Woche ein Eintrag existiert
+    const dieseWoche = eintraege.some(e => {
+      if (!e.datum) return false;
+      // Format: D.M.YYYY
+      const [d, m, y] = e.datum.split('.').map(Number);
+      const datum = new Date(y, m - 1, d);
+      return datum >= montag;
+    });
+
+    if (!dieseWoche) {
+      // Kein Quiz diese Woche → Badge "!" anzeigen
+      setBadgeCustom('Lernquiz', '!', '#A67A22');
+    } else {
+      // Quiz gemacht → prüfen ob neues Abzeichen (Streak) diese Woche
+      const abzeichen = await fetch(`${BADGE_SB_URL}/rest/v1/lernquiz_abzeichen?select=created_at&order=created_at.desc&limit=5`, {
+        headers: {
+          "apikey": BADGE_SB_KEY,
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const abzData = await abzeichen.json();
+      if (Array.isArray(abzData) && abzData.length > 0) {
+        const neuesAbz = abzData.some(a => {
+          if (!a.created_at) return false;
+          return new Date(a.created_at) >= montag;
+        });
+        if (neuesAbz) setBadgeCustom('Lernquiz', '★', '#4C7A5B');
+      }
+    }
+  } catch(e) { console.warn('Lernquiz Badge:', e); }
+}
+
+function setBadgeCustom(appName, symbol, farbe) {
+  const tiles = document.querySelectorAll('.app-tile-wrap');
+  tiles.forEach(wrap => {
+    const nm = wrap.querySelector('.nm');
+    if (nm && nm.textContent.trim() === appName) {
+      const old = wrap.querySelector('.app-badge');
+      if (old) old.remove();
+      const badge = document.createElement('div');
+      badge.className = 'app-badge';
+      badge.textContent = symbol;
+      badge.style.background = farbe;
+      wrap.appendChild(badge);
+    }
+  });
+}
+
+/* ── Init ── */
+buildKeypad();
+renderPinDots();
+updateGreeting();
+renderNowCard();
+renderHome();
+// Bereits eingeloggt: Supabase-Session prüfen
+(async function() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  if (data && data.session) {
+    sessionStorage.setItem('ghd_unlocked', '1');
+    // Zuletzt aktiven Screen wiederherstellen (z.B. "Apps"), statt immer bei der
+    // Startseite zu landen — z.B. nach der Rückkehr aus einer anderen App.
+    let ziel = 'screen-home';
+    try {
+      const letzter = sessionStorage.getItem('ghd_letzter_screen');
+      if (letzter && letzter !== 'screen-pin' && document.getElementById(letzter)) ziel = letzter;
+    } catch(e) {}
+    showScreen(ziel);
+    ladeBadges();
+    ladeSignale();
   } else {
-    grid.innerHTML = apps.map(app => `
-      <a href="${app.url}" class="app-kachel">
-        <div class="app-icon">${app.icon}</div>
-        <div class="app-name">${app.name}</div>
-        <div class="app-desc">${app.beschreibung || ''}</div>
-      </a>
-    `).join('');
+    showScreen('screen-pin');
   }
+})();
 
-  // Screens tauschen
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display   = 'block';
+// ── Realtime: Badges bei DB-Änderungen sofort aktualisieren ──
+// AUTH_CLIENT wiederverwenden — kein zweiter Client (vermeidet GoTrueClient-Warnung)
+AUTH_CLIENT
+  .channel('dashboard-badges')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'abw_anfragen' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'innungs_seminare' }, () => ladeBadges())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_signal_regeln' }, () => ladeSignale())
+  .subscribe();
+
+// ── Sprechen-FAB ──
+const fab        = document.getElementById('sprechenFab');
+const fabIcon    = document.getElementById('fabIcon');
+const fabLabel   = document.getElementById('fabLabel');
+let fabListening = false;
+let fabRec       = null;
+
+// FAB nur auf Home-Screen anzeigen
+function updateFabVisibility() {
+  const homeActive = document.getElementById('screen-home').classList.contains('active');
+  homeActive ? fab.classList.add('visible') : fab.classList.remove('visible');
 }
 
-async function logout() {
-  await AUTH.auth.signOut();
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app-screen').style.display   = 'none';
-  document.getElementById('email').value    = '';
-  document.getElementById('passwort').value = '';
+// showScreen patchen damit FAB mitbekommt wann Home aktiv ist
+const _origShowScreen = showScreen;
+window.showScreen = function(id) {
+  _origShowScreen(id);
+  updateFabVisibility();
+};
+updateFabVisibility();
+
+const ANTHROPIC_EDGE_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service';
+
+function fabToggleMic() {
+  if (fabListening) { fabRec?.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Mikrofon nur in Chrome verfügbar'); return; }
+
+  fabRec = new SR();
+  fabRec.lang = 'de-AT';
+  fabRec.interimResults = false;
+  fabRec._letzterText = '';
+
+  fabRec.onstart = () => {
+    fabListening = true;
+    document.getElementById('sprechenFab').classList.add('active');
+    document.getElementById('fabIcon').textContent = '⏹';
+    document.getElementById('fabLabel').textContent = 'Zuhören …';
+  };
+
+  fabRec.onresult = (e) => {
+    fabRec._letzterText = Array.from(e.results).map(r => r[0].transcript).join('');
+  };
+
+  fabRec.onend = async () => {
+    fabListening = false;
+    document.getElementById('sprechenFab').classList.remove('active');
+    document.getElementById('fabIcon').textContent = '🎙️';
+    document.getElementById('fabLabel').textContent = 'Sprechen';
+
+    const text = fabRec._letzterText;
+    if (!text || !text.trim()) return;
+
+    // Panel anzeigen
+    const panel = document.getElementById('woerniPanel');
+    const panelText = document.getElementById('woerniPanelText');
+    panelText.textContent = '…';
+    panel.classList.add('visible');
+
+    try {
+      const res = await fetch(ANTHROPIC_EDGE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 300,
+          system: 'Du bist "Wörni", der zentrale KI-Betriebsassistent und die operative Schaltzentrale für den Friseursalon "A great hair day" in Wien (Rechte Wienzeile 47, 1050 Wien). Deine Hauptaufgabe ist es, die Salonleitung (Mirjam Walenta) und das Team bei allen täglichen Abläufen, der Organisation, der Lehrlingsausbildung und administrativen Aufgaben zu unterstützen. TONFALL: Professionell, warmherzig, strukturiert, verlässlich und mit einem leichten Wiener Charm. Direkt auf den Punkt, klar strukturiert, lösungsorientiert. Du antwortest hier über die HTML-Schaltzentrale/Startseite — halte Antworten kurz, präzise und aufs Handy optimiert: max. 2–3 Sätze, Bullet Points und Emojis erlaubt. Antworte immer auf Deutsch (Österreich).',
+          messages: [{ role: 'user', content: text.trim() }]
+        })
+      });
+      const data = await res.json();
+      if (data?.content?.[0]?.text) {
+        panelText.textContent = data.content[0].text;
+      } else if (data?.error) {
+        panelText.textContent = 'Fehler: ' + data.error.message;
+      } else {
+        panelText.textContent = JSON.stringify(data).slice(0, 120);
+      }
+    } catch(err) {
+      panelText.textContent = 'Verbindungsfehler: ' + err.message;
+    }
+  };
+
+  fabRec.onerror = (e) => {
+    fabListening = false;
+    document.getElementById('sprechenFab').classList.remove('active');
+    document.getElementById('fabIcon').textContent = '🎙️';
+    document.getElementById('fabLabel').textContent = 'Sprechen';
+    if (e.error !== 'no-speech') toast('Mikrofon-Fehler: ' + e.error);
+  };
+
+  fabRec.start();
 }
 
-function zeigeFehler(msg) {
-  const el = document.getElementById('login-fehler');
-  el.textContent     = msg;
-  el.style.display   = 'block';
+// ── Offline-Banner ──
+function offlineBanner(zeigen) {
+  const b = document.getElementById('offline-banner');
+  if (b) b.style.display = zeigen ? 'block' : 'none';
 }
-
+window.addEventListener('offline', () => offlineBanner(true));
+window.addEventListener('online',  () => { offlineBanner(false); ladeBadges(); ladeSignale(); });
+if (!navigator.onLine) offlineBanner(true);
 </script>
 </body>
 </html>
