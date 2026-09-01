@@ -224,10 +224,9 @@ if (params.get('reason') === 'kein-zugang') {
 
 // Beim Laden prüfen ob bereits eingeloggt
 document.addEventListener('DOMContentLoaded', async () => {
-  const { data } = await AUTH.auth.getSession();
-  if (data?.session) {
-    await zeigeApps(data.session);
-  }
+  // Beim Laden der Mitarbeiter-Seite immer zuerst ausloggen
+  // damit jeder seinen eigenen Login eingeben kann
+  await AUTH.auth.signOut();
 });
 
 async function login() {
