@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
     } else if (session) {
       aktivitaetMerken();
-      await zeigeApps(session);
+      await zeigeApps(session, true);
       return;
     }
   } catch (err) {
@@ -312,7 +312,7 @@ async function login() {
   }
 }
 
-async function zeigeApps(session) {
+async function zeigeApps(session, autoStart) {
   // Profil laden — mit echtem Session-Token
   const token = session.access_token;
   const res = await fetch(
@@ -340,8 +340,17 @@ async function zeigeApps(session) {
     return;
   }
 
-  // Boss gehört nicht hierher — zurück zur originalen Startseite
+  // Boss gehört nicht hierher
   if (profil.rolle === 'boss') {
+    if (autoStart) {
+      // Session stammt aus dem Boss-Bereich (gleiches Supabase-Projekt).
+      // Nicht weiterleiten — sonst kommt man hier nie zum Login.
+      await AUTH.auth.signOut();
+      try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.display   = 'none';
+      return;
+    }
     window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
     return;
   }
