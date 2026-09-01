@@ -230,11 +230,45 @@ if (params.get('reason') === 'kein-zugang') {
   h.textContent = 'Du hast keinen Zugang zu dieser App. Bitte wende dich an Mirjam.';
 }
 
+// ── Automatische Abmeldung nach Inaktivität ──
+// Zeitstempel-basiert, damit die Zeit auch weiterläuft, während man
+// in einer der Apps unterwegs ist.
+const INAKTIV_MS  = 30 * 60 * 1000;   // 30 Minuten
+const AKTIV_KEY   = 'ghd_letzte_aktivitaet';
+
+function aktivitaetMerken() {
+  try { localStorage.setItem(AKTIV_KEY, Date.now().toString()); } catch(e) {}
+}
+function istAbgelaufen() {
+  try {
+    const letzte = parseInt(localStorage.getItem(AKTIV_KEY) || '0', 10);
+    return letzte > 0 && (Date.now() - letzte) > INAKTIV_MS;
+  } catch(e) { return false; }
+}
+// Jede Interaktion verlängert die Sitzung
+['click','keydown','touchstart','scroll'].forEach(ev =>
+  window.addEventListener(ev, aktivitaetMerken, { passive: true })
+);
+
 // Beim Laden prüfen ob bereits eingeloggt
 document.addEventListener('DOMContentLoaded', async () => {
-  // Immer ausloggen damit jeder frisch einloggen kann
-  await AUTH.auth.signOut();
-  // Login-Screen sicherstellen
+  // Bestehende Session weiterverwenden — sonst fällt man beim Zurückkommen
+  // aus einer App jedes Mal aus dem Login.
+  try {
+    const { data: { session } } = await AUTH.auth.getSession();
+    if (session && istAbgelaufen()) {
+      // Zu lange inaktiv → sauber abmelden
+      await AUTH.auth.signOut();
+      try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
+    } else if (session) {
+      aktivitaetMerken();
+      await zeigeApps(session);
+      return;
+    }
+  } catch (err) {
+    console.error('Session-Prüfung fehlgeschlagen:', err);
+  }
+  // Keine gültige Session → Login-Screen
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app-screen').style.display = 'none';
 });
@@ -266,6 +300,7 @@ async function login() {
 
   // Ab hier ist die Anmeldung erfolgreich — Fehler beim Laden der Apps
   // dürfen nicht mehr als "Anmeldung fehlgeschlagen" angezeigt werden.
+  aktivitaetMerken();
   try {
     const { data: { session } } = await AUTH.auth.getSession();
     await zeigeApps(session);
@@ -373,6 +408,7 @@ async function zeigeApps(session) {
 
 async function logout() {
   await AUTH.auth.signOut();
+  try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
   window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
 }
 
