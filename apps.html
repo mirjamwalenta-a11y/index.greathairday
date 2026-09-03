@@ -305,10 +305,10 @@
     </div>
     <!-- Apps + Wörni — immer sichtbar, immer oben rechts -->
     <div style="display:flex;gap:6px">
-      <button onclick="showSystem()" style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 13px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.7);font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;transition:background 0.15s;">
+      <button onclick="showSystem()" class="ghd-chefin-only" style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 13px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.7);font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;transition:background 0.15s;">
         <span style="font-size:14px">⊞</span> Apps
       </button>
-      <button onclick="window.location.href='index.html'" style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 13px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.7);font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;transition:background 0.15s;position:relative;" id="woerniBtn">
+      <button onclick="window.location.href='index.html'" class="ghd-chefin-only" style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 13px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.7);font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;transition:background 0.15s;position:relative;" id="woerniBtn">
         <span style="font-size:14px">🤖</span> Wörni
         <span id="auftragBadge" style="display:none;background:#e05a3a;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 6px;margin-left:2px"></span>
       </button>
@@ -316,7 +316,7 @@
   </div>
 
   <!-- ══ IMPULSKARTE — der eine Haupteinstieg ══ -->
-  <div id="impulsKarte" onclick="impulsAktion()" style="
+  <div id="impulsKarte" class="ghd-chefin-only" onclick="impulsAktion()" style="
     background:linear-gradient(135deg,#896C32 0%,#6E5527 100%);
     border:none;box-shadow:0 12px 24px rgba(137,108,50,0.30);
     border-radius:18px;padding:22px 20px 18px;
@@ -336,11 +336,14 @@
     </div>
   </div>
 
+  <!-- Mitarbeiter:innen-Apps — nur für Mitarbeiter:innen sichtbar, wird per JS befüllt -->
+  <div id="mitarbeiterAppsListe" style="display:none;margin-bottom:24px"></div>
+
   <!-- ══ DREI BEREICHE — sekundäre Orientierung ══ -->
   <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:20px">
 
     <!-- Sichtbar werden -->
-    <div onclick="showSichtbar()" style="
+    <div onclick="showSichtbar()" class="ghd-chefin-only" style="
       display:flex;align-items:center;gap:14px;
       background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:13px 16px;cursor:pointer;
@@ -355,7 +358,7 @@
     </div>
 
     <!-- Team führen -->
-    <div onclick="showTeamFuehren()" style="
+    <div onclick="showTeamFuehren()" class="ghd-chefin-only" style="
       display:flex;align-items:center;gap:14px;
       background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:13px 16px;cursor:pointer;
@@ -373,7 +376,7 @@
     </div>
 
     <!-- Belege ordnen -->
-    <div onclick="showBelegeOrdnen()" style="
+    <div onclick="showBelegeOrdnen()" class="ghd-chefin-only" style="
       display:flex;align-items:center;gap:14px;
       background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
       border-radius:13px;padding:11px 16px;cursor:pointer;
@@ -390,8 +393,8 @@
 
   <!-- ══ MEHR — sehr klein, sehr ruhig ══ -->
   <div style="display:flex;gap:6px;justify-content:center">
-    <button onclick="showDash()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">🗝 Zugangsdaten</button>
-    <button onclick="showSystem()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">⚙️ System</button>
+    <button onclick="showDash()" class="ghd-chefin-only" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">🗝 Zugangsdaten</button>
+    <button onclick="showSystem()" class="ghd-chefin-only" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">⚙️ System</button>
     <button onclick="doLogout()" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:999px;color:rgba(33,29,23,0.5);font-size:10px;cursor:pointer;font-family:inherit">↩ Abmelden</button>
   </div>
 
@@ -402,7 +405,7 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideSichtbar()">← Zurück</button>
     <div class="dash-title">✨ Sichtbar werden</div>
-    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" class="ghd-chefin-only" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Primärer Einstieg -->
@@ -435,7 +438,7 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideTeamFuehren()">← Zurück</button>
     <div class="dash-title">👥 Team führen</div>
-    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" class="ghd-chefin-only" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Primär: nur was Entscheidung braucht -->
@@ -457,7 +460,7 @@
   <div class="dash-header">
     <button class="dash-back" onclick="hideBelegeOrdnen()">← Zurück</button>
     <div class="dash-title">🧾 Belege ordnen</div>
-    <button onclick="window.location.href='index.html'" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
+    <button onclick="window.location.href='index.html'" class="ghd-chefin-only" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:inherit;color:rgba(33,29,23,0.6);font-size:11px;font-weight:600">🤖 Wörni</button>
   </div>
 
   <!-- Status-Karte -->
@@ -978,6 +981,7 @@ const ALLE_APPS = [
 
 // ── Heute-Screen ─────────────────────────────────────────────────────────────
 function showHeute(){
+  if(!istChefin()) return; // Wörni ist exklusiver Chefin-Bereich
   document.getElementById('appScreen').style.display='none';
   document.getElementById('heuteScreen').style.display='block';
   heuteBegruessung();
@@ -1189,6 +1193,8 @@ async function belegeToken(){
 }
 
 let currentSession=null;
+// Wörni und System sind exklusive Chefin-Bereiche — zentrale Rollenprüfung dafür.
+function istChefin(){ return !!(currentSession && currentSession.rolle==='chefin'); }
 
 function md5(str){
   function L(q,a,b,x,s,t){let n=(q&0xFFFF)+(a&0xFFFF),m=(q>>16)+(a>>16)+(n>>16);return((m<<16)|(n&0xFFFF))&0xFFFFFFFF}
@@ -1227,7 +1233,8 @@ function md5(str){
 }
 
 window.addEventListener('DOMContentLoaded', async ()=>{
-  // Alte gespeicherte Session lesen (Team-Rollen bleiben weiterhin clientseitig vertraut, siehe Statusdokument)
+  // Alte gespeicherte Session lesen — dient ab jetzt nur noch zur Identifikation (per id),
+  // nicht mehr als Quelle der Rolle.
   const saved=localStorage.getItem('ghd_session');
   let savedSession=null;
   if(saved){try{savedSession=JSON.parse(saved);}catch(e){localStorage.removeItem('ghd_session');}}
@@ -1241,14 +1248,30 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     return;
   }
 
-  // Kein echtes Chefin-Login aktiv: eine alte, nicht mehr verifizierbare Chefin-Session verwerfen —
-  // eine gespeicherte Team-Session (Kennung+PIN) bleibt wie bisher gültig.
-  if(savedSession && savedSession.rolle!=='chefin'){
-    currentSession=savedSession;
-    showApp();
-    return;
-  }
+  // Kein echtes Chefin-Login aktiv: eine alte, nicht mehr verifizierbare Chefin-Session verwerfen.
   if(savedSession && savedSession.rolle==='chefin'){
+    localStorage.removeItem('ghd_session');
+    savedSession=null;
+  }
+
+  // Gespeicherte Mitarbeiter:innen-Session: die Rolle wird NICHT aus dem localStorage übernommen,
+  // sondern bei jedem Laden frisch anhand der gespeicherten id aus salon_personen nachgeladen.
+  if(savedSession && savedSession.id){
+    let frischePerson=null;
+    try{
+      const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?id=eq.${encodeURIComponent(savedSession.id)}&aktiv=eq.true`,
+        {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
+      if(rows && rows.length) frischePerson=rows[0];
+    }catch(e){ frischePerson=null; }
+
+    if(frischePerson){
+      currentSession={name:frischePerson.name,rolle:frischePerson.rolle,id:frischePerson.id};
+      localStorage.setItem('ghd_session',JSON.stringify(currentSession));
+      showApp();
+      return;
+    }
+    // Person nicht mehr gefunden, deaktiviert oder Server nicht erreichbar:
+    // keine privilegierte Session herstellen, sauber auf Login zurückfallen.
     localStorage.removeItem('ghd_session');
   }
 
@@ -1304,6 +1327,8 @@ function showApp(){
   const h=new Date().getHours();
   const gruss=h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend';
   document.getElementById('appGreeting').textContent=`${gruss}, ${currentSession.name}!`;
+  // Wörni- und System-Zugänge nur für die Chefin sichtbar machen
+  document.querySelectorAll('.ghd-chefin-only').forEach(el=>{ el.style.display = istChefin() ? '' : 'none'; });
   startseiteLaden();
 }
 
@@ -1398,6 +1423,7 @@ const ZG_PIN = '3101';
 const ZG_SESSION = 'ghd_zg_ok'; // bleibt bis App-Logout
 
 function showDash(){
+  if(!istChefin()) return; // Zugangsdaten sind exklusiver Chefin-Bereich
   // Bereits verifiziert? Direkt rein.
   if(sessionStorage.getItem(ZG_SESSION)==='1'){
     _dashOeffnen(); return;
@@ -1763,6 +1789,7 @@ const SYS_KEY       = 'ghd_eigene_apps';
 const SYS_ORDER_KEY = 'ghd_sys_order';
 
 function showSystem(){
+  if(!istChefin()) return; // System ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('systemScreen').style.display='block';
   systemRendern();
@@ -1956,6 +1983,7 @@ function systemLoeschen(id){
 document.addEventListener('click',e=>{ if(e.target.id==='systemModal') systemModalSchliessen(); });
 
 function showSystem(){
+  if(!istChefin()) return; // System ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('systemScreen').style.display='block';
   systemRendern();
@@ -2023,6 +2051,7 @@ function alleScreensAus(){
 
 // ── Sichtbar werden ──
 function showSichtbar(){
+  if(!istChefin()) return; // Sichtbar werden ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('sichtbarScreen').style.display='block';
 }
@@ -2054,6 +2083,7 @@ function sichtbarRahmen(){
 
 // ── Team führen ──
 function showTeamFuehren(){
+  if(!istChefin()) return; // Team führen ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('teamFuehrenScreen').style.display='block';
   teamEntscheidungRendern();
@@ -2132,6 +2162,7 @@ function teamZuFitCheck(){ window.open(REICHWEITE_URL+'?modus=fitcheck','_blank'
 
 // ── Belege ordnen ──
 function showBelegeOrdnen(){
+  if(!istChefin()) return; // Belege ordnen ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('belegeOrdnenScreen').style.display='block';
   belegeStatusLaden();
@@ -2191,6 +2222,7 @@ function belegeZuApp(modus){
 
 // ── Wörni-Button auf Startseite öffnet Aufträge-Screen ──
 function showWoerniAuftraege(){
+  if(!istChefin()) return; // Wörni ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('heuteScreen').style.display='block';
   wörniTabWechseln('auftraege');
@@ -2215,6 +2247,7 @@ function wörniTabWechseln(tab){
 
 // ── Auftrags-Badge auf Startseite befüllen ──
 async function auftragBadgeLaden(){
+  if(!istChefin()) return; // Wörni-Aufgabendaten sind exklusiver Chefin-Bereich
   try{
     const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?status=eq.offen&select=id`,{
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
@@ -2240,6 +2273,7 @@ function showHeute(){
 // ── Wörni überschreiben ──
 const _ghdShowWoerni = showWoerni;
 showWoerni = function(){
+  if(!istChefin()) return; // Wörni ist exklusiver Chefin-Bereich
   alleScreensAus();
   document.getElementById('woerniScreen').style.display='block';
   azInit(); woerniAufgabenLaden();
@@ -2350,12 +2384,44 @@ function impulsAktion(){
   if(impulsAktionFn && window[impulsAktionFn]) window[impulsAktionFn]();
 }
 
+// ── Mitarbeiter:innen-Apps: reine Link-Liste, keine Bearbeiten-/Admin-Funktionen ──
+const MITARBEITER_APPS = [
+  {name:'Team',        icon:'👥', desc:'Mitarbeiter & Kommunikation', url:'https://mirjamwalenta-a11y.github.io/Team/team.html'},
+  {name:'Abwesenheit', icon:'📅', desc:'Urlaub & Krankenstand',       url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
+  {name:'Checklisten', icon:'✅', desc:'Tägliche Checklisten',        url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
+  {name:'Lernquiz',    icon:'🎓', desc:'Prüfungsvorbereitung',        url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
+  {name:'Schnuppertag',icon:'✨', desc:'Schnuppertag-Verwaltung',     url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
+];
+function mitarbeiterAppsRendern(){
+  const el=document.getElementById('mitarbeiterAppsListe');
+  if(!el) return;
+  el.innerHTML = `<div style="color:rgba(33,29,23,0.45);font-size:12px;margin-bottom:10px">Deine Apps</div>` +
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+    MITARBEITER_APPS.map(a=>`
+      <div onclick="window.open('${a.url}','_blank')" style="
+        background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(33,29,23,0.04);
+        border-radius:13px;padding:13px 14px;cursor:pointer;
+        -webkit-tap-highlight-color:transparent;transition:background 0.15s;
+      ">
+        <span style="font-size:18px">${a.icon}</span>
+        <div style="color:#211D17;font-size:13px;font-weight:600;margin-top:6px">${a.name}</div>
+        <div style="color:rgba(33,29,23,0.45);font-size:11px;margin-top:1px">${a.desc}</div>
+      </div>`).join('') +
+    `</div>`;
+}
+
 // ── Startseite initialisieren ──
 function startseiteLaden(){
-  impulsKarteInit();
-  teamBadgeLaden();
-  belegeSubLaden();
-  auftragBadgeLaden();
+  if(istChefin()){
+    document.getElementById('mitarbeiterAppsListe').style.display='none';
+    impulsKarteInit();
+    teamBadgeLaden();
+    belegeSubLaden();
+    auftragBadgeLaden();
+  } else {
+    mitarbeiterAppsRendern();
+    document.getElementById('mitarbeiterAppsListe').style.display='block';
+  }
 }
 
 async function teamBadgeLaden(){
@@ -2853,7 +2919,7 @@ const WOERNI_ANLAESSE=[
   {id:'ruhiger_tag',text:'Heute war ruhig, ich will trotzdem etwas zeigen'}
 ];
 let woerniGewaehlterAnlass=null, woerniPollTimer=null;
-function showWoerni(){document.getElementById('appScreen').style.display='none';document.getElementById('woerniScreen').style.display='block';azInit();woerniAufgabenLaden();}
+function showWoerni(){if(!istChefin())return;document.getElementById('appScreen').style.display='none';document.getElementById('woerniScreen').style.display='block';azInit();woerniAufgabenLaden();}
 function hideWoerni(){clearTimeout(woerniPollTimer);document.getElementById('woerniScreen').style.display='none';document.getElementById('appScreen').style.display='block';}
 function woerniAnlassRendern(){
   const c=document.getElementById('woerniAnlassListe');c.innerHTML='';
