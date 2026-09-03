@@ -804,6 +804,33 @@ const AUTH_CLIENT = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
 );
 
+// ── Auftrag 1: Wörni & System sind exklusive Chefin-Bereiche ──────────────
+// Jede echte Supabase-Session wird serverseitig gegen teamapp_persons geprüft
+// (dieselbe Tabelle, die auch team.html/rechte-gatekeeper bereits nutzen),
+// bevor diese Seite (Wörni-Zugang + System) angezeigt wird. Nur "ist eingeloggt"
+// reicht nicht mehr — nur rolle==='inhaberin' erhält Zugriff.
+async function pruefeChefinRolle(session) {
+  try {
+    if (!session || !session.user || !session.user.email) return false;
+    const r = await fetch(
+      `https://wrxlaltgtgkdomklgrlj.supabase.co/rest/v1/teamapp_persons?email=eq.${encodeURIComponent(session.user.email)}&select=rolle`,
+      { headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g",
+          "Authorization": `Bearer ${session.access_token}`
+        } }
+    );
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length > 0 && rows[0].rolle === 'inhaberin';
+  } catch (e) { return false; }
+}
+async function zugriffVerweigert() {
+  await AUTH_CLIENT.auth.signOut();
+  sessionStorage.removeItem('ghd_unlocked');
+  const err = document.getElementById('loginFehler');
+  if (err) { err.textContent = 'Kein Zugriff — dieser Bereich ist der Chefin vorbehalten.'; err.style.display = 'block'; }
+  showScreen('screen-pin');
+}
+
 async function loginMitSupabase() {
   const email = document.getElementById('loginEmail').value.trim();
   const pw    = document.getElementById('loginPw').value;
@@ -815,11 +842,15 @@ async function loginMitSupabase() {
   btn.textContent = 'Einloggen';
   btn.disabled = false;
   if (error) {
+    document.getElementById('loginFehler').textContent = 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.';
     document.getElementById('loginFehler').style.display = 'block';
     document.getElementById('loginPw').value = '';
     document.getElementById('loginPw').focus();
     return;
   }
+  // Rollenprüfung: nur die Chefin darf diese Seite betreten (Wörni & System)
+  const chefinOk = await pruefeChefinRolle(data.session);
+  if (!chefinOk) { await zugriffVerweigert(); return; }
   // Session merken und weiter
   sessionStorage.setItem('ghd_unlocked', '1');
   goHome();
@@ -1189,6 +1220,8 @@ renderHome();
 (async function() {
   const { data } = await AUTH_CLIENT.auth.getSession();
   if (data && data.session) {
+    const chefinOk = await pruefeChefinRolle(data.session);
+    if (!chefinOk) { await zugriffVerweigert(); return; }
     sessionStorage.setItem('ghd_unlocked', '1');
     showScreen('screen-home');
     ladeBadges();

@@ -268,7 +268,7 @@
 <div id="root" style="display:none;"></div>
 
 <!-- MIKRO-FAB -->
-<button id="ghd-mikro-fab" style="position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
+<button id="ghd-mikro-fab" style="display:none;position:fixed;left:20px;bottom:28px;z-index:9999;background:var(--bg-soft);color:var(--accent-dark);border:1.5px solid var(--border);border-radius:999px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(137,108,50,0.2);font-family:inherit;">🎤 Sprechen</button>
 <script>
 document.getElementById('ghd-mikro-fab').addEventListener('click', function(){
   setTimeout(function(){
@@ -300,6 +300,33 @@ const SZ_AUTH = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g"
 );
 
+// ── Auftrag 1: Wörni ist exklusiver Chefin-Bereich ────────────────────────
+// Jede echte Supabase-Session wird serverseitig gegen teamapp_persons geprüft
+// (dieselbe Tabelle, die auch team.html/rechte-gatekeeper bereits nutzen),
+// bevor die Schaltzentrale angezeigt wird. Nur "ist eingeloggt" reicht nicht
+// mehr — nur rolle==='inhaberin' erhält Zugriff.
+async function szPruefeChefinRolle(session) {
+  try {
+    if (!session || !session.user || !session.user.email) return false;
+    const r = await fetch(
+      `https://wrxlaltgtgkdomklgrlj.supabase.co/rest/v1/teamapp_persons?email=eq.${encodeURIComponent(session.user.email)}&select=rolle`,
+      { headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g",
+          "Authorization": `Bearer ${session.access_token}`
+        } }
+    );
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length > 0 && rows[0].rolle === 'inhaberin';
+  } catch (e) { return false; }
+}
+async function szZugriffVerweigert() {
+  await SZ_AUTH.auth.signOut();
+  const err = document.getElementById('sz-fehler');
+  if (err) { err.textContent = 'Kein Zugriff — Wörni ist der Chefin vorbehalten.'; err.style.display = 'block'; }
+  document.getElementById('root').style.display = 'none';
+  document.getElementById('sz-login').style.display = 'flex';
+}
+
 async function szLogin() {
   const email = document.getElementById('sz-email').value.trim();
   const pw    = document.getElementById('sz-pw').value;
@@ -311,23 +338,30 @@ async function szLogin() {
   btn.textContent = 'Einloggen';
   btn.disabled = false;
   if (error) {
+    document.getElementById('sz-fehler').textContent = 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.';
     document.getElementById('sz-fehler').style.display = 'block';
     document.getElementById('sz-pw').value = '';
     document.getElementById('sz-pw').focus();
     return;
   }
+  const chefinOk = await szPruefeChefinRolle(data.session);
+  if (!chefinOk) { await szZugriffVerweigert(); return; }
   szZeigeApp();
 }
 
 function szZeigeApp() {
   document.getElementById('sz-login').style.display = 'none';
   document.getElementById('root').style.display = 'block';
+  const fab = document.getElementById('ghd-mikro-fab');
+  if (fab) fab.style.display = 'flex';
 }
 
 // Session beim Laden prüfen
 (async function() {
   const { data } = await SZ_AUTH.auth.getSession();
   if (data && data.session) {
+    const chefinOk = await szPruefeChefinRolle(data.session);
+    if (!chefinOk) { await szZugriffVerweigert(); return; }
     szZeigeApp();
   }
 })();
