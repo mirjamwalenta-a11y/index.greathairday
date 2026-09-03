@@ -1065,14 +1065,8 @@ function Woerni() {
     }
     await api.updateAufgabe(id, daten);
     try { await api.addVerlauf({ aufgabe_id:id, von:"mirjam", aktion:daten.status==="erledigt"?"erledigt":"status-geaendert", zu_status:daten.status }); } catch(e) {}
-    if (daten.status === "erledigt") {
-      await aufräumenErledigt();
-      // Erledigt: Liste NICHT neu laden — optimistisches Update bleibt bestehen
-      const [e2] = await Promise.all([api.getErledigt()]);
-      setErledigt(e2||[]);
-    } else {
-      await laden_();
-    }
+    if (daten.status === "erledigt") await aufräumenErledigt();
+    await laden_();
   }
 
   async function addAufgabe(daten) {
@@ -1153,7 +1147,7 @@ function Woerni() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
+            'Authorization': `Bearer ${(await SZ_AUTH.auth.getSession()).data?.session?.access_token}`,
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
           },
           body: JSON.stringify({
@@ -1232,7 +1226,7 @@ function Woerni() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
+          'Authorization': `Bearer ${(await SZ_AUTH.auth.getSession()).data?.session?.access_token}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
         },
         body: JSON.stringify({
