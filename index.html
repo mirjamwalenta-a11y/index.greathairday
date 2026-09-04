@@ -824,6 +824,8 @@ async function pruefeChefinRolle(session) {
   } catch (e) { return false; }
 }
 async function zugriffVerweigert() {
+  chefBereichAktiv = false;
+  clearTimeout(inaktivitaetsTimer);
   await AUTH_CLIENT.auth.signOut();
   sessionStorage.removeItem('ghd_unlocked');
   const err = document.getElementById('loginFehler');
@@ -853,14 +855,36 @@ async function loginMitSupabase() {
   if (!chefinOk) { await zugriffVerweigert(); return; }
   // Session merken und weiter
   sessionStorage.setItem('ghd_unlocked', '1');
+  chefBereichAktiv = true;
+  inaktivitaetsTimerZuruecksetzen();
   goHome();
 }
 
 async function abmelden() {
+  chefBereichAktiv = false;
+  clearTimeout(inaktivitaetsTimer);
   await AUTH_CLIENT.auth.signOut();
   sessionStorage.removeItem('ghd_unlocked');
   showScreen('screen-pin');
 }
+
+// ── Inaktivitäts-Abmeldung (Chefbereich) ──────────────────────────────────
+// Meldet die Startseite automatisch ab, wenn 10 Minuten lang keine echte
+// Aktivität (Maus, Tastatur, Touch, Scroll) stattgefunden hat. Läuft nur,
+// solange der Chefbereich tatsächlich betreten ist — nicht während der
+// Login-Bildschirm sichtbar ist.
+const INAKTIVITAET_MS = 10 * 60 * 1000;
+let chefBereichAktiv = false;
+let inaktivitaetsTimer = null;
+
+function inaktivitaetsTimerZuruecksetzen() {
+  if (!chefBereichAktiv) return;
+  clearTimeout(inaktivitaetsTimer);
+  inaktivitaetsTimer = setTimeout(() => { abmelden(); }, INAKTIVITAET_MS);
+}
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+  document.addEventListener(ev, inaktivitaetsTimerZuruecksetzen, { passive: true })
+);
 
 function buildKeypad() {} // leer — nicht mehr benötigt
 function renderPinDots() {} // leer — nicht mehr benötigt
@@ -1223,6 +1247,8 @@ renderHome();
     const chefinOk = await pruefeChefinRolle(data.session);
     if (!chefinOk) { await zugriffVerweigert(); return; }
     sessionStorage.setItem('ghd_unlocked', '1');
+    chefBereichAktiv = true;
+    inaktivitaetsTimerZuruecksetzen();
     showScreen('screen-home');
     ladeBadges();
     ladeSignale();

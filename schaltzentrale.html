@@ -320,6 +320,8 @@ async function szPruefeChefinRolle(session) {
   } catch (e) { return false; }
 }
 async function szZugriffVerweigert() {
+  szChefBereichAktiv = false;
+  clearTimeout(szInaktivitaetsTimer);
   await SZ_AUTH.auth.signOut();
   const err = document.getElementById('sz-fehler');
   if (err) { err.textContent = 'Kein Zugriff — Wörni ist der Chefin vorbehalten.'; err.style.display = 'block'; }
@@ -354,7 +356,33 @@ function szZeigeApp() {
   document.getElementById('root').style.display = 'block';
   const fab = document.getElementById('ghd-mikro-fab');
   if (fab) fab.style.display = 'flex';
+  szChefBereichAktiv = true;
+  szInaktivitaetsTimerZuruecksetzen();
 }
+
+// ── Inaktivitäts-Abmeldung (Chefbereich) ──────────────────────────────────
+// Meldet Wörni automatisch ab, wenn 10 Minuten lang keine echte Aktivität
+// (Maus, Tastatur, Touch, Scroll) stattgefunden hat. Läuft nur, solange der
+// Chefbereich tatsächlich betreten ist — nicht während der Login-Bildschirm
+// sichtbar ist.
+const SZ_INAKTIVITAET_MS = 10 * 60 * 1000;
+let szChefBereichAktiv = false;
+let szInaktivitaetsTimer = null;
+
+async function szInaktivitaetsLogout() {
+  szChefBereichAktiv = false;
+  await SZ_AUTH.auth.signOut();
+  document.getElementById('root').style.display = 'none';
+  document.getElementById('sz-login').style.display = 'flex';
+}
+function szInaktivitaetsTimerZuruecksetzen() {
+  if (!szChefBereichAktiv) return;
+  clearTimeout(szInaktivitaetsTimer);
+  szInaktivitaetsTimer = setTimeout(szInaktivitaetsLogout, SZ_INAKTIVITAET_MS);
+}
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+  document.addEventListener(ev, szInaktivitaetsTimerZuruecksetzen, { passive: true })
+);
 
 // Session beim Laden prüfen
 (async function() {
@@ -897,6 +925,7 @@ function SchaltzentraleKarte({ aufgaben, ereignisse }) {
   const krit = aufgaben.filter(a => a.prioritaet==="kritisch").length;
   const heute_ = aufgaben.filter(a => a.prioritaet==="heute").length;
   const auto = aufgaben.filter(a => a.app_kontext).length;
+  const einkauf = aufgaben.filter(a => a.fach_kontext==="einkauf").length;
   const gesamt = aufgaben.length;
   const evAnzahl = ereignisse ? ereignisse.length : 0;
 
@@ -909,10 +938,11 @@ function SchaltzentraleKarte({ aufgaben, ereignisse }) {
           <div className="sz-sub">{gesamt===0 ? 'Alles erledigt — Great Hair Day!' : `offene ${gesamt===1?'Aufgabe':'Aufgaben'}`}</div>
         </div>
       </div>
-      {(krit>0 || heute_>0 || auto>0 || evAnzahl>0) && (
+      {(krit>0 || heute_>0 || auto>0 || einkauf>0 || evAnzahl>0) && (
         <div className="sz-chips">
           {krit>0 && <span className="sz-chip rot">🔴 {krit} kritisch</span>}
           {heute_>0 && <span className="sz-chip gold">⚡ {heute_} heute</span>}
+          {einkauf>0 && <span className="sz-chip" style={{background:'rgba(76,122,91,0.35)'}}>🛒 {einkauf} Einkauf</span>}
           {auto>0 && <span className="sz-chip">🤖 {auto} automatisch</span>}
           {evAnzahl>0 && <span className="sz-chip" style={{background:'rgba(78,114,136,0.35)'}}>📡 {evAnzahl} neu</span>}
         </div>
