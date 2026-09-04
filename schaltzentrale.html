@@ -1291,8 +1291,18 @@ function Woerni() {
   // Fälligkeits-Hinweis: Aufgaben die heute oder morgen fällig sind
   const heute_iso = isoHeute();
   const morgen_iso = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
-  const faelligBald = aufgaben.filter(a => a.faellig_am && (a.faellig_am.slice(0,10) <= morgen_iso));
+  // Überfällig: eigene, von "heute/morgen" getrennte Gruppe
+  const ueberfaellig = aufgaben.filter(a => a.faellig_am && a.faellig_am.slice(0,10) < heute_iso);
+  const faelligBald = aufgaben.filter(a => a.faellig_am && a.faellig_am.slice(0,10) >= heute_iso && a.faellig_am.slice(0,10) <= morgen_iso);
   const faelligHeute = faelligBald.filter(a => a.faellig_am.slice(0,10) === heute_iso);
+
+  // Fokus-Aufgabe: automatisch bestimmt aus vorhandenen Feldern (prioritaet, faellig_am),
+  // Reihenfolge: kritisch > überfällig (älteste zuerst, da aufgaben bereits nach faellig_am sortiert) > heute > sonst erste offene Aufgabe
+  const fokusAufgabe = aufgaben.find(a => a.prioritaet==="kritisch")
+    || ueberfaellig[0]
+    || aufgaben.find(a => a.prioritaet==="heute")
+    || aufgaben[0]
+    || null;
 
   const gruppen = {
     kritisch:       aufgaben.filter(a => a.prioritaet==="kritisch"),
@@ -1324,8 +1334,34 @@ function Woerni() {
 
       <div style={{padding:'0 20px'}}>
 
+        {/* FOKUS-AUFGABE */}
+        {!laden && !fehler && tab==="heute" && fokusAufgabe && (
+          <div style={{marginBottom:16}}>
+            <div className="abschnitt-header">
+              <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>🎯 Fokus jetzt</span>
+              <div className="abschnitt-line"/>
+            </div>
+            <AufgabeKarte aufgabe={fokusAufgabe} onClick={() => setAusgewaehlt(fokusAufgabe)}/>
+          </div>
+        )}
+
         {/* SCHALTZENTRALE KARTE */}
         {!laden && !fehler && <SchaltzentraleKarte aufgaben={aufgaben} ereignisse={ereignisse} />}
+
+        {/* ÜBERFÄLLIG-HINWEIS (getrennt von heute/morgen) */}
+        {!laden && tab==="heute" && ueberfaellig.length > 0 && (
+          <div style={{background:'var(--crit-tint)',border:'1px solid rgba(178,58,46,0.3)',borderRadius:'var(--radius)',padding:'12px 14px',marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:20}}>⚠️</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:'var(--crit)'}}>
+                {ueberfaellig.length} Aufgabe{ueberfaellig.length>1?'n':''} überfällig
+              </div>
+              <div style={{fontSize:11,color:'var(--text-soft)',marginTop:2}}>
+                {ueberfaellig.map(a => a.titel).join(' · ')}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FÄLLIGKEITS-HINWEIS */}
         {!laden && faelligBald.length > 0 && (
