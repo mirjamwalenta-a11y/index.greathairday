@@ -1783,7 +1783,8 @@ function Woerni() {
                         });
                         toast('✓ Aufgabe erstellt');
                       } catch(e) {
-                        toast('⚠ Aufgabe konnte nicht erstellt werden');
+                        console.error('Aufgabe aus Ereignis Fehler:', e);
+                        toast('⚠ Fehler: ' + String(e.message || e).slice(0, 100));
                       }
                       // Ereignis als gelesen markieren (Karte ist bereits entfernt)
                       await api.ereignisGelesen(ev.id).catch(()=>{});
