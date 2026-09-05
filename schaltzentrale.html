@@ -490,6 +490,138 @@ function tageszeitBegruessung() {
 }
 function formatDatum(iso) { if(!iso) return null; const d=new Date(iso); return `${d.getDate()}. ${MONATE[d.getMonth()]}`; }
 function isoHeute() { return new Date().toISOString().slice(0,10); }
+function morgenIso() { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); }
+
+// ─── ZWEITES ÖFFNEN HEUTE (für Tagesabschluss) ────────────────────────────────
+// Sehr einfache, robuste lokale Zählung: pro Kalendertag ein Zähler in localStorage.
+// Zählt bei jedem Laden hoch; ab dem zweiten Aufruf am selben Tag gilt "zweites Öffnen".
+function pruefeZweitesOeffnenHeute() {
+  try {
+    const heute = isoHeute();
+    const key = 'ghd_besuche_heute';
+    const roh = localStorage.getItem(key);
+    let daten = roh ? JSON.parse(roh) : null;
+    if (!daten || daten.datum !== heute) daten = { datum: heute, anzahl: 0 };
+    daten.anzahl += 1;
+    localStorage.setItem(key, JSON.stringify(daten));
+    return daten.anzahl >= 2;
+  } catch (e) { return false; }
+}
+
+// ─── FOKUS-STREAK ("steht seit X Tagen oben") ─────────────────────────────────
+// Rein lokal (localStorage): merkt sich nur {id, tage, letzterTag} der aktuellen
+// Fokus-Aufgabe — keine Historie, kein zusätzliches Datenbankfeld. Zählt nur bei
+// echt aufeinanderfolgenden Kalendertagen hoch; jede Lücke oder ein Wechsel der
+// Fokus-Aufgabe setzt auf 1 zurück.
+function aktualisiereFokusStreak(fokusAufgabeId, heute_iso) {
+  if (!fokusAufgabeId) return 0;
+  try {
+    const key = 'ghd_fokus_streak';
+    const roh = localStorage.getItem(key);
+    const rec = roh ? JSON.parse(roh) : null;
+    const gestern = (() => { const d = new Date(heute_iso + 'T00:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0,10); })();
+    let neu;
+    if (rec && rec.id === fokusAufgabeId) {
+      if (rec.letzterTag === heute_iso) neu = rec;
+      else if (rec.letzterTag === gestern) neu = { id: rec.id, tage: rec.tage + 1, letzterTag: heute_iso };
+      else neu = { id: fokusAufgabeId, tage: 1, letzterTag: heute_iso };
+    } else {
+      neu = { id: fokusAufgabeId, tage: 1, letzterTag: heute_iso };
+    }
+    localStorage.setItem(key, JSON.stringify(neu));
+    return neu.tage;
+  } catch (e) { return 0; }
+}
+
+// ─── HANDLUNGSEMPFEHLUNG ("Wenn heute nur eine Sache passiert") ───────────────
+// Übersetzt Engpass + Fokus-Aufgabe in einen kurzen Handlungssatz — bewusst andere
+// Sprachebene als die Begründung (fokusGrund erklärt "warum oben", das hier sagt
+// "was jetzt damit tun"). Rein deterministisch, keine KI nötig.
+function bestimmeHandlungsempfehlung({ engpassLabel, fokusAufgabe }) {
+  if (!fokusAufgabe) return null;
+  const schritt = fokusAufgabe.naechster_schritt ? fokusAufgabe.naechster_schritt.trim() : null;
+
+  if (engpassLabel === 'Rückstände') {
+    return schritt ? `Schließ das jetzt ab: ${schritt}.` : 'Schließ das jetzt ab, bevor es weiter liegen bleibt.';
+  }
+  if (engpassLabel === 'Fristen') {
+    return schritt ? `Bring das jetzt zu Ende: ${schritt}.` : 'Bring das jetzt zu Ende, bevor die Frist kippt.';
+  }
+  if (engpassLabel === 'Team') {
+    return schritt ? `Kläre das im Team: ${schritt}.` : 'Hol dir jetzt die Rückmeldung, die im Team fehlt.';
+  }
+  if (engpassLabel === 'Sichtbarkeit') {
+    return schritt ? `Bring das jetzt raus: ${schritt}.` : 'Bring jetzt etwas raus, damit die Woche nicht unsichtbar bleibt.';
+  }
+  // Kein dominanter Engpass: nur anzeigen, wenn es etwas Konkretes gibt — sonst lieber nichts
+  return schritt ? `Fang damit an: ${schritt}.` : null;
+}
+
+// ─── ENGPASS-EINORDNUNG ("Heute wirklich kritisch") ───────────────────────────
+// Rein deterministisch aus vorhandenen Feldern (prioritaet, faellig_am, app_kontext).
+// Reihenfolge der Kandidaten = Priorität bei Gleichstand: harte Zeit-Signale vor
+// weicheren Kontext-Signalen. Schwellen verhindern, dass eine einzelne Nebenaufgabe
+// schon als "kritisch" auftaucht.
+function bestimmeEngpass({ ueberfaellig, kritisch, faelligHeute, faelligMorgen, aufgabenSichtbar }) {
+  const fristenIds = new Set();
+  kritisch.forEach(a => fristenIds.add(a.id));
+  faelligHeute.forEach(a => fristenIds.add(a.id));
+  faelligMorgen.forEach(a => fristenIds.add(a.id));
+
+  const teamAnzahl = aufgabenSichtbar.filter(a => a.app_kontext === 'Team' || a.app_kontext === 'Abwesenheit').length;
+  const sichtbarkeitAnzahl = aufgabenSichtbar.filter(a => a.app_kontext === 'Reichweite').length;
+
+  const kandidaten = [
+    { kategorie: 'Rückstände', score: ueberfaellig.length, schwelle: 1,
+      halbsatz: ueberfaellig.length === 1 ? 'Eine Aufgabe ist überfällig.' : `${ueberfaellig.length} Aufgaben sind überfällig.` },
+    { kategorie: 'Fristen', score: fristenIds.size, schwelle: 1,
+      halbsatz: faelligMorgen.length > 0
+        ? (faelligMorgen.length === 1 ? 'Eine Frist kippt morgen.' : `${faelligMorgen.length} Fristen kippen morgen.`)
+        : (fristenIds.size === 1 ? 'Eine Aufgabe ist heute kritisch.' : `${fristenIds.size} Aufgaben sind heute kritisch.`) },
+    { kategorie: 'Team', score: teamAnzahl, schwelle: 2,
+      halbsatz: `${teamAnzahl} offene Team-Aufgaben.` },
+    { kategorie: 'Sichtbarkeit', score: sichtbarkeitAnzahl, schwelle: 2,
+      halbsatz: `${sichtbarkeitAnzahl} offene Reichweite-Aufgaben.` },
+  ];
+
+  const relevante = kandidaten.filter(k => k.score >= k.schwelle);
+  if (relevante.length === 0) return null;
+  // stabiler Sort: bei Score-Gleichstand gewinnt die oben zuerst gelistete Kategorie
+  relevante.sort((a, b) => b.score - a.score);
+  const top = relevante[0];
+  return { label: top.kategorie, halbsatz: top.halbsatz };
+}
+
+// ─── FOKUS-BEGRÜNDUNG (deterministisch, aus vorhandenen Feldern) ──────────────
+// Harte Fälle (kritisch/überfällig/heute-fällig) werden immer klar benannt und
+// brauchen keine KI — nur der weiche Restfall (keine klare Frist/Priorität)
+// bekommt optional eine KI-Einordnung obendrauf.
+function berechneFokusGrund(aufgabe, heute_iso, morgen_iso, ueberfaelligListe) {
+  if (!aufgabe) return null;
+  const istUeberfaellig = (ueberfaelligListe || []).some(a => a.id === aufgabe.id);
+  const faelligDatum = aufgabe.faellig_am ? aufgabe.faellig_am.slice(0, 10) : null;
+
+  if (aufgabe.prioritaet === "kritisch") {
+    return istUeberfaellig
+      ? { text: 'Zuerst, weil das kritisch ist und die Frist bereits überschritten ist.', hart: true }
+      : { text: 'Zuerst, weil das kritisch ist.', hart: true };
+  }
+  if (istUeberfaellig) {
+    const tage = Math.max(1, Math.round((new Date(heute_iso) - new Date(faelligDatum)) / 86400000));
+    return { text: `Zuerst, weil die Frist seit ${tage} Tag${tage > 1 ? 'en' : ''} überschritten ist.`, hart: true };
+  }
+  if (faelligDatum === heute_iso) {
+    return { text: 'Zuerst, weil die Frist heute endet.', hart: true };
+  }
+  if (faelligDatum === morgen_iso) {
+    return { text: 'Zuerst, weil die Frist morgen endet.', hart: true };
+  }
+  if (aufgabe.prioritaet === "heute") {
+    return { text: 'Zuerst, weil das für heute markiert ist.', hart: true };
+  }
+  // Weicher Fall: keine klare Frist/Priorität unterscheidet diese Aufgabe von anderen
+  return { text: 'Zuerst, weil gerade sonst nichts Dringenderes ansteht.', hart: false };
+}
 function ersterDesMonats() { const d=new Date(); return d.getDate()===1; }
 function istMontag() { return new Date().getDay()===1; }
 
@@ -845,6 +977,15 @@ function AufgabeDetail({ aufgabe, onUpdate, onDelete, onClose, onEdit, onAlsVorl
           })()}
           <button className="detail-action-secondary" onClick={() => { onClose(); onEdit(aufgabe); }}>✏️ Bearbeiten</button>
           <button className="detail-action-secondary" onClick={() => onAlsVorlage(aufgabe)}>🔁 Als Vorlage speichern</button>
+          {aufgabe.prioritaet !== "kritisch" && !(aufgabe.faellig_am && aufgabe.faellig_am.slice(0,10) < isoHeute()) && (
+            <button className="detail-action-secondary" onClick={() => {
+              onClose();
+              toast('Morgen wieder vorne.');
+              onUpdate(aufgabe.id, { snooze_bis: morgenIso() });
+            }}>
+              😴 Morgen nochmal
+            </button>
+          )}
           {aufgabe.status !== "in-arbeit" && (
             <button className="detail-action-secondary" onClick={() => { onClose(); toast('In Arbeit'); onUpdate(aufgabe.id,{status:"in-arbeit"}); }}>
               In Arbeit setzen
@@ -978,6 +1119,9 @@ function Woerni() {
   const [sprache, setSprache] = useState(false); // Spracheingabe aktiv
   const [sprachText, setSprachText] = useState('');
   const [woerniAntwort, setWoerniAntwort] = useState('');
+  const [fokusKIText, setFokusKIText] = useState(null); // {id, text|null} — Cache pro Fokus-Aufgabe, nur für den weichen Fall
+  const [zweitesOeffnenHeute] = useState(() => pruefeZweitesOeffnenHeute());
+  const [fokusStreakTage, setFokusStreakTage] = useState(0);
   const [hoert, setHoert] = useState(false);
   const erkennungRef = useRef(null);
 
@@ -1322,24 +1466,96 @@ function Woerni() {
   const heute_iso = isoHeute();
   const morgen_iso = (() => { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
   // Überfällig: eigene, von "heute/morgen" getrennte Gruppe
-  const ueberfaellig = aufgaben.filter(a => a.faellig_am && a.faellig_am.slice(0,10) < heute_iso);
-  const faelligBald = aufgaben.filter(a => a.faellig_am && a.faellig_am.slice(0,10) >= heute_iso && a.faellig_am.slice(0,10) <= morgen_iso);
+  // Gesnoozte Aufgaben (snooze_bis in der Zukunft) bleiben offen und in der Datenbank
+  // unverändert, fallen aber aus der heutigen Vorderansicht (Fokus/Gruppen) heraus —
+  // sobald der Tag erreicht ist, greift die Bedingung nicht mehr und sie tauchen normal auf.
+  const aufgabenSichtbar = aufgaben.filter(a => !(a.snooze_bis && a.snooze_bis.slice(0,10) > heute_iso));
+  const ueberfaellig = aufgabenSichtbar.filter(a => a.faellig_am && a.faellig_am.slice(0,10) < heute_iso);
+  const faelligBald = aufgabenSichtbar.filter(a => a.faellig_am && a.faellig_am.slice(0,10) >= heute_iso && a.faellig_am.slice(0,10) <= morgen_iso);
   const faelligHeute = faelligBald.filter(a => a.faellig_am.slice(0,10) === heute_iso);
 
   // Fokus-Aufgabe: automatisch bestimmt aus vorhandenen Feldern (prioritaet, faellig_am),
   // Reihenfolge: kritisch > überfällig (älteste zuerst, da aufgaben bereits nach faellig_am sortiert) > heute > sonst erste offene Aufgabe
-  const fokusAufgabe = aufgaben.find(a => a.prioritaet==="kritisch")
+  const fokusAufgabe = aufgabenSichtbar.find(a => a.prioritaet==="kritisch")
     || ueberfaellig[0]
-    || aufgaben.find(a => a.prioritaet==="heute")
-    || aufgaben[0]
+    || aufgabenSichtbar.find(a => a.prioritaet==="heute")
+    || aufgabenSichtbar[0]
     || null;
 
+  const fokusGrund = berechneFokusGrund(fokusAufgabe, heute_iso, morgen_iso, ueberfaellig);
+  const fokusGrundAnzeige = fokusGrund && !fokusGrund.hart && fokusKIText?.id === fokusAufgabe?.id && fokusKIText.text
+    ? fokusKIText.text
+    : fokusGrund?.text;
+
+  // Nur im weichen Fall (keine klare Frist/Priorität) fragen wir Wörni kurz nach
+  // einer treffenderen Begründung — die harten Fälle oben brauchen das nicht.
+  useEffect(() => {
+    if (!fokusAufgabe || !fokusGrund || fokusGrund.hart) return;
+    if (fokusKIText && fokusKIText.id === fokusAufgabe.id) return;
+    let abgebrochen = false;
+    (async () => {
+      try {
+        const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await SZ_AUTH.auth.getSession()).data?.session?.access_token}`,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 60,
+            system: 'Du erklärst in genau einem kurzen Satz auf Deutsch, warum eine Aufgabe gerade an erster Stelle steht. Beginne mit "Zuerst, weil". Ruhig, konkret, keine Floskeln, keine Anrede, kein "scheint"/"vielleicht"/"könnte". Maximal 15 Wörter. Antworte nur mit dem Satz, sonst nichts.',
+            messages: [{ role: 'user', content: JSON.stringify({
+              titel: fokusAufgabe.titel,
+              typ: fokusAufgabe.typ,
+              naechster_schritt: fokusAufgabe.naechster_schritt || null,
+              app_kontext: fokusAufgabe.app_kontext || null,
+            }) }]
+          })
+        });
+        const data = await res.json();
+        const text = data?.content?.[0]?.text?.trim();
+        if (!abgebrochen) setFokusKIText({ id: fokusAufgabe.id, text: text || null });
+      } catch (e) {
+        if (!abgebrochen) setFokusKIText({ id: fokusAufgabe.id, text: null });
+      }
+    })();
+    return () => { abgebrochen = true; };
+  }, [fokusAufgabe?.id]);
+
+  // Fokus-Streak separat aktualisieren — unabhängig davon, ob der weiche KI-Fall greift
+  useEffect(() => {
+    setFokusStreakTage(aktualisiereFokusStreak(fokusAufgabe?.id || null, heute_iso));
+  }, [fokusAufgabe?.id, heute_iso]);
+
   const gruppen = {
-    kritisch:       aufgaben.filter(a => a.prioritaet==="kritisch"),
-    heute:          aufgaben.filter(a => a.prioritaet==="heute"),
-    "diesen-monat": aufgaben.filter(a => a.prioritaet==="diesen-monat" || a.prioritaet==="diese-woche"),
-    "speziell":     aufgaben.filter(a => a.prioritaet==="speziell" || a.prioritaet==="wann-moeglich"),
+    kritisch:       aufgabenSichtbar.filter(a => a.prioritaet==="kritisch"),
+    heute:          aufgabenSichtbar.filter(a => a.prioritaet==="heute"),
+    "diesen-monat": aufgabenSichtbar.filter(a => a.prioritaet==="diesen-monat" || a.prioritaet==="diese-woche"),
+    "speziell":     aufgabenSichtbar.filter(a => a.prioritaet==="speziell" || a.prioritaet==="wann-moeglich"),
   };
+
+  // ── Tagesabschluss: maximal 3 knappe Punkte aus vorhandenen Daten, kein neuer Zustand ──
+  const heuteErledigtAnzahl = erledigt.filter(a => a.erledigt_am && a.erledigt_am.slice(0,10) === heute_iso).length;
+  const offenGebliebenAnzahl = gruppen.kritisch.length + gruppen.heute.length + ueberfaellig.length;
+  const morgenIdsSet = new Set();
+  aufgaben.forEach(a => {
+    if (a.snooze_bis && a.snooze_bis.slice(0,10) === morgen_iso) morgenIdsSet.add(a.id);
+    if (a.faellig_am && a.faellig_am.slice(0,10) === morgen_iso) morgenIdsSet.add(a.id);
+  });
+  const morgenVorneAnzahl = morgenIdsSet.size;
+  const tagesabschlussPunkte = [
+    heuteErledigtAnzahl > 0 ? `${heuteErledigtAnzahl} heute erledigt` : null,
+    offenGebliebenAnzahl > 0 ? `${offenGebliebenAnzahl} bleiben offen` : null,
+    morgenVorneAnzahl > 0 ? `${morgenVorneAnzahl} stehen morgen vorne` : null,
+  ].filter(Boolean);
+  const istAbend = new Date().getHours() >= 18;
+  const zeigeTagesabschluss = (zweitesOeffnenHeute || istAbend) && tagesabschlussPunkte.length > 0;
+
+  const faelligMorgen = faelligBald.filter(a => a.faellig_am.slice(0,10) === morgen_iso);
+  const engpass = bestimmeEngpass({ ueberfaellig, kritisch: gruppen.kritisch, faelligHeute, faelligMorgen, aufgabenSichtbar });
+  const handlungsempfehlung = bestimmeHandlungsempfehlung({ engpassLabel: engpass?.label || null, fokusAufgabe });
 
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)',paddingBottom:100}}>
@@ -1364,6 +1580,14 @@ function Woerni() {
 
       <div style={{padding:'0 20px'}}>
 
+        {/* ENGPASS-EINORDNUNG: sehr kleine Zeile oberhalb der Fokus-Zone, nur bei klarem Signal */}
+        {!laden && !fehler && tab==="heute" && engpass && (
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,fontWeight:800,letterSpacing:'0.06em',color:'var(--accent-dark)'}}>Heute kritisch: {engpass.label}</div>
+            {engpass.halbsatz && <div style={{fontSize:12,color:'var(--text-soft)',marginTop:2}}>{engpass.halbsatz}</div>}
+          </div>
+        )}
+
         {/* FOKUS-AUFGABE */}
         {!laden && !fehler && tab==="heute" && fokusAufgabe && (
           <div style={{marginBottom:16}}>
@@ -1372,6 +1596,23 @@ function Woerni() {
               <div className="abschnitt-line"/>
             </div>
             <AufgabeKarte aufgabe={fokusAufgabe} onClick={() => setAusgewaehlt(fokusAufgabe)}/>
+            {fokusGrundAnzeige && (
+              <p style={{fontSize:12,color:'var(--text-soft)',margin:'6px 4px 0',lineHeight:1.4}}>{fokusGrundAnzeige}</p>
+            )}
+            {handlungsempfehlung && (
+              <p style={{fontSize:13,fontWeight:600,color:'var(--accent-dark)',margin:'6px 4px 0',lineHeight:1.4}}>→ {handlungsempfehlung}</p>
+            )}
+            {fokusStreakTage >= 3 && (
+              <p style={{fontSize:12,color:'var(--text-soft)',margin:'6px 4px 0',lineHeight:1.4}}>Das steht jetzt seit {fokusStreakTage} Tagen oben.</p>
+            )}
+          </div>
+        )}
+
+        {/* TAGESABSCHLUSS: nur beim zweiten Öffnen heute oder abends, nur mit echten Daten */}
+        {!laden && !fehler && tab==="heute" && zeigeTagesabschluss && (
+          <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'12px 16px',marginBottom:16}}>
+            <div style={{fontSize:10.5,fontWeight:800,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--text-soft)',marginBottom:4}}>Für heute</div>
+            <p style={{fontSize:13,color:'var(--text)',lineHeight:1.5,margin:0}}>{tagesabschlussPunkte.join(' · ')}</p>
           </div>
         )}
 
