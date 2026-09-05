@@ -365,9 +365,30 @@ function szZeigeApp() {
 // (Maus, Tastatur, Touch, Scroll) stattgefunden hat. Läuft nur, solange der
 // Chefbereich tatsächlich betreten ist — nicht während der Login-Bildschirm
 // sichtbar ist.
+//
+// WICHTIG: Ein reiner setTimeout reicht auf dem Handy nicht — sobald der
+// Bildschirm gesperrt wird, pausiert das Betriebssystem die Seite und damit
+// auch den Timer. Beim Wiederaufwecken registriert dieselbe Berührung, die
+// die App wieder sichtbar macht, sofort als "Aktivität" und setzt den Timer
+// zurück, bevor er je auslösen konnte — die Abmeldung greift dadurch nie.
+// Deshalb wird zusätzlich ein echter Zeitstempel gespeichert und beim
+// Sichtbarwerden der Seite zuerst geprüft, bevor irgendeine neue Aktivität
+// den Timer zurücksetzen darf.
 const SZ_INAKTIVITAET_MS = 10 * 60 * 1000;
+const SZ_LETZTE_AKTIVITAET_KEY = 'ghd_letzte_aktivitaet';
 let szChefBereichAktiv = false;
 let szInaktivitaetsTimer = null;
+
+function szAktivitaetSpeichern() {
+  try { localStorage.setItem(SZ_LETZTE_AKTIVITAET_KEY, String(Date.now())); } catch (e) {}
+}
+function szInaktivZuLange() {
+  try {
+    const letzte = Number(localStorage.getItem(SZ_LETZTE_AKTIVITAET_KEY));
+    if (!letzte) return false;
+    return (Date.now() - letzte) > SZ_INAKTIVITAET_MS;
+  } catch (e) { return false; }
+}
 
 async function szInaktivitaetsLogout() {
   szChefBereichAktiv = false;
@@ -377,6 +398,7 @@ async function szInaktivitaetsLogout() {
 }
 function szInaktivitaetsTimerZuruecksetzen() {
   if (!szChefBereichAktiv) return;
+  szAktivitaetSpeichern();
   clearTimeout(szInaktivitaetsTimer);
   szInaktivitaetsTimer = setTimeout(szInaktivitaetsLogout, SZ_INAKTIVITAET_MS);
 }
@@ -384,10 +406,26 @@ function szInaktivitaetsTimerZuruecksetzen() {
   document.addEventListener(ev, szInaktivitaetsTimerZuruecksetzen, { passive: true })
 );
 
+// Fängt genau den Handy-Fall ab: prüft den echten Zeitstempel, sobald die Seite
+// wieder sichtbar wird oder Fokus bekommt — noch bevor die aufweckende Berührung
+// selbst als neue Aktivität gewertet würde.
+function szPruefeNachWiedersichtbarwerden() {
+  if (szChefBereichAktiv && szInaktivZuLange()) szInaktivitaetsLogout();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') szPruefeNachWiedersichtbarwerden();
+});
+window.addEventListener('focus', szPruefeNachWiedersichtbarwerden);
+window.addEventListener('pageshow', szPruefeNachWiedersichtbarwerden);
+
 // Session beim Laden prüfen
 (async function() {
   const { data } = await SZ_AUTH.auth.getSession();
   if (data && data.session) {
+    if (szInaktivZuLange()) {
+      await SZ_AUTH.auth.signOut();
+      return; // sz-login bleibt sichtbar (Standard)
+    }
     const chefinOk = await szPruefeChefinRolle(data.session);
     if (!chefinOk) { await szZugriffVerweigert(); return; }
     szZeigeApp();
