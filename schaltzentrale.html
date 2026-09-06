@@ -488,6 +488,17 @@ const api = {
   addVorlage:    (d) => sb("ghd_aufgaben_vorlagen", { method:"POST", body:JSON.stringify(d) }),
   updateVorlage: (id, d) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(d) }),
   deleteVorlage: (id) => sb(`ghd_aufgaben_vorlagen?id=eq.${id}`, { method:"DELETE", prefer:"" }),
+  getTageslage: async () => {
+    const { data: sessionData } = await SZ_AUTH.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Session für Tageslage-Abruf');
+    const r = await fetch(`${SB_URL}/functions/v1/tageslage`, {
+      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${token}` }
+    });
+    const t = await r.text();
+    if (!r.ok) throw new Error(t);
+    return t ? JSON.parse(t) : null;
+  },
 };
 
 const PRIORITAETEN = {
@@ -571,95 +582,6 @@ function aktualisiereFokusStreak(fokusAufgabeId, heute_iso) {
   } catch (e) { return 0; }
 }
 
-// ─── HANDLUNGSEMPFEHLUNG ("Wenn heute nur eine Sache passiert") ───────────────
-// Übersetzt Engpass + Fokus-Aufgabe in einen kurzen Handlungssatz — bewusst andere
-// Sprachebene als die Begründung (fokusGrund erklärt "warum oben", das hier sagt
-// "was jetzt damit tun"). Rein deterministisch, keine KI nötig.
-function bestimmeHandlungsempfehlung({ engpassLabel, fokusAufgabe }) {
-  if (!fokusAufgabe) return null;
-  const schritt = fokusAufgabe.naechster_schritt ? fokusAufgabe.naechster_schritt.trim() : null;
-
-  if (engpassLabel === 'Rückstände') {
-    return schritt ? `Schließ das jetzt ab: ${schritt}.` : 'Schließ das jetzt ab, bevor es weiter liegen bleibt.';
-  }
-  if (engpassLabel === 'Fristen') {
-    return schritt ? `Bring das jetzt zu Ende: ${schritt}.` : 'Bring das jetzt zu Ende, bevor die Frist kippt.';
-  }
-  if (engpassLabel === 'Team') {
-    return schritt ? `Kläre das im Team: ${schritt}.` : 'Hol dir jetzt die Rückmeldung, die im Team fehlt.';
-  }
-  if (engpassLabel === 'Sichtbarkeit') {
-    return schritt ? `Bring das jetzt raus: ${schritt}.` : 'Bring jetzt etwas raus, damit die Woche nicht unsichtbar bleibt.';
-  }
-  // Kein dominanter Engpass: nur anzeigen, wenn es etwas Konkretes gibt — sonst lieber nichts
-  return schritt ? `Fang damit an: ${schritt}.` : null;
-}
-
-// ─── ENGPASS-EINORDNUNG ("Heute wirklich kritisch") ───────────────────────────
-// Rein deterministisch aus vorhandenen Feldern (prioritaet, faellig_am, app_kontext).
-// Reihenfolge der Kandidaten = Priorität bei Gleichstand: harte Zeit-Signale vor
-// weicheren Kontext-Signalen. Schwellen verhindern, dass eine einzelne Nebenaufgabe
-// schon als "kritisch" auftaucht.
-function bestimmeEngpass({ ueberfaellig, kritisch, faelligHeute, faelligMorgen, aufgabenSichtbar }) {
-  const fristenIds = new Set();
-  kritisch.forEach(a => fristenIds.add(a.id));
-  faelligHeute.forEach(a => fristenIds.add(a.id));
-  faelligMorgen.forEach(a => fristenIds.add(a.id));
-
-  const teamAnzahl = aufgabenSichtbar.filter(a => a.app_kontext === 'Team' || a.app_kontext === 'Abwesenheit').length;
-  const sichtbarkeitAnzahl = aufgabenSichtbar.filter(a => a.app_kontext === 'Reichweite').length;
-
-  const kandidaten = [
-    { kategorie: 'Rückstände', score: ueberfaellig.length, schwelle: 1,
-      halbsatz: ueberfaellig.length === 1 ? 'Eine Aufgabe ist überfällig.' : `${ueberfaellig.length} Aufgaben sind überfällig.` },
-    { kategorie: 'Fristen', score: fristenIds.size, schwelle: 1,
-      halbsatz: faelligMorgen.length > 0
-        ? (faelligMorgen.length === 1 ? 'Eine Frist kippt morgen.' : `${faelligMorgen.length} Fristen kippen morgen.`)
-        : (fristenIds.size === 1 ? 'Eine Aufgabe ist heute kritisch.' : `${fristenIds.size} Aufgaben sind heute kritisch.`) },
-    { kategorie: 'Team', score: teamAnzahl, schwelle: 2,
-      halbsatz: `${teamAnzahl} offene Team-Aufgaben.` },
-    { kategorie: 'Sichtbarkeit', score: sichtbarkeitAnzahl, schwelle: 2,
-      halbsatz: `${sichtbarkeitAnzahl} offene Reichweite-Aufgaben.` },
-  ];
-
-  const relevante = kandidaten.filter(k => k.score >= k.schwelle);
-  if (relevante.length === 0) return null;
-  // stabiler Sort: bei Score-Gleichstand gewinnt die oben zuerst gelistete Kategorie
-  relevante.sort((a, b) => b.score - a.score);
-  const top = relevante[0];
-  return { label: top.kategorie, halbsatz: top.halbsatz };
-}
-
-// ─── FOKUS-BEGRÜNDUNG (deterministisch, aus vorhandenen Feldern) ──────────────
-// Harte Fälle (kritisch/überfällig/heute-fällig) werden immer klar benannt und
-// brauchen keine KI — nur der weiche Restfall (keine klare Frist/Priorität)
-// bekommt optional eine KI-Einordnung obendrauf.
-function berechneFokusGrund(aufgabe, heute_iso, morgen_iso, ueberfaelligListe) {
-  if (!aufgabe) return null;
-  const istUeberfaellig = (ueberfaelligListe || []).some(a => a.id === aufgabe.id);
-  const faelligDatum = aufgabe.faellig_am ? aufgabe.faellig_am.slice(0, 10) : null;
-
-  if (aufgabe.prioritaet === "kritisch") {
-    return istUeberfaellig
-      ? { text: 'Zuerst, weil das kritisch ist und die Frist bereits überschritten ist.', hart: true }
-      : { text: 'Zuerst, weil das kritisch ist.', hart: true };
-  }
-  if (istUeberfaellig) {
-    const tage = Math.max(1, Math.round((new Date(heute_iso) - new Date(faelligDatum)) / 86400000));
-    return { text: `Zuerst, weil die Frist seit ${tage} Tag${tage > 1 ? 'en' : ''} überschritten ist.`, hart: true };
-  }
-  if (faelligDatum === heute_iso) {
-    return { text: 'Zuerst, weil die Frist heute endet.', hart: true };
-  }
-  if (faelligDatum === morgen_iso) {
-    return { text: 'Zuerst, weil die Frist morgen endet.', hart: true };
-  }
-  if (aufgabe.prioritaet === "heute") {
-    return { text: 'Zuerst, weil das für heute markiert ist.', hart: true };
-  }
-  // Weicher Fall: keine klare Frist/Priorität unterscheidet diese Aufgabe von anderen
-  return { text: 'Zuerst, weil gerade sonst nichts Dringenderes ansteht.', hart: false };
-}
 function ersterDesMonats() { const d=new Date(); return d.getDate()===1; }
 function istMontag() { return new Date().getDay()===1; }
 
@@ -1136,6 +1058,8 @@ function Woerni() {
   const [erledigt, setErledigt]       = useState([]);
   const [vorlagen, setVorlagen]       = useState([]);
   const [ereignisse, setEreignisse]   = useState([]);
+  const [tageslage, setTageslage]     = useState({ engpass:null, fokusAufgabe:null, fokusGrund:null, handlungsempfehlung:null });
+  const [tageslageFehler, setTageslageFehler] = useState(null);
   const [laden, setLaden]             = useState(true);
   const [fehler, setFehler]           = useState(null);
   const [liveVerbunden, setLiveVerbunden] = useState(false);
@@ -1226,17 +1150,42 @@ function Woerni() {
       // mitgeben, nicht nur die offenen — sonst legt Wörni eine gerade erledigte
       // Vorlagen-Aufgabe am selben Tag sofort wieder neu an.
       const hatNeu   = await erstelleVorlagenAufgaben(v||[], [...(a||[]), ...(e||[])]);
+
+      let finalA = a, finalE = e;
       if (hatReset || hatNeu) {
         const [a2, e2] = await Promise.all([api.getAufgaben(), api.getErledigt()]);
-        setAufgaben(a2||[]); setErledigt(e2||[]);
-        cacheSchreiben(a2||[], e2||[], v||[]);
+        finalA = a2; finalE = e2;
       } else {
         console.log('[DEBUG] Aufgaben aus Supabase:', (a||[]).map(x => ({id:x.id, titel:x.titel?.slice(0,20), prioritaet:x.prioritaet, status:x.status})));
-      setAufgaben(a||[]); setErledigt(e||[]);
-        cacheSchreiben(a||[], e||[], v||[]);
       }
-      setEreignisse(ev||[]);
+
+      // Tageslage erst NACH dem finalen Aufgabenstand holen — sie muss zum selben
+      // Stand gehören, der gleich angezeigt wird, nicht zu einem Zwischenstand
+      // (vor resetFixAufgaben/erstelleVorlagenAufgaben).
+      let tageslageNeu = null, tageslageFehlerNeu = null;
+      try {
+        tageslageNeu = await api.getTageslage();
+      } catch (err) {
+        tageslageFehlerNeu = String(err.message || err);
+      }
+
+      // Gebündeltes Set von State-Updates: Aufgabenliste und Tageslage kommen
+      // gemeinsam an, damit nie ein Zwischenzustand mit neuer Liste + alter
+      // Tageslage sichtbar wird.
+      setAufgaben(finalA||[]);
+      setErledigt(finalE||[]);
       setVorlagen(v||[]);
+      setEreignisse(ev||[]);
+      if (tageslageNeu) {
+        setTageslage(tageslageNeu);
+        setTageslageFehler(null);
+      } else {
+        // Bewusst NICHT die alte Tageslage stehen lassen, als wäre sie noch aktuell —
+        // lieber ehrlich leer als still veraltet.
+        setTageslage({ engpass:null, fokusAufgabe:null, fokusGrund:null, handlungsempfehlung:null });
+        setTageslageFehler(tageslageFehlerNeu);
+      }
+      cacheSchreiben(finalA||[], finalE||[], v||[]);
     } catch(err) {
       const cache = cacheLaden();
       if (cache) {
@@ -1258,7 +1207,8 @@ function Woerni() {
     // Erstmaliges Laden
     laden_();
 
-    // Realtime: ghd_aufgaben + ghd_aufgaben_vorlagen → Aufgabenliste neu laden
+    // Realtime: ghd_aufgaben + ghd_aufgaben_vorlagen → Aufgabenliste (und damit
+    // auch die Tageslage, da laden_() beides gemeinsam neu holt) neu laden
     const aufgabenChannel = sbClient
       .channel('woerni-aufgaben')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ghd_aufgaben' }, () => laden_())
@@ -1304,6 +1254,8 @@ function Woerni() {
   async function updateAufgabe(id, daten) {
     // Sofort optimistisch aus der sichtbaren Liste nehmen bzw. aktualisieren — unabhängig
     // vom Netzwerk, damit eine Status-Änderung (v.a. "Erledigt") nie hängen wirkt.
+    // Die Tageslage wird bewusst NICHT optimistisch mitgeändert — sie zieht erst mit
+    // laden_() gemeinsam mit dem finalen Aufgabenstand nach (siehe Rückmeldung, Punkt 5).
     if (daten.status === "erledigt") {
       setAufgaben(prev => prev.filter(a => a.id !== id));
     } else {
@@ -1356,7 +1308,6 @@ function Woerni() {
     await laden_(); toast('Vorlage gelöscht');
   }
 
-  // ── Spracheingabe ──
   // ── Spracheingabe ──
   useEffect(() => {
     function onSprache() { spracheStarten(); }
@@ -1512,15 +1463,15 @@ function Woerni() {
   const faelligBald = aufgabenSichtbar.filter(a => a.faellig_am && a.faellig_am.slice(0,10) >= heute_iso && a.faellig_am.slice(0,10) <= morgen_iso);
   const faelligHeute = faelligBald.filter(a => a.faellig_am.slice(0,10) === heute_iso);
 
-  // Fokus-Aufgabe: automatisch bestimmt aus vorhandenen Feldern (prioritaet, faellig_am),
-  // Reihenfolge: kritisch > überfällig (älteste zuerst, da aufgaben bereits nach faellig_am sortiert) > heute > sonst erste offene Aufgabe
-  const fokusAufgabe = aufgabenSichtbar.find(a => a.prioritaet==="kritisch")
-    || ueberfaellig[0]
-    || aufgabenSichtbar.find(a => a.prioritaet==="heute")
-    || aufgabenSichtbar[0]
-    || null;
+  // Fokus-Aufgabe, Fokus-Begründung, Engpass und Handlungsempfehlung kommen jetzt
+  // ausschließlich vom zentralen Endpunkt (api.getTageslage / tageslage-State) —
+  // keine lokale Parallelberechnung mehr. aufgabenSichtbar/ueberfaellig/faelligBald
+  // bleiben unverändert lokal, da sie für Tabs/Gruppen-Anzeige gebraucht werden.
+  const fokusAufgabe = tageslage.fokusAufgabe;
+  const fokusGrund = tageslage.fokusGrund;
+  const engpass = tageslage.engpass;
+  const handlungsempfehlung = tageslage.handlungsempfehlung;
 
-  const fokusGrund = berechneFokusGrund(fokusAufgabe, heute_iso, morgen_iso, ueberfaellig);
   const fokusGrundAnzeige = fokusGrund && !fokusGrund.hart && fokusKIText?.id === fokusAufgabe?.id && fokusKIText.text
     ? fokusKIText.text
     : fokusGrund?.text;
@@ -1592,8 +1543,6 @@ function Woerni() {
   const zeigeTagesabschluss = (zweitesOeffnenHeute || istAbend) && tagesabschlussPunkte.length > 0;
 
   const faelligMorgen = faelligBald.filter(a => a.faellig_am.slice(0,10) === morgen_iso);
-  const engpass = bestimmeEngpass({ ueberfaellig, kritisch: gruppen.kritisch, faelligHeute, faelligMorgen, aufgabenSichtbar });
-  const handlungsempfehlung = bestimmeHandlungsempfehlung({ engpassLabel: engpass?.label || null, fokusAufgabe });
 
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)',paddingBottom:100}}>
@@ -1644,6 +1593,11 @@ function Woerni() {
               <p style={{fontSize:12,color:'var(--text-soft)',margin:'6px 4px 0',lineHeight:1.4}}>Das steht jetzt seit {fokusStreakTage} Tagen oben.</p>
             )}
           </div>
+        )}
+
+        {/* TAGESLAGE NICHT VERFÜGBAR: nur informativ, blockiert nichts anderes */}
+        {!laden && !fehler && tab==="heute" && tageslageFehler && !fokusAufgabe && (
+          <p style={{fontSize:11,color:'var(--text-soft)',margin:'0 4px 16px'}}>Tageslage momentan nicht verfügbar.</p>
         )}
 
         {/* TAGESABSCHLUSS: nur beim zweiten Öffnen heute oder abends, nur mit echten Daten */}
