@@ -499,6 +499,19 @@ const api = {
     if (!r.ok) throw new Error(t);
     return t ? JSON.parse(t) : null;
   },
+  // Zweiter, eigenständiger zentraler Fokus-Fall — komplett getrennt von
+  // getTageslage, gleicher Lade-/Auth-Stil, keine gemeinsame Logik.
+  getMitarbeiterAnziehen: async () => {
+    const { data: sessionData } = await SZ_AUTH.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Session für Mitarbeiter-Anziehen-Abruf');
+    const r = await fetch(`${SB_URL}/functions/v1/mitarbeiter-anziehen`, {
+      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${token}` }
+    });
+    const t = await r.text();
+    if (!r.ok) throw new Error(t);
+    return t ? JSON.parse(t) : null;
+  },
 };
 
 const PRIORITAETEN = {
@@ -1060,6 +1073,9 @@ function Woerni() {
   const [ereignisse, setEreignisse]   = useState([]);
   const [tageslage, setTageslage]     = useState({ engpass:null, fokusAufgabe:null, fokusGrund:null, handlungsempfehlung:null });
   const [tageslageFehler, setTageslageFehler] = useState(null);
+  // Zweiter Fokus-Fall — eigener, getrennter State, keine Vermischung mit tageslage.
+  const [mitarbeiterAnziehen, setMitarbeiterAnziehen] = useState({ fokus:null, begruendung:null, handlungsempfehlung:null });
+  const [mitarbeiterAnziehenFehler, setMitarbeiterAnziehenFehler] = useState(null);
   const [laden, setLaden]             = useState(true);
   const [fehler, setFehler]           = useState(null);
   const [liveVerbunden, setLiveVerbunden] = useState(false);
@@ -1169,6 +1185,17 @@ function Woerni() {
         tageslageFehlerNeu = String(err.message || err);
       }
 
+      // Zweiter Fokus-Fall — unabhängig von tageslage, eigener Fehlerpfad.
+      // Kein Zusammenhang mit der Aufgabenliste, deshalb keine Reihenfolge-
+      // Abhängigkeit nötig; wird trotzdem hier mitgeladen, damit auch dieser
+      // Wert gebündelt mit dem restlichen State ankommt (kein Zwischenzustand).
+      let mitarbeiterAnziehenNeu = null, mitarbeiterAnziehenFehlerNeu = null;
+      try {
+        mitarbeiterAnziehenNeu = await api.getMitarbeiterAnziehen();
+      } catch (err) {
+        mitarbeiterAnziehenFehlerNeu = String(err.message || err);
+      }
+
       // Gebündeltes Set von State-Updates: Aufgabenliste und Tageslage kommen
       // gemeinsam an, damit nie ein Zwischenzustand mit neuer Liste + alter
       // Tageslage sichtbar wird.
@@ -1176,6 +1203,13 @@ function Woerni() {
       setErledigt(finalE||[]);
       setVorlagen(v||[]);
       setEreignisse(ev||[]);
+      if (mitarbeiterAnziehenNeu) {
+        setMitarbeiterAnziehen(mitarbeiterAnziehenNeu);
+        setMitarbeiterAnziehenFehler(null);
+      } else {
+        setMitarbeiterAnziehen({ fokus:null, begruendung:null, handlungsempfehlung:null });
+        setMitarbeiterAnziehenFehler(mitarbeiterAnziehenFehlerNeu);
+      }
       if (tageslageNeu) {
         setTageslage(tageslageNeu);
         setTageslageFehler(null);
@@ -1598,6 +1632,28 @@ function Woerni() {
         {/* TAGESLAGE NICHT VERFÜGBAR: nur informativ, blockiert nichts anderes */}
         {!laden && !fehler && tab==="heute" && tageslageFehler && !fokusAufgabe && (
           <p style={{fontSize:11,color:'var(--text-soft)',margin:'0 4px 16px'}}>Tageslage momentan nicht verfügbar.</p>
+        )}
+
+        {/* ZWEITER FOKUS-FALL: Mitarbeiter:innen sichtbar anziehen — eigener,
+            getrennter zentraler Wahrheitsort (mitarbeiter-anziehen), reine
+            Anzeige der drei gelieferten Werte, keine eigene Logik, keine
+            Bearbeitungsfunktion. */}
+        {!laden && !fehler && tab==="heute" && mitarbeiterAnziehen.fokus && (
+          <div style={{marginBottom:16}}>
+            <div className="abschnitt-header">
+              <span className="abschnitt-label" style={{color:'var(--accent-dark)'}}>👥 {mitarbeiterAnziehen.fokus}</span>
+              <div className="abschnitt-line"/>
+            </div>
+            {mitarbeiterAnziehen.begruendung && (
+              <p style={{fontSize:12,color:'var(--text-soft)',margin:'0 4px',lineHeight:1.4}}>{mitarbeiterAnziehen.begruendung}</p>
+            )}
+            {mitarbeiterAnziehen.handlungsempfehlung && (
+              <p style={{fontSize:13,fontWeight:600,color:'var(--accent-dark)',margin:'6px 4px 0',lineHeight:1.4}}>→ {mitarbeiterAnziehen.handlungsempfehlung}</p>
+            )}
+          </div>
+        )}
+        {!laden && !fehler && tab==="heute" && mitarbeiterAnziehenFehler && !mitarbeiterAnziehen.fokus && (
+          <p style={{fontSize:11,color:'var(--text-soft)',margin:'0 4px 16px'}}>Fokus „Mitarbeiter:innen anziehen" momentan nicht verfügbar.</p>
         )}
 
         {/* TAGESABSCHLUSS: nur beim zweiten Öffnen heute oder abends, nur mit echten Daten */}
