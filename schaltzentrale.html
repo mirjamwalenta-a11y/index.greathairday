@@ -554,6 +554,29 @@ function formatDatum(iso) { if(!iso) return null; const d=new Date(iso); return 
 function isoHeute() { return new Date().toISOString().slice(0,10); }
 function morgenIso() { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); }
 
+// ─── EREIGNISSE DEDUPLIZIEREN ─────────────────────────────────────────────
+// Verhindert, dass inhaltsgleiche Ereignisse (gleiche App + gleicher Titel)
+// mehrfach unter "Neu aus Apps" auftauchen — das passiert, wenn eine
+// Quell-App (z.B. Reichweite) bei jedem Öffnen erneut ein Signal schreibt,
+// ohne selbst zu prüfen, ob schon ein ungelesenes mit demselben Inhalt
+// existiert. Zeigt nur das jeweils neueste Ereignis pro App+Titel-Kombination,
+// markiert die älteren Duplikate im Hintergrund als gelesen, damit sie sich
+// auch in der Datenbank nicht weiter ansammeln.
+function dedupliziereEreignisse(liste) {
+  const nachSchluessel = new Map();
+  for (const ev of liste) {
+    const schluessel = `${ev.app || ''}|${ev.titel || ''}`;
+    const bisher = nachSchluessel.get(schluessel);
+    if (!bisher || new Date(ev.erstellt_am || 0) > new Date(bisher.erstellt_am || 0)) {
+      nachSchluessel.set(schluessel, ev);
+    }
+  }
+  const behaltenIds = new Set([...nachSchluessel.values()].map(ev => ev.id));
+  liste.filter(ev => !behaltenIds.has(ev.id))
+       .forEach(ev => { api.ereignisGelesen(ev.id).catch(()=>{}); });
+  return liste.filter(ev => behaltenIds.has(ev.id));
+}
+
 // ─── ZWEITES ÖFFNEN HEUTE (für Tagesabschluss) ────────────────────────────────
 // Sehr einfache, robuste lokale Zählung: pro Kalendertag ein Zähler in localStorage.
 // Zählt bei jedem Laden hoch; ab dem zweiten Aufruf am selben Tag gilt "zweites Öffnen".
@@ -1202,7 +1225,7 @@ function Woerni() {
       setAufgaben(finalA||[]);
       setErledigt(finalE||[]);
       setVorlagen(v||[]);
-      setEreignisse(ev||[]);
+      setEreignisse(dedupliziereEreignisse(ev||[]));
       if (mitarbeiterAnziehenNeu) {
         setMitarbeiterAnziehen(mitarbeiterAnziehenNeu);
         setMitarbeiterAnziehenFehler(null);
@@ -1253,11 +1276,11 @@ function Woerni() {
     const ereignisseChannel = sbClient
       .channel('woerni-ereignisse')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ghd_ereignisse' }, payload => {
-        setEreignisse(prev => [payload.new, ...prev]);
+        setEreignisse(prev => dedupliziereEreignisse([payload.new, ...prev]));
         toast('📡 Neues Ereignis aus einer App');
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ghd_ereignisse' }, () => {
-        api.getEreignisse().catch(()=>[]).then(ev => setEreignisse(ev||[]));
+        api.getEreignisse().catch(()=>[]).then(ev => setEreignisse(dedupliziereEreignisse(ev||[])));
       })
       .subscribe();
 
