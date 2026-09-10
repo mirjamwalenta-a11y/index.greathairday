@@ -2083,11 +2083,19 @@ function Woerni() {
                   <button onClick={spracheStarten} style={{background:'var(--accent)',color:'#fff',border:'none',borderRadius:999,width:64,height:64,fontSize:24,cursor:'pointer',boxShadow:'0 6px 16px rgba(137,108,50,0.35)'}}>🎤</button>
                 </div>
               )}
-              {sprachText && (
+              {!hoert && (
                 <div style={{background:'var(--bg-soft)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',marginBottom:12}}>
-                  <div style={{fontSize:10,fontWeight:700,color:'var(--text-soft)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:4}}>Du hast gesagt</div>
-                  <div style={{fontSize:15,fontWeight:600,color:'var(--text)',lineHeight:1.4}}>{sprachText}</div>
-                  {(() => {
+                  <div style={{fontSize:10,fontWeight:700,color:'var(--text-soft)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:4}}>
+                    {sprachText ? 'Du hast gesagt — bei Bedarf korrigieren' : 'Oder hier eintippen'}
+                  </div>
+                  <textarea
+                    value={sprachText}
+                    onChange={e => setSprachText(e.target.value)}
+                    placeholder="Text eingeben, falls das Mikrofon dich falsch verstanden hat…"
+                    rows={3}
+                    style={{width:'100%',border:'1px solid var(--border)',borderRadius:8,padding:'8px 10px',fontSize:15,fontWeight:600,color:'var(--text)',lineHeight:1.4,fontFamily:'inherit',resize:'vertical',outline:'none',boxSizing:'border-box'}}
+                  />
+                  {sprachText && (() => {
                     const { prioritaet, typ, istVorlage, rhythmus } = intentParsing(sprachText);
                     const p = PRIORITAETEN[prioritaet];
                     const tp = TYPEN[typ];
