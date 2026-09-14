@@ -1255,13 +1255,15 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   }
 
   // Gespeicherte Mitarbeiter:innen-Session: die Rolle wird NICHT aus dem localStorage übernommen,
-  // sondern bei jedem Laden frisch anhand der gespeicherten id aus salon_personen nachgeladen.
-  if(savedSession && savedSession.id){
+  // sondern bei jedem Laden anhand eines zufälligen Sitzungs-Tokens serverseitig neu geprüft.
+  // (Vorher wurde hier der ID-Wert selbst als Sitzungsnachweis vertraut — die Chefin-Zeile hat
+  // als id den erratbaren Wert "salon-chef", das war ein vollständiger Auth-Bypass.)
+  const savedToken = localStorage.getItem('ghd_session_token');
+  if(savedToken){
     let frischePerson=null;
     try{
-      const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?id=eq.${encodeURIComponent(savedSession.id)}&aktiv=eq.true`,
-        {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
-      if(rows && rows.length) frischePerson=rows[0];
+      const { data, error } = await AUTH_CLIENT.rpc('session_by_token', { p_token: savedToken });
+      if(!error && data && data.length) frischePerson=data[0];
     }catch(e){ frischePerson=null; }
 
     if(frischePerson){
@@ -1270,9 +1272,10 @@ window.addEventListener('DOMContentLoaded', async ()=>{
       showApp();
       return;
     }
-    // Person nicht mehr gefunden, deaktiviert oder Server nicht erreichbar:
+    // Token ungültig/abgelaufen, Person deaktiviert oder Server nicht erreichbar:
     // keine privilegierte Session herstellen, sauber auf Login zurückfallen.
     localStorage.removeItem('ghd_session');
+    localStorage.removeItem('ghd_session_token');
   }
 
   document.getElementById('loginScreen').style.display='block';
@@ -1310,12 +1313,12 @@ async function doTeamLogin(){
   document.getElementById('teamErr').textContent='';
   if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
   try{
-    const rows=await fetch(`${SUPA_URL}/rest/v1/salon_personen?kennung=eq.${encodeURIComponent(kennung)}&pin_hash=eq.${encodeURIComponent(md5(pin))}&aktiv=eq.true`,
-      {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json());
-    if(!rows.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
-    const p=rows[0];
+    const { data, error } = await AUTH_CLIENT.rpc('login_mit_pin', { p_kennung: kennung, p_pin: pin });
+    if(error || !data || !data.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
+    const p=data[0];
     currentSession={name:p.name,rolle:p.rolle,id:p.id};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
+    localStorage.setItem('ghd_session_token',p.token);
     showApp();
   }catch(e){document.getElementById('teamErr').textContent='Verbindungsfehler.';}
 }
@@ -2463,8 +2466,11 @@ async function belegeSubLaden(){
 
 async function doLogout(){
   try{ await AUTH_CLIENT.auth.signOut(); }catch(e){}
+  const _tok = localStorage.getItem('ghd_session_token');
+  if(_tok){ try{ await AUTH_CLIENT.rpc('logout_session', { p_token: _tok }); }catch(e){} }
   currentSession=null;
   localStorage.removeItem('ghd_session');
+  localStorage.removeItem('ghd_session_token');
   document.getElementById('dashScreen').style.display='none';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('loginScreen').style.display='block';
