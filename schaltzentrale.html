@@ -1405,17 +1405,15 @@ function Woerni() {
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 300,
-            system: 'Du bist Wörni, der KI-Assistent von Mirjam Walenta, Friseurmeisterin in Wien. Antworte auf Deutsch, kurz und freundlich. Max. 2–3 Sätze.',
-            messages: [{ role: 'user', content: text.trim() }]
+            zweck: 'woerni-sprache',
+            text: text.trim()
           })
         });
         const data = await res.json();
         if (data?.content?.[0]?.text) {
           setWoerniAntwort(data.content[0].text);
         } else if (data?.error) {
-          setWoerniAntwort('API Fehler: ' + data.error.message);
+          setWoerniAntwort('API Fehler: ' + (data.error.message || data.error));
         } else {
           setWoerniAntwort('Fehler: ' + JSON.stringify(data).slice(0,120));
         }
@@ -1484,10 +1482,8 @@ function Woerni() {
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 300,
-          system: 'Du bist "Wörni", der zentrale KI-Betriebsassistent und die operative Schaltzentrale für den Friseursalon "A great hair day" in Wien (Rechte Wienzeile 47, 1050 Wien). Deine Hauptaufgabe ist es, die Salonleitung (Mirjam Walenta) und das Team bei allen täglichen Abläufen, der Organisation, der Lehrlingsausbildung und administrativen Aufgaben zu unterstützen. TONFALL: Professionell, warmherzig, strukturiert, verlässlich und mit einem leichten Wiener Charm. Direkt auf den Punkt, klar strukturiert, lösungsorientiert. Du antwortest hier über die HTML-Schaltzentrale — antworte ausführlicher und strukturiert, nutze Bullet Points und Emojis. Antworte immer auf Deutsch (Österreich).',
-          messages: [{ role: 'user', content: sprachText.trim() }]
+          zweck: 'woerni-schaltzentrale',
+          text: sprachText.trim()
         })
       });
       const data = await res.json();
@@ -1549,15 +1545,13 @@ function Woerni() {
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g',
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 60,
-            system: 'Du erklärst in genau einem kurzen Satz auf Deutsch, warum eine Aufgabe gerade an erster Stelle steht. Beginne mit "Zuerst, weil". Ruhig, konkret, keine Floskeln, keine Anrede, kein "scheint"/"vielleicht"/"könnte". Maximal 15 Wörter. Antworte nur mit dem Satz, sonst nichts.',
-            messages: [{ role: 'user', content: JSON.stringify({
+            zweck: 'woerni-fokus',
+            text: JSON.stringify({
               titel: fokusAufgabe.titel,
               typ: fokusAufgabe.typ,
               naechster_schritt: fokusAufgabe.naechster_schritt || null,
               app_kontext: fokusAufgabe.app_kontext || null,
-            }) }]
+            })
           })
         });
         const data = await res.json();
