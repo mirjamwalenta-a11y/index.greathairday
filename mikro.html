@@ -93,6 +93,7 @@
     padding:10px 14px; font-size:12px; color:var(--text-soft); margin-bottom:16px; line-height:1.5; }
   .aufgaben-hinweis strong { color:var(--text); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -159,6 +160,40 @@
 const SB_URL = "https://wrxlaltgtgkdomklgrlj.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g";
 
+// ── Login: Mikro ist wie Wörni der Chefin vorbehalten ──
+// Nutzt die Supabase-Session der Startseite (gleiche Domain). Ohne Session
+// geht nichts an die Datenbank oder an Claude. Die eigentliche Absicherung
+// liegt auf dem Server (RLS, rapid-service prüft die Rolle); diese Prüfung
+// blendet nur die Oberfläche aus.
+const AUTH_CLIENT = supabase.createClient(SB_URL, SB_KEY);
+let sessionToken = null;
+
+async function holeToken() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  return data?.session?.access_token || null;
+}
+
+async function pruefeLogin() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  const session = data?.session;
+  if (session?.user?.email) {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/teamapp_persons?email=eq.${encodeURIComponent(session.user.email)}&select=rolle`, {
+        headers: { "apikey": SB_KEY, "Authorization": `Bearer ${session.access_token}` }
+      });
+      const rows = await r.json();
+      if (Array.isArray(rows) && rows[0]?.rolle === 'inhaberin') {
+        sessionToken = session.access_token;
+        return true;
+      }
+    } catch(e) {}
+  }
+  el('aufgabenHinweis').innerHTML = 'Bitte zuerst auf der <a href="index.html">Startseite</a> einloggen. Wörni ist der Chefin vorbehalten.';
+  setStatus('🔒', 'Nicht eingeloggt', 'Mikro funktioniert nur mit deinem Login auf der Startseite.');
+  el('mikroBtn').disabled = true;
+  return false;
+}
+
 let erkannterText = '';
 let offeneAufgaben = [];
 let erkennung = null;
@@ -168,7 +203,7 @@ let toastTimer;
 async function ladeAufgaben() {
   try {
     const r = await fetch(`${SB_URL}/rest/v1/ghd_aufgaben?status=neq.erledigt&order=faellig_am.asc.nullslast&limit=10`, {
-      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` }
+      headers: { "apikey": SB_KEY, "Authorization": `Bearer ${await holeToken()}` }
     });
     offeneAufgaben = await r.json();
     if (!Array.isArray(offeneAufgaben)) offeneAufgaben = [];
@@ -186,7 +221,7 @@ async function speichereAufgabe(titel) {
   const r = await fetch(`${SB_URL}/rest/v1/ghd_aufgaben`, {
     method: 'POST',
     headers: {
-      "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`,
+      "apikey": SB_KEY, "Authorization": `Bearer ${await holeToken()}`,
       "Content-Type": "application/json", "Prefer": "return=representation"
     },
     body: JSON.stringify({ titel, prioritaet: 'heute', typ: 'betrieb', status: 'neu', erstellt_von: 'mirjam' })
@@ -254,14 +289,14 @@ async function fragenWoerni() {
     const aufgabenListe = offeneAufgaben.slice(0,8)
       .map(a => `- ${a.titel} (${a.prioritaet})`).join('\n');
 
-    const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/super-action', {
+    // Über den abgesicherten Proxy (rapid-service, zweck "woerni-mikro"):
+    // Anleitung, Modell und Länge stehen auf dem Server fest.
+    const r = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${await holeToken()}` },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: `Du bist Wörni, der persönliche KI-Assistent von Mirjam Walenta, Friseurmeisterin und Saloninhaberin in Wien (Salon "A Great Hair Day"). Antworte kurz, direkt und auf Deutsch. Keine langen Einleitungen. Offene Aufgaben:\n${aufgabenListe || '(keine)'}`,
-        messages: [{ role: 'user', content: erkannterText.trim() }]
+        zweck: 'woerni-mikro',
+        text: `Offene Aufgaben:\n${aufgabenListe || '(keine)'}\n\nFrage: ${erkannterText.trim()}`
       })
     });
 
@@ -337,7 +372,7 @@ function toast(msg) {
 }
 
 // Start
-ladeAufgaben();
+pruefeLogin().then(ok => { if (ok) ladeAufgaben(); });
 </script>
 </body>
 </html>
