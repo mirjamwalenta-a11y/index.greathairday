@@ -104,7 +104,7 @@
     /* ── Home: Begrüßung ── */
     .greet       { font-size: 22px; font-weight: 700; margin: 0; }
     .greet-sub   { color: var(--text-soft); font-size: 13.5px; margin-top: 2px; margin-bottom: 20px; }
-    .home-pills  { display: flex; gap: 8px; }
+    .home-pills  { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .pill {
       display: flex; align-items: center; gap: 6px;
       background: var(--card); border: 1px solid var(--border);
@@ -331,6 +331,13 @@
     .woerni-panel-text {
       font-size: 14px; line-height: 1.6; color: var(--text);
     }
+    .woerni-panel-problem {
+      display: none; margin-top: 12px; background: none;
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 7px 12px; font-size: 12.5px; font-weight: 600;
+      font-family: inherit; color: var(--accent); cursor: pointer;
+    }
+    .woerni-panel-problem.visible { display: inline-block; }
     .woerni-panel-close {
       position: absolute; top: 10px; right: 12px;
       background: none; border: none; font-size: 16px;
@@ -424,6 +431,7 @@
     <div class="home-pills">
       <button class="pill" onclick="showScreen('screen-apps')">⊞ Apps</button>
       <button class="pill" onclick="goApp('Wörni')">🤖 Wörni</button>
+      <button class="pill" onclick="oeffneProblemloeser()" title="Problem mit dem Ansatzfinder in Claude durchdenken">🧭 Problem</button>
     </div>
   </div>
 
@@ -530,6 +538,7 @@
   <button class="woerni-panel-close" onclick="document.getElementById('woerniPanel').classList.remove('visible')">✕</button>
   <div class="woerni-panel-tag">🤖 Wörni antwortet</div>
   <div class="woerni-panel-text" id="woerniPanelText"></div>
+  <button class="woerni-panel-problem" id="woerniPanelProblem" onclick="oeffneProblemloeser(fabRec && fabRec._letzterText)">🧭 Als Problem durchdenken</button>
 </div>
 
 <!-- SPRECHEN FAB -->
@@ -784,6 +793,16 @@ function showScreen(id) {
 function goHome() { sessionStorage.setItem('ghd_unlocked','1'); showScreen('screen-home'); }
 function goPin()  { abmelden(); }
 function goWoerni() { window.location.href = 'schaltzentrale.html'; }
+
+// ── Problemlöser (Ansatzfinder) ──
+// Öffnet Claude mit vorbefülltem Einstieg; dort läuft der Skill „ansatzfinder“
+// (Mitarbeiterhandbuch-Repo) mit Websuche und Philipp AI. Die Startseite
+// selbst schickt dafür nichts an einen Server.
+function oeffneProblemloeser(problem) {
+  let einstieg = 'Ich hab ein Problem und keine Ahnung, wie ich es angehen soll. Führ mich mit dem Ansatzfinder durch.';
+  if (problem && problem.trim()) einstieg += '\n\nMein Problem: ' + problem.trim();
+  window.open('https://claude.ai/new?q=' + encodeURIComponent(einstieg), '_blank', 'noopener');
+}
 function goApp(name) {
   if (!name) { toast('App nicht gefunden'); return; }
   // Direkte URL → sofort navigieren
@@ -1325,6 +1344,7 @@ function fabToggleMic() {
     const panel = document.getElementById('woerniPanel');
     const panelText = document.getElementById('woerniPanelText');
     panelText.textContent = '…';
+    document.getElementById('woerniPanelProblem').classList.remove('visible');
     panel.classList.add('visible');
 
     try {
@@ -1344,6 +1364,7 @@ function fabToggleMic() {
       const data = await res.json();
       if (data?.content?.[0]?.text) {
         panelText.textContent = data.content[0].text;
+        document.getElementById('woerniPanelProblem').classList.add('visible');
       } else if (data?.error) {
         panelText.textContent = 'Fehler: ' + data.error.message;
       } else {
