@@ -268,6 +268,7 @@
   .heute-aufgabe-prio { font-size:14px;flex-shrink:0; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js" data-schluessel="ghd_session,ghd_session_token"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
 </head>
 <body>
 
@@ -1261,11 +1262,22 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   // als id den erratbaren Wert "salon-chef", das war ein vollständiger Auth-Bypass.)
   const savedToken = localStorage.getItem('ghd_session_token');
   if(savedToken){
-    let frischePerson=null;
+    let frischePerson=null, keinNetz=false;
     try{
       const { data, error } = await AUTH_CLIENT.rpc('session_by_token', { p_token: savedToken });
       if(!error && data && data.length) frischePerson=data[0];
-    }catch(e){ frischePerson=null; }
+      if(error && (!navigator.onLine || /fetch|network/i.test(error.message||''))) keinNetz=true;
+    }catch(e){ frischePerson=null; keinNetz=!navigator.onLine; }
+    // Ohne Netz lässt sich die Sitzung nicht serverseitig prüfen → KEINE Anmeldung herstellen
+    // (Rolle wird nie aus dem Gerät übernommen), aber den Token behalten, damit es mit Netz
+    // ohne erneute PIN-Eingabe weitergeht.
+    if(!frischePerson && keinNetz){
+      document.getElementById('loginScreen').style.display='block';
+      const err=document.getElementById('pinError');
+      if(err) err.textContent='Keine Internetverbindung – die Anmeldung wird geprüft, sobald wieder Netz da ist.';
+      window.addEventListener('online',()=>location.reload(),{once:true});
+      return;
+    }
 
     if(frischePerson){
       currentSession={name:frischePerson.name,rolle:frischePerson.rolle,id:frischePerson.id};
