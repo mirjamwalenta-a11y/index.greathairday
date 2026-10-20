@@ -1303,12 +1303,24 @@ async function chefinLogin(){
   err.textContent='';
   if(!email||!pw){err.textContent='Bitte E-Mail und Passwort eingeben.';return;}
   try{
+    if(!navigator.onLine){err.textContent=OHNE_NETZ_TEXT;return;}
     const { error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+    if(error && netzFehler(error)){err.textContent=OHNE_NETZ_TEXT;return;}
     if(error){err.textContent='E-Mail oder Passwort falsch.';return;}
     currentSession={name:'Mirjam',rolle:'chefin'};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
-  }catch(e){err.textContent='Verbindungsfehler.';}
+  }catch(e){err.textContent=netzFehler(e)?OHNE_NETZ_TEXT:'Verbindungsfehler.';}
+}
+
+// Anmelden prüft der Server (Passwort/PIN) — ohne Netz geht das nicht. Dann nicht
+// „falsch“ melden, sondern sagen, woran es liegt. Wer schon angemeldet ist, bleibt
+// auch offline drin (ghd-offline.js liefert die gespeicherte Sitzung).
+const OHNE_NETZ_TEXT='Keine Internetverbindung – zum Anmelden braucht es einmal kurz Netz. Wer schon angemeldet ist, kann danach auch offline weiterarbeiten.';
+function netzFehler(e){
+  if(!navigator.onLine) return true;
+  const t=String((e&&(e.name||''))+' '+(e&&(e.message||''))+' '+(e&&e.status===0?'status0':''));
+  return /fetch|network|retryable|status0|Load failed/i.test(t);
 }
 
 function showTeamLogin(){
@@ -1325,15 +1337,17 @@ async function doTeamLogin(){
   const pin=document.getElementById('teamPin').value;
   document.getElementById('teamErr').textContent='';
   if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
+  if(!navigator.onLine){document.getElementById('teamErr').textContent=OHNE_NETZ_TEXT;return;}
   try{
     const { data, error } = await AUTH_CLIENT.rpc('login_mit_pin', { p_kennung: kennung, p_pin: pin });
+    if(error && netzFehler(error)){document.getElementById('teamErr').textContent=OHNE_NETZ_TEXT;return;}
     if(error || !data || !data.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
     const p=data[0];
     currentSession={name:p.name,rolle:p.rolle,id:p.id};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     localStorage.setItem('ghd_session_token',p.token);
     showApp();
-  }catch(e){document.getElementById('teamErr').textContent='Verbindungsfehler.';}
+  }catch(e){document.getElementById('teamErr').textContent=netzFehler(e)?OHNE_NETZ_TEXT:'Verbindungsfehler.';}
 }
 
 function showApp(){

@@ -860,12 +860,24 @@ async function loginMitSupabase() {
   const email = document.getElementById('loginEmail').value.trim();
   const pw    = document.getElementById('loginPw').value;
   if (!email || !pw) return;
+  // Passwort prüft der Server — ohne Netz nicht „falsch“ melden, sondern sagen, woran es liegt.
+  const ohneNetz = 'Keine Internetverbindung – zum Anmelden braucht es einmal kurz Netz. Wer schon angemeldet ist, kann danach auch offline weiterarbeiten.';
+  if (!navigator.onLine) {
+    document.getElementById('loginFehler').textContent = ohneNetz;
+    document.getElementById('loginFehler').style.display = 'block';
+    return;
+  }
   const btn = document.getElementById('loginBtn');
   btn.textContent = 'Wird geprüft…';
   btn.disabled = true;
   const { data, error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
   btn.textContent = 'Einloggen';
   btn.disabled = false;
+  if (error && (!navigator.onLine || /fetch|network|retryable|Load failed/i.test((error.name || '') + ' ' + (error.message || '')))) {
+    document.getElementById('loginFehler').textContent = ohneNetz;
+    document.getElementById('loginFehler').style.display = 'block';
+    return;
+  }
   if (error) {
     document.getElementById('loginFehler').textContent = 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.';
     document.getElementById('loginFehler').style.display = 'block';
@@ -903,7 +915,9 @@ let inaktivitaetsTimer = null;
 function inaktivitaetsTimerZuruecksetzen() {
   if (!chefBereichAktiv) return;
   clearTimeout(inaktivitaetsTimer);
-  inaktivitaetsTimer = setTimeout(() => { abmelden(); }, INAKTIVITAET_MS);
+  // Ohne Netz nicht abmelden (Anmelden ginge offline nicht mehr) — dann sperrt
+  // ghd-sitzung.js nach 15 Minuten mit dem Geräte-Code.
+  inaktivitaetsTimer = setTimeout(() => { if (navigator.onLine) abmelden(); }, INAKTIVITAET_MS);
 }
 ['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
   document.addEventListener(ev, inaktivitaetsTimerZuruecksetzen, { passive: true })
