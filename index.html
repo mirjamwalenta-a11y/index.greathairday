@@ -915,7 +915,9 @@ let inaktivitaetsTimer = null;
 function inaktivitaetsTimerZuruecksetzen() {
   if (!chefBereichAktiv) return;
   clearTimeout(inaktivitaetsTimer);
-  inaktivitaetsTimer = setTimeout(() => { abmelden(); }, INAKTIVITAET_MS);
+  // Ohne Netz nicht abmelden (Anmelden ginge offline nicht mehr) — dann sperrt
+  // ghd-sitzung.js nach 15 Minuten mit dem Geräte-Code.
+  inaktivitaetsTimer = setTimeout(() => { if (navigator.onLine) abmelden(); }, INAKTIVITAET_MS);
 }
 ['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
   document.addEventListener(ev, inaktivitaetsTimerZuruecksetzen, { passive: true })

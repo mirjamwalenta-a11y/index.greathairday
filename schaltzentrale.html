@@ -394,6 +394,9 @@ function szInaktivZuLange() {
 }
 
 async function szInaktivitaetsLogout() {
+  // Ohne Netz nicht abmelden (Anmelden ginge offline nicht mehr) — dann sperrt
+  // ghd-sitzung.js nach 15 Minuten mit dem Geräte-Code.
+  if (!navigator.onLine) return;
   szChefBereichAktiv = false;
   await SZ_AUTH.auth.signOut();
   document.getElementById('root').style.display = 'none';
@@ -425,7 +428,7 @@ window.addEventListener('pageshow', szPruefeNachWiedersichtbarwerden);
 (async function() {
   const { data } = await SZ_AUTH.auth.getSession();
   if (data && data.session) {
-    if (szInaktivZuLange()) {
+    if (szInaktivZuLange() && navigator.onLine) {
       await SZ_AUTH.auth.signOut();
       return; // sz-login bleibt sichtbar (Standard)
     }

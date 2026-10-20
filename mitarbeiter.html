@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // aus einer App jedes Mal aus dem Login.
   try {
     const { data: { session } } = await AUTH.auth.getSession();
-    if (session && istAbgelaufen()) {
+    if (session && istAbgelaufen() && navigator.onLine) { // offline sperrt stattdessen ghd-sitzung.js
       // Zu lange inaktiv → sauber abmelden
       await AUTH.auth.signOut();
       try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
