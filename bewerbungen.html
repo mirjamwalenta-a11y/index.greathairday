@@ -121,6 +121,7 @@
     .sig { margin-top:10px; padding-left:10px; border-left:3px solid; font-size:13px; line-height:1.55; }
     .sig.r { border-color:var(--r); }
     .sig.y { border-color:var(--y); }
+    .sig.g { border-color:var(--g); }
     .sig .sit { color:var(--text-soft); }
     .sig .ans { color:var(--text); margin:2px 0; }
     .sig .why { color:var(--text-soft); font-style:italic; }
@@ -204,7 +205,7 @@
   const RANG = { g: 0, y: 1, r: 2 };
   const GESAMT = {
     g: ['Gesamt: Grün – zum Gespräch einladen', 'Alle vier Pflichtfelder grün.'],
-    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
+    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
     r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
   };
   const BASIS_GRUENDE = [
@@ -256,11 +257,6 @@
   const datum = d => d ? new Date(d).toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
   const tageSeit = d => Math.floor((Date.now() - new Date(d)) / 86400000);
   const vorname = name => (name || '').trim().split(/\s+/)[0];
-  function plusWerktage(d, n) {
-    const x = new Date(d);
-    while (n > 0) { x.setDate(x.getDate() + 1); if (x.getDay() !== 0 && x.getDay() !== 6) n--; }
-    return x;
-  }
   const pill = farbe => farbe ? h('span', { cls: 'pill p-' + farbe }, FARBTEXT[farbe]) : null;
 
   // ── Anmeldung ──────────────────────────────────────────────────────────
@@ -321,10 +317,7 @@
       else if (!b.matcher_erinnert_am && tageSeit(b.matcher_verschickt_am) >= 4) out.push(['y', 'Erinnerung fällig']);
       else out.push(['', 'Link gültig bis ' + datum(b.matcher_gueltig_bis)]);
     }
-    if (b.status === 'ausgewertet' && b.gesamt === 'y' && !b.gelb_eingeladen) {
-      const frist = plusWerktage(b.matcher_ausgefuellt_am, 3);
-      out.push(frist < new Date() ? ['r', 'Frist für Begründung vorbei – Absage'] : ['y', 'Begründung bis ' + datum(frist)]);
-    }
+    if (b.status === 'ausgewertet' && b.gesamt === 'y') out.push(['y', 'Gelb – Gespräch oder Absage entscheiden']);
     if (b.status === 'ausgewertet' && b.gesamt === 'r') out.push(['r', 'Rot – Absage vorbereiten']);
     if (b.frueher && b.frueher.length) {
       const f = b.frueher[0];
@@ -479,11 +472,11 @@
         add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])));
         if (g === 'g') add(h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
         if (g === 'y') {
-          const frist = plusWerktage(b.matcher_ausgefuellt_am, 3);
-          add(h('p', { cls: 'muted', style: 'margin-top:8px' }, `Ohne Begründung bis ${datum(frist)} → Absage.`),
-              pruefzone(b, { einladung: true }),
-              h('button', { cls: 'btn', id: 'gelb-einladen', disabled: !(b.pruefzone && b.pruefzone.eingeladen),
-                            on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
+          add(h('div', { cls: 'pz' }, h('h3', {}, 'Im Gespräch gezielt prüfen'),
+                ...pzPunkte(b).map(a => h('div', { cls: 'pz-item' },
+                  h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
+                  h('div', { cls: 'q' }, 'Frage: ' + a.prueffrage)))),
+              h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
         }
         if (g === 'r') add(h('p', { cls: 'regel' }, 'Keine Einladung zum Gespräch.'));
         add(h('button', { cls: 'btn ' + (g === 'r' ? 'rot' : 'ghost'), on: () => (g === 'r' || confirm('Absage vorbereiten?')) && schritt(b, 'absage') }, 'Absage vorbereiten'));
@@ -491,7 +484,7 @@
       }
       case 'gespraech':
         add(nachricht(b, 'Einladung zum Kennenlernen', VORLAGE.gespraech(v)));
-        if (b.matcher_gesamt === 'y') add(pruefzone(b, { einladung: false }));
+        if (b.matcher_gesamt === 'y') add(pruefzone(b));
         add(h('button', { cls: 'btn', id: 'weiter-probe', disabled: b.matcher_gesamt === 'y' && !alleGeklaert(b),
                           on: () => schritt(b, 'probearbeiten') }, 'Probearbeiten vereinbaren'),
             h('button', { cls: 'btn ghost', on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
@@ -521,6 +514,19 @@
     const karte = h('div', { cls: 'card' }, h('h2', {}, 'Auswertung Salon Matcher'),
       h('p', { cls: 'muted' }, `Ausgefüllt am ${datum(b.matcher_ausgefuellt_am)}`));
     const felder = b.matcher_felder || {};
+
+    // In einem Satz: warum diese Gesamtfarbe (Gesamt = schwächstes Feld)
+    const name = k => b.felder_info[k].name.split(' ')[0];
+    const anzahl = (k, c) => b.antworten.filter(a => a.bewertung[k] === c).length;
+    const teil = (c, wort) => Object.keys(felder).filter(k => felder[k] === c)
+      .map(k => `${name(k)} ${wort} (${anzahl(k, c)} ${anzahl(k, c) === 1 ? 'Antwort' : 'Antworten'})`);
+    const gruen = Object.keys(felder).filter(k => felder[k] === 'g').map(name);
+    const g = b.matcher_gesamt;
+    const satz = g === 'g' ? 'Gesamt Grün: alle vier Felder grün.'
+      : `Gesamt ${FARBTEXT[g]}, weil: ${[...teil('r', 'rot'), ...teil('y', 'gelb')].join(', ')}.` +
+        (gruen.length ? ` ${gruen.join(', ')} ${gruen.length === 1 ? 'ist' : 'sind'} grün.` : '') +
+        ' Das schwächste Feld bestimmt das Gesamtergebnis – Grün gleicht nichts aus.';
+    karte.append(h('div', { cls: 'verdict v-' + g }, h('p', {}, satz)));
     Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
       const signale = b.antworten.filter(a => a.bewertung[k] && a.bewertung[k] !== 'g')
         .sort((x, y) => RANG[y.bewertung[k]] - RANG[x.bewertung[k]]);
@@ -534,6 +540,17 @@
       if (felder[k] !== 'g') box.append(h('div', { cls: 'ask' }, h('b', {}, 'Im Gespräch fragen: '), b.felder_info[k].gespraech));
       karte.append(box);
     });
+
+    // Alle 8 Antworten der Reihe nach, mit Farbe je Pflichtfeld
+    karte.append(h('h3', {}, 'Alle Antworten'));
+    b.antworten.forEach((a, i) => {
+      const tags = h('div', { style: 'display:flex;gap:4px;flex-wrap:wrap;margin-top:4px' },
+        ...Object.entries(a.bewertung).map(([f, c]) => h('span', { cls: 'pill p-' + c }, `${b.felder_info[f].name.split(' ')[0]} · ${FARBTEXT[c]}`)));
+      karte.append(h('div', { cls: 'sig ' + (Object.values(a.bewertung).includes('r') ? 'r' : Object.values(a.bewertung).includes('y') ? 'y' : 'g') },
+        h('div', { cls: 'sit' }, `Situation ${i + 1} · ${a.frage}`),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
+        tags));
+    });
     return karte;
   }
 
@@ -545,12 +562,11 @@
     return pzPunkte(b).every(a => u[pzKey(a)] === 'g');
   }
 
-  function pruefzone(b, { einladung }) {
-    const pz = Object.assign({ stark: false, fach: false, begruendung: '', urteile: {}, eingeladen: false }, b.pruefzone || {});
+  function pruefzone(b) {
+    const pz = Object.assign({ stark: false, fach: false, begruendung: '', urteile: {} }, b.pruefzone || {});
     pz.urteile = Object.assign({}, pz.urteile);
     const punkte = pzPunkte(b);
     const box = h('div', { cls: 'pz' }, h('h3', {}, 'Prüfzone Gelb'));
-    const status1 = h('div', { cls: 'pz-status' });
     const teil2 = h('div');
     const status3 = h('div', { cls: 'pz-status' });
     const gespeichert = h('div', { cls: 'muted', style: 'margin-top:6px' });
@@ -571,29 +587,8 @@
     // Vor „Zum Gespräch“ / „Probearbeiten“: Ausstehendes zuerst speichern
     b.pzFlush = () => timer ? jetztSpeichern() : Promise.resolve();
 
-    // Schritt 1 – Begründung (nach der Einladung nicht mehr änderbar)
-    box.append(h('div', { cls: 'pz-step' }, 'Schritt 1 · Vor der Einladung'));
-    if (einladung && !pz.eingeladen) {
-      const check = (feld, text) => {
-        const c = h('input', { type: 'checkbox' });
-        c.checked = pz[feld];
-        c.addEventListener('change', () => { pz[feld] = c.checked; update(); speichern(); });
-        return h('label', { cls: 'consent' }, c, h('span', {}, text));
-      };
-      const grund = h('input', { type: 'text', maxlength: '500', placeholder: 'Woran genau? (Pflicht, wenn du einlädst)' });
-      grund.value = pz.begruendung;
-      grund.addEventListener('input', () => { pz.begruendung = grund.value; update(); speichern(); });
-      box.append(check('stark', 'Der Gesamteindruck der Bewerbung ist sonst stark.'),
-        check('fach', 'Die Bewerbung ist fachlich besonders interessant (z. B. Portfolio, Erfahrung, Spezialgebiet).'),
-        grund,
-        h('div', { cls: 'muted', style: 'margin-top:6px' }, 'Sympathie oder Mitleid zählen hier nicht.'),
-        status1);
-    } else {
-      box.append(h('div', { cls: 'pz-status g' }, 'Eingeladen. Begründung: ' + (pz.begruendung || '–')));
-    }
-
     // Schritt 2 – im Gespräch prüfen
-    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 2 · Im Gespräch gezielt prüfen'));
+    teil2.append(h('div', { cls: 'pz-step' }, 'Im Gespräch gezielt prüfen'));
     punkte.forEach(a => {
       const key = pzKey(a);
       const wrap = h('div', { cls: 'pz-btns' });
@@ -615,18 +610,10 @@
         h('div', { cls: 'hint' }, h('b', {}, 'Bleibt kritisch: '), a.pruef_krit),
         wrap));
     });
-    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 3 · Entscheidung nach dem Gespräch'), status3);
+    teil2.append(h('div', { cls: 'pz-step' }, 'Entscheidung nach dem Gespräch'), status3);
     box.append(teil2, gespeichert);
 
     function update() {
-      const eingeladen = pz.eingeladen || ((pz.stark || pz.fach) && pz.begruendung.trim().length >= 10);
-      status1.className = 'pz-status' + (eingeladen ? ' g' : (pz.stark || pz.fach) ? '' : ' r');
-      status1.textContent = eingeladen ? 'Einladen. Im Gespräch jede gelbe Stelle unten gezielt prüfen.'
-        : (pz.stark || pz.fach) ? 'Begründung fehlt – noch keine Einladung.' : 'Nicht einladen.';
-      teil2.classList.toggle('hidden', !eingeladen);
-      const btnEinladen = document.getElementById('gelb-einladen');
-      if (btnEinladen) btnEinladen.disabled = !eingeladen;
-
       const u = punkte.map(a => pz.urteile[pzKey(a)]);
       const offen = u.filter(x => !x).length;
       if (u.includes('r')) {
@@ -677,7 +664,7 @@
       h('h3', {}, 'Entscheidung'),
       h('ul', { cls: 'rules' },
         h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
-        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt – mit schriftlicher Begründung. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
+        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
         h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
       h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
       h('h3', {}, 'Die acht Situationen'),

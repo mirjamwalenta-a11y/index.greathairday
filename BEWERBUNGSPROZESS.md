@@ -83,10 +83,10 @@ Terminvorschläge an die Bewerberin bzw. den Bewerber schicken.
 - Kein automatisches Ja.
 - Der Chefin vorlegen mit den gelben Prüfpunkten und den passenden
   Gesprächsfragen aus der Prüfzone.
-- Weiter zum Gespräch nur, wenn die Chefin schriftlich begründet, dass der
-  Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders
-  interessant wirkt. Sympathie oder Mitleid zählen nicht.
-- Keine Begründung innerhalb von 3 Werktagen *(Vorschlag)* → Absage.
+- Die Chefin entscheidet: Gespräch, wenn der Gesamteindruck sonst stark ist
+  oder die Bewerbung fachlich besonders interessant wirkt – sonst Absage.
+  Sympathie oder Mitleid zählen nicht. Eine schriftliche Begründung ist
+  seit 2026-10-21 nicht mehr nötig (Entscheidung der Chefin).
 - Nach dem Gespräch: Alle Prüfpunkte geklärt → nächster Schritt. Ein Punkt
   bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine
   Warteschleife.
@@ -104,7 +104,7 @@ Terminvorschläge an die Bewerberin bzw. den Bewerber schicken.
 - Basis-Check: passt / passt nicht (mit Grund aus Abschnitt 5)
 - Matcher verschickt: ja / nein, Datum
 - Ergebnis: Grün / Gelb / Rot
-- bei Gelb: die offenen Prüfpunkte und die Begründung der Chefin
+- bei Gelb: die offenen Prüfpunkte
 - nächste Entscheidung: Gespräch / Absage / Probearbeiten
 - Löschdatum (spätestens 6 Monate nach Abschluss)
 
@@ -177,9 +177,8 @@ nicht still geschlossen werden. Still schließen geht nur **vor** dem Matcher
 
 **Was die Datenbank erzwingt** (nicht nur die Oberfläche):
 - Rot kann nie zum Gespräch.
-- Gelb kommt nur mit Häkchen und schriftlicher Begründung (mindestens
-  10 Zeichen) zum Gespräch, und nur mit allen Prüfpunkten „geklärt“ zum
-  Probearbeiten.
+- Gelb kommt mit einem Klick zum Gespräch, zum Probearbeiten aber nur mit
+  allen Prüfpunkten „geklärt“ (`20261021150000_gelb_ohne_begruendung.sql`).
 - Matcher-Link nur nach bestandenem Basis-Check, einmal ausfüllbar,
   7 Tage gültig. Eine Erinnerung ersetzt den Link, verlängert aber nicht.
 - Die Farbzuordnung liegt nur in der Datenbank. Bewerber:innen und der
