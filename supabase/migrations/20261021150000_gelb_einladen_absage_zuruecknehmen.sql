@@ -1,17 +1,26 @@
 -- ════════════════════════════════════════════════════════════════════════
--- Bewerbungen: Gelb ohne schriftliche Begründung zum Gespräch einladen
+-- Bewerbungen: Gelb mit einem Klick einladen, Absage zurücknehmen
 -- (Supabase-Projekt wrxlaltgtgkdomklgrlj, nach 20261021120000_bewerbungen_salon_matcher.sql)
 --
--- Entscheidung der Chefin (2026-10-21): Bei Gesamt-Gelb lädt sie mit einem
--- Klick ein, ohne Häkchen und Begründung. Unverändert bleibt:
---   * Rot kann nie zum Gespräch.
+-- Entscheidungen der Chefin (2026-10-21):
+--   1. Bei Gesamt-Gelb lädt sie mit einem Klick ein, ohne Häkchen und
+--      Begründung.
+--   2. Eine versehentlich vorbereitete Absage lässt sich zurücknehmen,
+--      solange sie noch nicht als verschickt markiert ist. Der Vorgang
+--      springt in den Schritt davor zurück.
+-- Unverändert bleibt:
+--   * Rot kann nie zum Gespräch (auch nach dem Zurücknehmen nicht).
 --   * Gelb kommt nur zum Probearbeiten, wenn im Gespräch alle gelben
 --     Prüfpunkte als „geklärt“ markiert sind.
+--   * Eine verschickte Absage bleibt endgültig.
 --
--- Ersetzt nur die Funktion bewerbung_schritt. Rechte bleiben bei
--- CREATE OR REPLACE erhalten; zur Sicherheit unten noch einmal gesetzt.
+-- Neue Spalte vor_absage (merkt den Schritt vor der Absage) und neue
+-- Fassung von bewerbung_schritt. Die Tabelle hat weiter RLS ohne Policy
+-- und keine Grants für anon/authenticated. Mehrfach ausführbar.
 -- Mehrfach ausführbar.
 -- ════════════════════════════════════════════════════════════════════════
+
+ALTER TABLE public.bewerbungen ADD COLUMN IF NOT EXISTS vor_absage text;
 
 CREATE OR REPLACE FUNCTION public.bewerbung_schritt(p_id uuid, p_aktion text, p_notiz text DEFAULT NULL)
 RETURNS void
@@ -39,7 +48,7 @@ BEGIN
   WHEN 'basis_passt_nicht' THEN
     IF b.status <> 'neu' THEN RAISE EXCEPTION 'Basis-Check ist schon erledigt'; END IF;
     IF v_notiz IS NULL THEN RAISE EXCEPTION 'Grund für den Basis-Check fehlt'; END IF;
-    UPDATE public.bewerbungen SET basis_grund = v_notiz WHERE id = p_id;
+    UPDATE public.bewerbungen SET basis_grund = v_notiz, vor_absage = b.status WHERE id = p_id;
     v_neu := 'absage_offen';
 
   WHEN 'schliessen' THEN
@@ -83,7 +92,22 @@ BEGIN
     IF b.status NOT IN ('basis_ok','ausgewertet','gespraech','probearbeiten') THEN
       RAISE EXCEPTION 'Absage in diesem Schritt nicht möglich';
     END IF;
+    UPDATE public.bewerbungen SET vor_absage = b.status WHERE id = p_id;
     v_neu := 'absage_offen';
+
+  WHEN 'absage_zuruecknehmen' THEN
+    -- Nur solange die Absage noch nicht verschickt ist.
+    IF b.status <> 'absage_offen' THEN
+      RAISE EXCEPTION 'Nur eine noch nicht verschickte Absage kann zurückgenommen werden';
+    END IF;
+    -- Ältere Einträge ohne gemerkten Schritt: aus dem Stand ableiten
+    v_neu := coalesce(b.vor_absage, CASE
+      WHEN b.matcher_ausgefuellt_am IS NOT NULL THEN 'ausgewertet'
+      WHEN b.basis_grund IS NOT NULL THEN 'neu'
+      ELSE 'basis_ok' END);
+    UPDATE public.bewerbungen SET vor_absage = NULL,
+      basis_grund = CASE WHEN v_neu = 'neu' THEN NULL ELSE basis_grund END
+    WHERE id = p_id;
 
   WHEN 'absage_verschickt' THEN
     -- Freigabe durch die Chefin = Absage geht raus. Ändert nie die Farbe.
@@ -104,6 +128,7 @@ BEGIN
     WHEN 'zusage'            THEN 'Zusage'
     WHEN 'absage'            THEN 'Absage vorbereitet' || coalesce(' (' || v_notiz || ')', '')
     WHEN 'absage_verschickt' THEN 'Absage freigegeben und verschickt'
+    WHEN 'absage_zuruecknehmen' THEN 'Absage zurückgenommen'
   END);
 END;
 $$;

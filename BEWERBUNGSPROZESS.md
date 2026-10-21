@@ -177,8 +177,11 @@ nicht still geschlossen werden. Still schließen geht nur **vor** dem Matcher
 
 **Was die Datenbank erzwingt** (nicht nur die Oberfläche):
 - Rot kann nie zum Gespräch.
+- Eine vorbereitete Absage lässt sich zurücknehmen, solange sie nicht als
+  verschickt markiert ist; der Vorgang springt in den Schritt davor zurück.
+  Eine verschickte Absage ist endgültig.
 - Gelb kommt mit einem Klick zum Gespräch, zum Probearbeiten aber nur mit
-  allen Prüfpunkten „geklärt“ (`20261021150000_gelb_ohne_begruendung.sql`).
+  allen Prüfpunkten „geklärt“ (`20261021150000_gelb_einladen_absage_zuruecknehmen.sql`).
 - Matcher-Link nur nach bestandenem Basis-Check, einmal ausfüllbar,
   7 Tage gültig. Eine Erinnerung ersetzt den Link, verlängert aber nicht.
 - Die Farbzuordnung liegt nur in der Datenbank. Bewerber:innen und der

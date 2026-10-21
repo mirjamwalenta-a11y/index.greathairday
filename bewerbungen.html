@@ -230,15 +230,15 @@
     zusage: 'Zusage', absage_offen: 'Absage vorbereitet – Freigabe offen', abgesagt: 'Abgesagt', geschlossen: 'Geschlossen'
   };
 
-  const GRUSS = '\n\nLiebe Grüße\nA Great Hair Day';
+  const GRUSS = '\n\nLiebe Grüße\nDein Team von A Great Hair Day';
   const VORLAGE = {
-    absage_basis: v => `Hallo ${v},\n\ndanke für dein Interesse an A Great Hair Day. Von den Eckdaten her passt es bei uns gerade leider nicht zusammen. Wir wünschen dir für deinen weiteren Weg alles Gute.` + GRUSS,
+    absage_basis: v => `Hallo ${v},\n\nvielen Dank, dass du dich bei uns gemeldet hast – wir haben uns sehr über dein Interesse an A Great Hair Day gefreut.\n\nWir haben uns deine Angaben in Ruhe angesehen. Im Moment passt es von den Rahmenbedingungen her leider nicht zusammen, zum Beispiel bei der Stelle, den Stunden oder dem Startzeitpunkt. Das hat nichts mit dir als Person zu tun.\n\nWir wünschen dir von Herzen alles Gute und viel Freude auf deinem weiteren Weg.` + GRUSS,
     matcher: (v, link, bis) => `Hallo ${v},\n\ndanke für deine Bewerbung – von den Eckdaten her passt es. Als nächsten Schritt schicken wir dir unseren Salon Matcher: acht kurze Situationen aus unserem Salonalltag, etwa fünf Minuten. Du musst nichts vorbereiten und nichts erraten – antworte so, wie du wirklich arbeitest.\n\n${link}\n\nDer Link gilt bis ${bis} und lässt sich einmal ausfüllen. Danach melden wir uns in jedem Fall bei dir.` + GRUSS,
     erinnerung: (v, link, bis) => `Hallo ${v},\n\nkurze Erinnerung an unseren Salon Matcher. Dein Link gilt noch bis ${bis}:\n\n${link}\n\nDanach melden wir uns in jedem Fall bei dir.` + GRUSS,
     gespraech: v => `Hallo ${v},\n\ndanke, dass du dir Zeit für den Salon Matcher genommen hast. Wir würden dich gern im Salon kennenlernen. Wann passt es dir in den nächsten Tagen?` + GRUSS,
     probearbeiten: v => `Hallo ${v},\n\ndanke für das gute Gespräch. Wir würden dich gern zu einem Probetag einladen. Welcher Tag passt dir?` + GRUSS,
     zusage: v => `Hallo ${v},\n\nwir freuen uns sehr: Wir möchten gern mit dir zusammenarbeiten. Lass uns die nächsten Schritte besprechen – wann passt es dir?` + GRUSS,
-    absage: v => `Hallo ${v},\n\ndanke für deine Zeit und dein Interesse an A Great Hair Day. Wir haben uns alles in Ruhe angesehen und uns entschieden, den Weg nicht gemeinsam weiterzugehen. Wir wünschen dir alles Gute.` + GRUSS
+    absage: v => `Hallo ${v},\n\nvielen Dank, dass du dir die Zeit für deine Bewerbung und unseren Salon Matcher genommen hast – das schätzen wir wirklich.\n\nWir haben uns alles in Ruhe angesehen. Diesmal passt es für uns leider nicht ganz zusammen, deshalb gehen wir den nächsten Schritt nicht gemeinsam. Das sagt nichts über dein Können aus – es geht nur darum, wie gut unsere Arbeitsweisen zueinander passen.\n\nWir wünschen dir von Herzen alles Gute und viel Freude in deinem Beruf. Danke noch einmal für dein Vertrauen!` + GRUSS
   };
 
   // ── Hilfen ─────────────────────────────────────────────────────────────
@@ -479,7 +479,7 @@
               h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
         }
         if (g === 'r') add(h('p', { cls: 'regel' }, 'Keine Einladung zum Gespräch.'));
-        add(h('button', { cls: 'btn ' + (g === 'r' ? 'rot' : 'ghost'), on: () => (g === 'r' || confirm('Absage vorbereiten?')) && schritt(b, 'absage') }, 'Absage vorbereiten'));
+        add(h('button', { cls: 'btn ' + (g === 'r' ? 'rot' : 'ghost'), on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
         break;
       }
       case 'gespraech':
@@ -497,7 +497,9 @@
       case 'absage_offen':
         add(h('p', {}, 'Die Freigabe prüft nur, ob Name und Vorgang stimmen – nicht, ob es vielleicht doch passt.'),
             nachricht(b, 'Absage', b.basis_grund ? VORLAGE.absage_basis(v) : VORLAGE.absage(v)),
-            h('button', { cls: 'btn', on: () => confirm('Ist die Absage verschickt?') && schritt(b, 'absage_verschickt') }, 'Absage freigegeben und verschickt'));
+            h('p', { cls: 'muted', style: 'margin-top:8px' }, 'Du kannst den Text vor dem Verschicken frei anpassen.'),
+            h('button', { cls: 'btn', on: () => confirm('Ist die Absage verschickt? Danach lässt sie sich nicht mehr zurücknehmen.') && schritt(b, 'absage_verschickt') }, 'Absage freigegeben und verschickt'),
+            h('button', { cls: 'btn ghost', on: () => confirm('Absage zurücknehmen? Die Bewerbung springt in den Schritt davor zurück.') && schritt(b, 'absage_zuruecknehmen') }, 'Absage zurücknehmen'));
         break;
       case 'zusage':
         add(nachricht(b, 'Zusage', VORLAGE.zusage(v)));
