@@ -148,6 +148,27 @@
     .rules { font-size:13.5px; line-height:1.65; margin:8px 0 0 18px; }
     .rules li + li { margin-top:6px; }
     .hidden { display:none; }
+
+    /* Prüfzone Gelb */
+    .pz { border:1.5px solid var(--y); border-radius:12px; padding:16px; margin-top:14px; }
+    .pz h3 { margin-top:0; color:var(--y); }
+    .pz-step { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-soft); margin:18px 0 8px; }
+    .pz-step:first-of-type { margin-top:6px; }
+    .pz .consent { margin-top:8px; color:var(--text); }
+    .pz input[type=text] { margin-top:8px; font-size:14px; }
+    .pz-item { border-top:1px solid var(--border); padding-top:12px; margin-top:12px; font-size:13px; line-height:1.55; }
+    .pz-item .ans { color:var(--text-soft); }
+    .pz-item .q { color:var(--text); font-weight:600; margin:6px 0 4px; }
+    .pz-item .hint { color:var(--text-soft); }
+    .pz-item .hint b { font-weight:600; }
+    .pz-btns { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+    .pz-btn { flex:1; min-width:90px; padding:8px 6px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font:inherit; font-size:12.5px; cursor:pointer; }
+    .pz-btn.on.g { background:var(--g-tint); border-color:var(--g); color:var(--g); font-weight:600; }
+    .pz-btn.on.y { background:var(--y-tint); border-color:var(--y); color:var(--y); font-weight:600; }
+    .pz-btn.on.r { background:var(--r-tint); border-color:var(--r); color:var(--r); font-weight:600; }
+    .pz-status { margin-top:10px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; background:var(--accent-tint); color:var(--accent-dark); }
+    .pz-status.g { background:var(--g-tint); color:var(--g); }
+    .pz-status.r { background:var(--r-tint); color:var(--r); }
   </style>
 </head>
 <body>
@@ -254,6 +275,39 @@
         b: { W: 'y', Z: 'y' }, w: 'Beruhigt mit einer anderen Kundin, statt bei ihr zu bleiben.' }
     ]}
   ];
+
+  // ── Prüfzone Gelb: Gesprächsfragen je gelber Antwort ──────────────────
+  // Schlüssel = Situation-Antwort (Index ab 0, wie in SITUATIONEN).
+  // Nur für Antworten, die gelb und nicht rot sind – rote Antworten
+  // führen nie in die Prüfzone.
+  const PRUEF = {
+    '0-2': { f: 'Wenn eine Kundin viel erzählt – woran merkst du, was ihr eigentlich wichtig ist?',
+             gut: 'nennt Nachfragen oder ein konkretes Beispiel', krit: 'wartet nur ab, „ich mach dann eh, was sie will“' },
+    '0-3': { f: 'Erzähl, wie dein erstes Gespräch mit einer neuen Kundin abläuft – Schritt für Schritt.',
+             gut: 'die Kundin und ihre Wünsche kommen zuerst vor', krit: 'erzählt fast nur von eigener Technik und Erfolgen' },
+    '1-3': { f: 'Du siehst bei uns etwas, das du anders besser findest. Was machst du?',
+             gut: 'spricht es an und probiert im Kleinen', krit: 'wartet, bis jemand anderer entscheidet, oder es ist ihr egal' },
+    '2-1': { f: 'Welche Umstellung hast du in der Schule, im Praktikum oder im letzten Job am Anfang blöd gefunden – und wie siehst du sie heute?',
+             gut: 'hat sich eine eigene Meinung gebildet, nachdem sie es ausprobiert hat', krit: '„Ist mir egal, ich mach, was man mir sagt“ als Grundhaltung' },
+    '2-3': { f: 'Was müsste passieren, damit du dem Tablet so vertraust wie der Karteikarte?',
+             gut: 'nennt etwas Konkretes und Erreichbares', krit: 'nichts – Papier bleibt immer sicherer' },
+    '3-2': { f: 'Wann entschuldigst du dich bei einer Kundin – und wann nicht?',
+             gut: 'Verspätung ist immer ein Grund, egal wessen Schuld', krit: 'hängt von Laune oder Schuldfrage ab („der Stau war ja nicht ich“)' },
+    '3-3': { f: 'Du bist zehn Minuten zu spät. Wer muss es wann wissen?',
+             gut: 'Salon sofort, Kundin rechtzeitig', krit: '„Zehn Minuten merkt eh keiner“' },
+    '4-1': { f: 'Eine Kollegin wird vor deiner Kundin unfreundlich. Was sagst du – und wann?',
+             gut: 'Kundin zuerst, Klärung danach unter vier Augen', krit: 'klärt es vor der Kundin, „sonst traut man sich nie“' },
+    '4-2': { f: 'Wie gehst du damit um, wenn es im Team über Wochen schroff zugeht?',
+             gut: 'spricht es irgendwann an, statt es zu schlucken', krit: '„Das gehört in dem Beruf halt dazu“' },
+    '5-2': { f: 'Wann gibst du einen Kunden an eine Kollegin ab?',
+             gut: 'wenn er dort wirklich besser aufgehoben ist – nach eigenem Versuch', krit: 'wenn es mühsam wird oder „bei so Leuten“' },
+    '5-3': { f: 'Im Team fällt ein abfälliger Spruch über einen Kunden. Was machst du?',
+             gut: 'sagt etwas, spätestens unter vier Augen', krit: 'lacht mit oder „das ist halt so im Team“' },
+    '6-0': { f: 'Die Chefin zeigt dir etwas Neues, du bist nicht überzeugt. Was machst du?',
+             gut: 'probiert es und sagt dann ehrlich, was herausgekommen ist', krit: 'macht es ohne nachzudenken oder sagt nie, was sie denkt' },
+    '7-3': { f: 'Eine Kundin ist mit ihren Haaren unglücklich. Wie gehst du mit ihr um?',
+             gut: 'bleibt bei ihr und schaut mit ihr gemeinsam hin', krit: 'beruhigt mit Geschichten über andere Kundinnen' }
+  };
 
   // ── Bewertung: keine Durchschnitte ─────────────────────────────────────
   // Feld rot  = mindestens ein rotes Signal im Feld
@@ -369,6 +423,7 @@
     put(h('div', { cls: 'brand' }, 'Intern · nur für die Chefin'),
         h('h1', {}, k ? `${k.name} · ${k.stelle}` : 'Bewerbung (ohne Kontaktdaten)'),
         h('div', { cls: 'verdict v-' + gesamt }, h('b', {}, GESAMT[gesamt][0]), h('p', {}, GESAMT[gesamt][1])));
+    if (gesamt === 'y') put(pruefzone());
 
     // Rote Felder zuerst
     const reihen = Object.entries(felder).sort((x, y) => RANG[y[1].farbe] - RANG[x[1].farbe]);
@@ -391,6 +446,92 @@
         h('button', { cls: 'link', on: reset }, 'Neu starten'));
   }
 
+  // Prüfzone Gelb: führt durch Einladung, Gespräch und Entscheidung.
+  // Prototyp: die Eingaben bleiben nur im Browser, bis die Seite neu lädt.
+  function pruefzone() {
+    st.pz = st.pz || { stark: false, fach: false, grund: '', urteil: {} };
+    const pz = st.pz;
+    const gelb = st.antworten.filter(({ s, a }) => PRUEF[s + '-' + a]);
+
+    const box = h('div', { cls: 'pz' }, h('h3', {}, 'Prüfzone Gelb'));
+    const status1 = h('div', { cls: 'pz-status' });
+    const teil2 = h('div');
+    const status3 = h('div', { cls: 'pz-status' });
+
+    const check = (feld, text) => {
+      const c = h('input', { type: 'checkbox' });
+      c.checked = pz[feld];
+      c.addEventListener('change', () => { pz[feld] = c.checked; update(); });
+      return h('label', { cls: 'consent' }, c, h('span', {}, text));
+    };
+    const grund = h('input', { type: 'text', maxlength: '200', placeholder: 'Woran genau? (Pflicht, wenn du einlädst)' });
+    grund.value = pz.grund;
+    grund.addEventListener('input', () => { pz.grund = grund.value; update(); });
+
+    box.append(
+      h('div', { cls: 'pz-step' }, 'Schritt 1 · Vor der Einladung'),
+      check('stark', 'Der Gesamteindruck der Bewerbung ist sonst stark.'),
+      check('fach', 'Die Bewerbung ist fachlich besonders interessant (z. B. Portfolio, Erfahrung, Spezialgebiet).'),
+      grund,
+      h('div', { cls: 'muted', style: 'margin-top:6px' }, 'Sympathie, Mitleid oder Personalnot zählen hier nicht.'),
+      status1, teil2);
+
+    const urteilBtns = key => {
+      const wrap = h('div', { cls: 'pz-btns' });
+      [['g', 'Geklärt'], ['y', 'Bleibt unklar'], ['r', 'Bestätigt sich']].forEach(([v, t]) => {
+        const b = h('button', { cls: 'pz-btn ' + v + (pz.urteil[key] === v ? ' on' : ''), on: () => {
+          pz.urteil[key] = v;
+          wrap.querySelectorAll('.pz-btn').forEach(x => x.classList.remove('on'));
+          b.classList.add('on');
+          update();
+        }}, t);
+        wrap.append(b);
+      });
+      return wrap;
+    };
+
+    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 2 · Im Gespräch gezielt prüfen'));
+    gelb.forEach(({ s, a }) => {
+      const key = s + '-' + a, p = PRUEF[key], opt = SITUATIONEN[s].a[a];
+      const felder = Object.keys(opt.b).filter(k => opt.b[k] === 'y').map(k => FELDER[k].name).join(' · ');
+      teil2.append(h('div', { cls: 'pz-item' },
+        h('div', { cls: 'muted' }, felder),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + opt.t),
+        h('div', { cls: 'q' }, 'Frage: ' + p.f),
+        h('div', { cls: 'hint' }, h('b', {}, 'Spricht für Passung: '), p.gut),
+        h('div', { cls: 'hint' }, h('b', {}, 'Bleibt kritisch: '), p.krit),
+        urteilBtns(key)));
+    });
+    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 3 · Entscheidung nach dem Gespräch'), status3);
+
+    function update() {
+      const eingeladen = (pz.stark || pz.fach) && pz.grund.trim().length >= 10;
+      status1.className = 'pz-status' + (eingeladen ? ' g' : (pz.stark || pz.fach) ? '' : ' r');
+      status1.textContent = eingeladen ? 'Einladen. Im Gespräch jede gelbe Stelle unten gezielt prüfen.'
+        : (pz.stark || pz.fach) ? 'Begründung fehlt – noch keine Einladung.'
+        : 'Nicht einladen.';
+      teil2.classList.toggle('hidden', !eingeladen);
+
+      const u = gelb.map(({ s, a }) => pz.urteil[s + '-' + a]);
+      const offen = u.filter(x => !x).length;
+      if (u.includes('r')) {
+        status3.className = 'pz-status r';
+        status3.textContent = 'Absage. Eine gelbe Stelle hat sich im Gespräch bestätigt – das zählt wie Rot.';
+      } else if (offen) {
+        status3.className = 'pz-status';
+        status3.textContent = `Noch ${offen} von ${gelb.length} Punkten zu prüfen.`;
+      } else if (u.includes('y')) {
+        status3.className = 'pz-status r';
+        status3.textContent = 'Absage. Was im Gespräch nicht geklärt wurde, bleibt offen – Gelb ist kein Durchwinken.';
+      } else {
+        status3.className = 'pz-status g';
+        status3.textContent = 'Alle gelben Stellen geklärt. Weiter zum nächsten Schritt (z. B. Probearbeiten).';
+      }
+    }
+    update();
+    return box;
+  }
+
   // 1–3 im Überblick: Katalog mit Zuordnung und Regeln (nur Prototyp)
   function katalogView() {
     put(h('div', { cls: 'brand' }, 'Intern · Fragenkatalog'),
@@ -402,7 +543,7 @@
       h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.'));
     const entscheid = h('ul', { cls: 'rules' },
       h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
-      h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'),
+      h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt – mit schriftlicher Begründung. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'),
       h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.'));
     put(h('h3', {}, 'Auswertungslogik'), ul, h('h3', {}, 'Entscheidung'), entscheid,
         h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'));
@@ -421,6 +562,8 @@
         for (const [k, f] of Object.entries(a.b)) tags.append(h('span', { cls: 'pill p-' + f }, `${FELDER[k].name.split(' ')[0]} · ${FARBTEXT[f]}`));
         const txt = h('div', {}, a.t);
         if (a.w) txt.append(h('span', { cls: 'why' }, a.w));
+        const pf = PRUEF[idx + '-' + s.a.indexOf(a)];
+        if (pf) txt.append(h('span', { cls: 'why' }, 'Prüffrage bei Gelb: ' + pf.f));
         box.append(h('div', { cls: 'kat-a' }, tags, txt));
       });
       put(box);
