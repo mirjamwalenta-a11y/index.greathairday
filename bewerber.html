@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Great Hair Day · Passt du zu uns?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!--
+    PROTOTYP – speichert und versendet nichts.
+    Öffentliche Seite für Bewerber/innen (kein Login). Beim späteren Anbinden
+    an Supabase gelten die Regeln aus CLAUDE.md: eigene Tabelle mit RLS,
+    Abschicken nur über eine SECURITY DEFINER-Funktion (anon darf nichts
+    lesen), Auswertung nur für die Chefin in der Schaltzentrale.
+  -->
+  <style>
+    :root {
+      --bg:          #F8F4EA;
+      --card:        #FFFFFF;
+      --border:      #E4DBC5;
+      --text:        #211D17;
+      --text-soft:   #7C7565;
+      --accent:      #896C32;
+      --accent-dark: #6E5527;
+      --accent-tint: #EEE6CD;
+      --ok:          #4C7A5B;
+      --mid:         #A67A22;
+      --low:         #B23A2E;
+      --radius:      14px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; padding:16px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:560px; margin:0 auto; }
+    .proto {
+      background:var(--accent-tint); color:var(--accent-dark);
+      font-size:12px; font-weight:600; text-align:center;
+      padding:8px 12px; border-radius:10px; margin-bottom:16px;
+    }
+    .card {
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:var(--radius); padding:28px 22px;
+      box-shadow:0 8px 32px rgba(137,108,50,0.08);
+    }
+    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; text-align:center; }
+    h1 { font-size:24px; font-weight:700; text-align:center; margin:10px 0 8px; line-height:1.3; }
+    h2 { font-size:19px; font-weight:700; line-height:1.4; margin-bottom:6px; }
+    h3 { font-size:15px; font-weight:700; margin:22px 0 10px; }
+    p  { font-size:14.5px; line-height:1.6; color:var(--text-soft); }
+    .center { text-align:center; }
+
+    .bar { height:6px; background:var(--accent-tint); border-radius:3px; overflow:hidden; margin-bottom:18px; }
+    .bar > div { height:100%; background:var(--accent); width:0; transition:width .3s; }
+    .step { font-size:11px; letter-spacing:.1em; color:var(--text-soft); text-transform:uppercase; margin-bottom:8px; }
+
+    .options { display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+    .opt {
+      background:var(--bg); border:1.5px solid var(--border); border-radius:10px;
+      padding:14px 16px; text-align:left; font:inherit; font-size:14.5px; color:var(--text);
+      cursor:pointer; transition:border-color .15s, background .15s;
+    }
+    .opt:hover { border-color:var(--accent); }
+    .opt.sel   { border-color:var(--accent); background:var(--accent-tint); font-weight:600; }
+
+    .btn {
+      display:block; width:100%; margin-top:20px; padding:14px;
+      background:var(--accent); color:#fff; border:none; border-radius:10px;
+      font:inherit; font-size:15px; font-weight:600; cursor:pointer;
+    }
+    .btn:hover { background:var(--accent-dark); }
+    .btn:disabled { opacity:.45; cursor:default; }
+    .btn.ghost { background:none; color:var(--accent-dark); border:1.5px solid var(--border); }
+    .back { background:none; border:none; color:var(--text-soft); font:inherit; font-size:13px; cursor:pointer; margin-top:14px; }
+
+    label.f { display:block; font-size:12px; font-weight:600; color:var(--text-soft); margin:14px 0 6px; }
+    input[type=text], input[type=tel], textarea {
+      width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px;
+      font:inherit; font-size:15px; background:var(--bg); color:var(--text);
+    }
+    textarea { min-height:90px; resize:vertical; }
+    .consent { display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; line-height:1.5; color:var(--text-soft); }
+    .consent input { margin-top:3px; width:18px; height:18px; accent-color:var(--accent); flex-shrink:0; }
+    .hint { font-size:12.5px; color:var(--text-soft); margin-top:8px; }
+    .msg { margin-top:14px; padding:12px; border-radius:10px; background:var(--accent-tint); color:var(--accent-dark); font-size:13.5px; }
+
+    /* Chefin-Vorschau */
+    .rep-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14.5px; }
+    .dots { display:flex; gap:6px; }
+    .dot  { width:14px; height:14px; border-radius:50%; border:2px solid; display:inline-block; vertical-align:middle; }
+    .d-ok  { background:var(--ok); border-color:var(--ok); }
+    .d-mid { border-color:var(--mid); background:linear-gradient(90deg, var(--mid) 50%, transparent 50%); }
+    .d-low { border-color:var(--low); }
+    .rep-list { margin:6px 0 0 18px; font-size:14px; line-height:1.7; }
+    .legend { font-size:12px; color:var(--text-soft); margin-top:10px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="proto">Prototyp – es wird nichts gespeichert oder versendet</div>
+  <div class="card" id="app"></div>
+</div>
+
+<script>
+  // Bewertung je Antwort: 2 = passt stark, 1 = teilweise, 0 = eher nicht.
+  // Die Bewertung sieht nur die Chefin, nie der Bewerber.
+  const WERTE = {
+    team:  { name: 'Teamgeist',      icon: '🤝', frage: 'Wie stellst du dir die Zusammenarbeit im Team vor, wenn es stressig wird?' },
+    zeit:  { name: 'Pünktlichkeit',  icon: '⏰', frage: 'Was hilft dir, morgens pünktlich und startklar zu sein?' },
+    freund:{ name: 'Freundlichkeit', icon: '😊', frage: 'Erzähl von einer schwierigen Kundin – wie bist du damit umgegangen?' },
+    wert:  { name: 'Wertschätzung',  icon: '💛', frage: 'Wie gibst und bekommst du am liebsten Feedback?' }
+  };
+
+  const FRAGEN = [
+    { wert: 'team', q: 'Deine Kollegin hat zwei Kundinnen gleichzeitig – und du hättest jetzt 10 Minuten Pause.', a: [
+      ['Ich frage, ob ich etwas übernehmen kann, und hole die Pause später nach.', 2],
+      ['Ich sage der Chefin Bescheid, dass es gerade eng wird.', 1],
+      ['Ich mache Pause – erholt arbeite ich danach besser.', 0] ]},
+    { wert: 'team', q: 'Deine Kundinnen sind fertig, die anderen arbeiten noch. Eigentlich hättest du jetzt Feierabend.', a: [
+      ['Ich fange schon mal mit dem allgemeinen Aufräumen an.', 2],
+      ['Ich frage, ob jemand noch Hilfe braucht.', 2],
+      ['Ich räume meinen Platz auf und gehe – ausgemacht ist ausgemacht.', 0] ]},
+    { wert: 'zeit', q: 'Du merkst in der Früh: Ich komme 10 Minuten zu spät.', a: [
+      ['Ich rufe sofort im Salon an, damit man die erste Kundin einplanen kann.', 2],
+      ['Ich schreibe kurz in die Team-Gruppe.', 1],
+      ['Ich beeile mich – 10 Minuten fallen kaum auf.', 0] ]},
+    { wert: 'zeit', q: 'Wann bist du an einem normalen Arbeitstag im Salon?', a: [
+      ['10–15 Minuten vorher, damit ich startklar bin.', 2],
+      ['Genau zu Dienstbeginn.', 1],
+      ['Kommt drauf an, ob gleich ein Termin ansteht.', 0] ]},
+    { wert: 'freund', q: 'Eine Kundin ist schlecht gelaunt und unfreundlich zu dir.', a: [
+      ['Ich bleibe freundlich und versuche herauszufinden, was los ist.', 2],
+      ['Ich arbeite professionell, rede aber nur das Nötigste.', 1],
+      ['Ich frage, ob eine Kollegin übernehmen kann.', 0] ]},
+    { wert: 'freund', q: 'Jemand kommt ohne Termin herein, alle sind besetzt – du schneidest gerade.', a: [
+      ['Ich begrüße ihn kurz und sage, dass sich gleich jemand kümmert.', 2],
+      ['Ich nicke ihm zu und arbeite weiter, bis jemand frei ist.', 1],
+      ['Ich arbeite weiter – um so etwas kümmert sich die Rezeption.', 0] ]},
+    { wert: 'wert', nur: 'geselle', q: 'Ein Lehrling macht vor der Kundin beim Föhnen einen Fehler.', a: [
+      ['Ich zeige es ruhig und unauffällig und erkläre es später in Ruhe.', 2],
+      ['Ich übernehme selbst, damit die Kundin zufrieden ist.', 1],
+      ['Ich sage es direkt – so lernt er am schnellsten.', 0] ]},
+    { wert: 'wert', nur: 'lehrling', q: 'Eine Gesellin korrigiert dich vor der Kundin.', a: [
+      ['Ich nehme es an und frage später, wie es besser geht.', 2],
+      ['Ich sage ihr danach in Ruhe, dass ich das vor Kunden unangenehm fand.', 2],
+      ['Es ist mir peinlich – ich sage lieber nichts.', 1] ]},
+    { wert: 'wert', q: 'Wie zeigst du im Team, dass du jemanden schätzt?', a: [
+      ['Ich sage es direkt, wenn mir etwas gefällt.', 2],
+      ['Durch Taten – ich helfe mit, wo ich kann.', 2],
+      ['Ich bin eher zurückhaltend, aber dafür zuverlässig.', 1] ]}
+  ];
+
+  const WICHTIG = ['Gutes Teamklima', 'Schulungen & Weiterbildung', 'Planbare Arbeitszeiten',
+    'Kreative Freiheit', 'Verdienst & Prämien', 'Kurzer Arbeitsweg', 'Eine Chefin, die sich Zeit nimmt'];
+  const STAERKEN = ['Farbe', 'Schnitt', 'Herren', 'Hochsteck', 'Beratung'];
+
+  const app = document.getElementById('app');
+  let st;
+
+  function reset() {
+    st = { stufe: null, fragen: [], i: 0, antworten: [], wichtig: [], staerken: [], warum: '' };
+    render(startView);
+  }
+
+  function render(view) { app.innerHTML = ''; view(); window.scrollTo(0, 0); }
+
+  function el(tag, attrs = {}, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'on') e.addEventListener('click', v);
+      else if (k === 'cls') e.className = v;
+      else e.setAttribute(k, v);
+    }
+    for (const k of kids) e.append(k);
+    app.append(e);
+    return e;
+  }
+  function add(parent, tag, attrs, ...kids) { const e = el(tag, attrs, ...kids); parent.append(e); return e; }
+
+  function bar(anteil) {
+    const b = el('div', { cls: 'bar' });
+    add(b, 'div').style.width = Math.round(anteil * 100) + '%';
+  }
+
+  // ── Start ──
+  function startView() {
+    el('div', { cls: 'brand' }, 'A Great Hair Day');
+    el('h1', {}, 'Passt du in unser Team? ✂️');
+    el('p', { cls: 'center' }, 'Ein paar Situationen aus dem Salonalltag – es gibt kein Richtig oder Falsch. Antworte so, wie du es wirklich machen würdest. Dauert ca. 4 Minuten.');
+    el('h3', {}, 'Wo stehst du gerade?');
+    const o = el('div', { cls: 'options' });
+    [['lehrling', 'Ich suche eine Lehrstelle'], ['geselle', 'Ich bin Geselle/Gesellin'], ['wieder', 'Ich steige wieder ein']]
+      .forEach(([k, t]) => add(o, 'button', { cls: 'opt', on: () => {
+        st.stufe = k;
+        const lehr = k === 'lehrling';
+        st.fragen = FRAGEN.filter(f => !f.nur || f.nur === (lehr ? 'lehrling' : 'geselle'));
+        render(frageView);
+      }}, t));
+  }
+
+  // ── Situationsfragen ──
+  function frageView() {
+    const f = st.fragen[st.i];
+    bar(st.i / (st.fragen.length + 2));
+    el('div', { cls: 'step' }, `Situation ${st.i + 1} von ${st.fragen.length}`);
+    el('h2', {}, f.q);
+    const o = el('div', { cls: 'options' });
+    // Reihenfolge mischen, damit die „beste“ Antwort nicht immer oben steht
+    const gemischt = f.a.map((a, idx) => [a, idx]).sort(() => Math.random() - .5);
+    gemischt.forEach(([[text, punkte]]) => add(o, 'button', { cls: 'opt', on: () => {
+      st.antworten[st.i] = { wert: f.wert, frage: f.q, text, punkte };
+      st.i++;
+      render(st.i < st.fragen.length ? frageView : wichtigView);
+    }}, text));
+    el('button', { cls: 'back', on: () => {
+      if (st.i === 0) render(startView); else { st.i--; render(frageView); }
+    }}, '← zurück');
+  }
+
+  // ── Was ist dir wichtig? ──
+  function wichtigView() {
+    bar((st.fragen.length) / (st.fragen.length + 2));
+    el('div', { cls: 'step' }, 'Jetzt bist du dran');
+    el('h2', {}, 'Was ist dir bei einem Arbeitgeber am wichtigsten?');
+    el('p', {}, 'Wähle genau 3.');
+    const o = el('div', { cls: 'options' });
+    const weiter = () => btn.disabled = st.wichtig.length !== 3;
+    WICHTIG.forEach(w => {
+      const b = add(o, 'button', { cls: 'opt' + (st.wichtig.includes(w) ? ' sel' : ''), on: () => {
+        if (st.wichtig.includes(w)) st.wichtig = st.wichtig.filter(x => x !== w);
+        else if (st.wichtig.length < 3) st.wichtig.push(w);
+        b.classList.toggle('sel', st.wichtig.includes(w));
+        weiter();
+      }}, w);
+    });
+    const btn = el('button', { cls: 'btn', on: () => render(zusatzView) }, 'Weiter');
+    weiter();
+    el('button', { cls: 'back', on: () => { st.i = st.fragen.length - 1; render(frageView); } }, '← zurück');
+  }
+
+  // ── Zusatzfrage je nach Stufe ──
+  function zusatzView() {
+    bar((st.fragen.length + 1) / (st.fragen.length + 2));
+    if (st.stufe === 'lehrling') {
+      el('h2', {}, 'Warum willst du Friseur/in werden?');
+      el('p', {}, 'Freiwillig – ein, zwei Sätze reichen.');
+      const t = el('textarea', { maxlength: '500' });
+      t.value = st.warum;
+      t.addEventListener('input', () => st.warum = t.value);
+    } else {
+      el('h2', {}, 'Wo liegen deine Stärken?');
+      el('p', {}, 'Mehrfachauswahl möglich.');
+      const o = el('div', { cls: 'options' });
+      STAERKEN.forEach(s => {
+        const b = add(o, 'button', { cls: 'opt' + (st.staerken.includes(s) ? ' sel' : ''), on: () => {
+          st.staerken = st.staerken.includes(s) ? st.staerken.filter(x => x !== s) : [...st.staerken, s];
+          b.classList.toggle('sel', st.staerken.includes(s));
+        }}, s);
+      });
+    }
+    el('button', { cls: 'btn', on: () => render(ergebnisView) }, 'Zum Ergebnis');
+    el('button', { cls: 'back', on: () => render(wichtigView) }, '← zurück');
+  }
+
+  // ── Ergebnis für Bewerber (positiv, ohne Zahl) + Express-Bewerbung ──
+  function ergebnisView() {
+    bar(1);
+    el('div', { cls: 'brand' }, 'Danke fürs Mitmachen');
+    el('h1', {}, 'Schön, dass du dabei warst! 🌿');
+    el('p', { cls: 'center' }, 'Uns sind Teamgeist, Pünktlichkeit, Freundlichkeit und Wertschätzung besonders wichtig. Deine Antworten helfen uns, im Kennenlerngespräch genau über das zu reden, was für dich und für uns zählt.');
+    el('p', { cls: 'center', style: 'margin-top:10px' }, 'Dir ist besonders wichtig: ' + st.wichtig.join(', ') + '.');
+
+    el('h3', {}, 'Lass uns kennenlernen');
+    el('label', { cls: 'f', for: 'name' }, 'Name *');
+    const name = el('input', { type: 'text', id: 'name', autocomplete: 'name', maxlength: '80' });
+    el('label', { cls: 'f', for: 'tel' }, 'Telefonnummer *');
+    const tel = el('input', { type: 'tel', id: 'tel', autocomplete: 'tel', maxlength: '30' });
+    el('label', { cls: 'f', for: 'insta' }, 'Instagram / Portfolio (freiwillig)');
+    const insta = el('input', { type: 'text', id: 'insta', maxlength: '120' });
+
+    const c = el('label', { cls: 'consent' });
+    const ok = add(c, 'input', { type: 'checkbox' });
+    add(c, 'span', {}, 'Ich bin einverstanden, dass A Great Hair Day meine Angaben und Antworten zur Bearbeitung meiner Bewerbung speichert. Die Daten werden spätestens nach 6 Monaten gelöscht. Ich kann die Einwilligung jederzeit widerrufen. *');
+
+    const msg = el('div', { cls: 'msg hidden' });
+    el('button', { cls: 'btn', on: () => {
+      msg.classList.remove('hidden');
+      if (!name.value.trim() || !tel.value.trim()) { msg.textContent = 'Bitte gib deinen Namen und deine Telefonnummer an.'; return; }
+      if (!ok.checked) { msg.textContent = 'Bitte bestätige die Einwilligung zum Datenschutz.'; return; }
+      st.kontakt = { name: name.value.trim(), tel: tel.value.trim(), insta: insta.value.trim() };
+      msg.textContent = 'Prototyp: Hier würde die Bewerbung jetzt abgeschickt. Es wurde nichts gespeichert oder versendet.';
+    }}, 'Bewerbung abschicken');
+
+    el('button', { cls: 'btn ghost', on: () => render(chefinView) }, 'Vorschau: Was die Chefin sieht');
+    el('button', { cls: 'back', on: reset }, '↺ Nochmal von vorne');
+  }
+
+  // ── Vorschau der Chefin-Auswertung (kommt später in die Schaltzentrale) ──
+  function chefinView() {
+    const stufen = { lehrling: 'Lehrling', geselle: 'Geselle/Gesellin', wieder: 'Wiedereinsteiger/in' };
+    el('div', { cls: 'brand' }, 'Vorschau · nur für die Chefin');
+    el('h2', {}, (st.kontakt ? st.kontakt.name : 'Bewerber/in') + ' · ' + stufen[st.stufe]);
+
+    const klasse = p => p === 2 ? 'd-ok' : p === 1 ? 'd-mid' : 'd-low';
+    const punkt = (parent, p) => add(parent, 'span', { cls: 'dot ' + klasse(p) });
+    for (const [k, w] of Object.entries(WERTE)) {
+      const row = el('div', { cls: 'rep-row' });
+      add(row, 'span', {}, w.icon + ' ' + w.name);
+      const d = add(row, 'span', { cls: 'dots' });
+      st.antworten.filter(a => a.wert === k).forEach(a => punkt(d, a.punkte));
+    }
+    const lg = el('div', { cls: 'legend' });
+    [[2, 'passt stark'], [1, 'teilweise'], [0, 'eher nicht']].forEach(([p, t]) => {
+      punkt(lg, p); lg.append(' ' + t + '   ');
+    });
+
+    el('h3', {}, 'Wichtig für den/die Bewerber/in');
+    el('p', {}, st.wichtig.join(' · '));
+    if (st.stufe === 'lehrling' && st.warum.trim()) {
+      el('h3', {}, 'Warum Friseur/in?');
+      el('p', {}, st.warum.trim());
+    }
+    if (st.stufe !== 'lehrling' && st.staerken.length) {
+      el('h3', {}, 'Stärken');
+      el('p', {}, st.staerken.join(' · '));
+    }
+
+    const offen = st.antworten.filter(a => a.punkte < 2);
+    el('h3', {}, 'Fragen fürs Gespräch');
+    if (!offen.length) el('p', {}, 'Keine Auffälligkeiten – einfach locker kennenlernen.');
+    else {
+      const ul = el('ul', { cls: 'rep-list' });
+      const schon = new Set();
+      offen.forEach(a => {
+        if (!schon.has(a.wert)) { schon.add(a.wert); add(ul, 'li', {}, WERTE[a.wert].frage); }
+        add(ul, 'li', { style: 'color:var(--text-soft);font-size:13px' }, `Situation: ${a.frage} → Antwort: ${a.text}`);
+      });
+    }
+
+    el('button', { cls: 'btn ghost', on: () => render(ergebnisView) }, '← zurück zum Ergebnis');
+  }
+
+  reset();
+</script>
+</body>
+</html>
