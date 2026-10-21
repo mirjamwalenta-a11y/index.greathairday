@@ -23,7 +23,8 @@
     berechnen, interne Sicht nur für die Chefin in der Schaltzentrale.
     Entscheidung: Grün = einladen · Gelb = Prüfzone, Gespräch nur bei sonst
     starkem Gesamteindruck oder fachlich besonderem Interesse, gelbe Stellen
-    gezielt prüfen · Rot = keine Einladung.
+    gezielt prüfen · Rot = keine Einladung, keine Ausnahme aus Sympathie,
+    Mitleid oder Lebenslauf.
     Die Farbzuordnung darf dann NICHT mehr im öffentlichen Quelltext stehen.
   -->
   <style>
@@ -360,7 +361,7 @@
   const GESAMT = {
     g: ['Gesamt: Grün – zum Gespräch einladen', 'Alle vier Pflichtfelder grün.'],
     y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle unten im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
-    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Gute Antworten in anderen Feldern gleichen das nicht aus.']
+    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
   };
   function internView() {
     const { felder, gesamt } = auswerten(st.antworten);
@@ -402,8 +403,9 @@
     const entscheid = h('ul', { cls: 'rules' },
       h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
       h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'),
-      h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch.'));
-    put(h('h3', {}, 'Auswertungslogik'), ul, h('h3', {}, 'Entscheidung'), entscheid);
+      h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.'));
+    put(h('h3', {}, 'Auswertungslogik'), ul, h('h3', {}, 'Entscheidung'), entscheid,
+        h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'));
 
     const zaehl = {};
     SITUATIONEN.forEach(s => new Set(s.a.flatMap(a => Object.keys(a.b))).forEach(k => zaehl[k] = (zaehl[k] || 0) + 1));
