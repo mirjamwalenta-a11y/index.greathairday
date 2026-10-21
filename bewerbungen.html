@@ -305,7 +305,7 @@
         h('button', { cls: 'link', on: zeigeListe }, 'Übersicht'),
         h('button', { cls: 'link', on: zeigeKatalog }, 'Fragenkatalog'),
         h('button', { cls: 'link', on: () => { location.href = 'schaltzentrale.html'; } }, '← Schaltzentrale'),
-        h('button', { cls: 'link', on: abmelden }, 'Abmelden'))), ...kids);
+        h('button', { cls: 'link', on: abmelden }, 'Abmelden'))), ...kids.filter(Boolean));
     window.scrollTo(0, 0);
   }
   function fehlerKarte(e) {
