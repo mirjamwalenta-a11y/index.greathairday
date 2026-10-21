@@ -75,15 +75,18 @@ Einen neuen Link oder einen zweiten Versuch gibt es nicht.
 
 ### Schritt 4 – Auswertung
 
-Einordnung (seit 2026-10-21): ein Feld rot → Rot · zwei oder mehr Felder
-gelb → Gelb · sonst Grün (höchstens ein Feld gelb).
+Einordnung (seit 2026-10-21): Respekt und Wertschätzung sind am wichtigsten,
+Offenheit lässt sich trainieren.
+- Rot bei Respekt, Wertschätzung oder Zuwendung → **Rot**
+- Rot bei Offenheit oder zwei und mehr Felder gelb → **Gelb**
+- sonst (höchstens ein Feld gelb) → **Grün**
 
 **Gesamt-Grün** (kein Feld rot, höchstens eines gelb)
 Zum Gespräch einladen: der Chefin zur Terminvergabe vorlegen, dann
 Terminvorschläge an die Bewerberin bzw. den Bewerber schicken. Ist ein Feld
 gelb, wird es im Gespräch kurz angesprochen (Fragen stehen in der Übersicht).
 
-**Gesamt-Gelb – Prüfzone, kein Durchwinken** (mindestens zwei Felder gelb)
+**Gesamt-Gelb – Prüfzone, kein Durchwinken** (mindestens zwei Felder gelb oder Offenheit rot)
 - Kein automatisches Ja.
 - Der Chefin vorlegen mit den gelben Prüfpunkten und den passenden
   Gesprächsfragen aus der Prüfzone.
@@ -95,7 +98,7 @@ gelb, wird es im Gespräch kurz angesprochen (Fragen stehen in der Übersicht).
   bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine
   Warteschleife.
 
-**Gesamt-Rot**
+**Gesamt-Rot** (rot bei Respekt, Wertschätzung oder Zuwendung)
 - Keine Einladung zum Gespräch.
 - Absage vorbereiten und der Chefin zur Freigabe vorlegen. Die Freigabe
   prüft nur, ob Daten und Ergebnis zum richtigen Vorgang gehören – **nicht**,

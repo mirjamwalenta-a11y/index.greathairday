@@ -205,8 +205,8 @@
   const RANG = { g: 0, y: 1, r: 2 };
   const GESAMT = {
     g: ['Gesamt: Grün – zum Gespräch einladen', 'Kein Feld rot, höchstens eines gelb. Ein gelbes Feld im Gespräch kurz ansprechen.'],
-    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Mindestens zwei Felder gelb. Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
-    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
+    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Mindestens zwei Felder gelb oder Offenheit rot. Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
+    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'Eine rote Antwort bei Respekt, Wertschätzung oder Zuwendung. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
   };
   const BASIS_GRUENDE = [
     'Für die Stelle ist gerade kein Platz frei',
@@ -525,7 +525,9 @@
                       : 'Gesamt Grün: alle vier Felder grün.')
       : `Gesamt ${FARBTEXT[g]}, weil: ${[...teil('r', 'rot'), ...gelbe].join(', ')}.` +
         (gruen.length ? ` ${gruen.join(', ')} ${gruen.length === 1 ? 'ist' : 'sind'} grün.` : '') +
-        (g === 'r' ? ' Ein rotes Feld reicht – Grün gleicht nichts aus.' : ' Ab zwei gelben Feldern ist es Gelb.');
+        (g === 'r' ? ' Rot bei Respekt, Wertschätzung oder Zuwendung ist Ausschluss – Grün gleicht das nicht aus.'
+                   : felder.O === 'r' ? ' Rot bei Offenheit zählt als Gelb, weil sich Offenheit trainieren lässt.'
+                   : ' Ab zwei gelben Feldern ist es Gelb.');
     karte.append(h('div', { cls: 'verdict v-' + g }, h('p', {}, satz)));
     Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
       const signale = b.antworten.filter(a => a.bewertung[k] && a.bewertung[k] !== 'g')
@@ -670,13 +672,13 @@
       h('ul', { cls: 'rules' },
         h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
         h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
-        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.')),
+        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote bei Respekt, Wertschätzung oder Zuwendung nicht aus.')),
       h('h3', {}, 'Entscheidung'),
       h('ul', { cls: 'rules' },
         h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (kein Feld rot, höchstens eines gelb): zum Gespräch einladen. Ein gelbes Feld im Gespräch kurz ansprechen.'),
-        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens zwei gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
-        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
-      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
+        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (mindestens zwei Felder gelb oder Offenheit rot – Offenheit lässt sich trainieren): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
+        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (rot bei Respekt, Wertschätzung oder Zuwendung): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
+      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot bei Respekt, Wertschätzung oder Zuwendung aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
       h('h3', {}, 'Die acht Situationen'),
       h('p', { cls: 'muted' }, 'Bewerber:innen sehen die Antworten in zufälliger Reihenfolge und nie die Farben.'));
     k.situationen.forEach((s, idx) => {
