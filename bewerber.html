@@ -10,9 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!--
     SALON MATCHER – Schritt 3 in BEWERBUNGSPROZESS.md.
-    Öffnet sich nur über den persönlichen Link aus der Bewerbungs-Übersicht
-    (bewerber.html#t=<Token>). Das Token steht nach dem # und wird deshalb nie
-    an den Webserver geschickt.
+    Öffnet sich nur mit einem persönlichen Token (bewerber.html?t=<Token>):
+    direkt nach der Kurzbewerbung auf der Karriere-Seite oder über eine
+    Erinnerung aus der Bewerbungs-Übersicht. Ältere Links mit #t= gehen auch.
 
     Situationen und Antworttexte kommen aus der Datenbank (matcher_laden).
     Die Bewertung grün/gelb/rot steht NICHT in dieser Seite – sie passiert
@@ -82,7 +82,7 @@
   const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g'; // öffentlicher anon-Schlüssel
 
-  const TOKEN = new URLSearchParams(location.hash.slice(1)).get('t') || '';
+  const TOKEN = new URLSearchParams(location.search).get('t') || new URLSearchParams(location.hash.slice(1)).get('t') || '';
 
   async function rpc(name, body) {
     const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, {
@@ -185,6 +185,7 @@
 
   // Abschluss – für alle gleich, ohne Bewertung
   function abschlussView() {
+    try { localStorage.removeItem('ghd-matcher-token'); } catch (e) { /* egal */ }
     put(h('div', { cls: 'brand' }, 'Danke für deine Zeit'),
         h('h1', {}, 'Deine Antworten sind bei uns angekommen'),
         h('p', {}, 'Wir sehen uns jede Rückmeldung persönlich an – es entscheidet kein Programm.'),

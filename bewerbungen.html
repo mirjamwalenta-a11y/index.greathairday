@@ -204,9 +204,9 @@
   const FARBTEXT = { g: 'Grün', y: 'Gelb', r: 'Rot' };
   const RANG = { g: 0, y: 1, r: 2 };
   const GESAMT = {
-    g: ['Gesamt: Grün – zum Gespräch einladen', 'Alle vier Pflichtfelder grün.'],
-    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
-    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
+    g: ['Gesamt: Grün – zum Gespräch einladen', 'Kein Feld rot, höchstens eines gelb. Ein gelbes Feld im Gespräch kurz ansprechen.'],
+    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Mindestens zwei Felder gelb oder Offenheit rot. Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
+    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'Eine rote Antwort bei Respekt, Wertschätzung oder Zuwendung. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
   };
   const BASIS_GRUENDE = [
     'Für die Stelle ist gerade kein Platz frei',
@@ -217,7 +217,7 @@
   const GRUPPEN = [
     ['neu',           'Basis-Check'],
     ['basis_ok',      'Matcher-Link verschicken'],
-    ['matcher_offen', 'Matcher offen'],
+    ['matcher_offen', 'Matcher noch nicht fertig'],
     ['ausgewertet',   'Entscheidung nach dem Matcher'],
     ['gespraech',     'Gespräch'],
     ['probearbeiten', 'Probearbeiten'],
@@ -347,10 +347,10 @@
   // Einstieg: Link zur Kurzbewerbung an Interessierte geben (Schritt 1)
   function neueBewerbungKarte() {
     const url = new URL('karriere.html', location.href).href.split('#')[0];
-    const text = `Hallo,\n\nschön, dass du dich für A Great Hair Day interessierst. Hier kannst du dich in ein paar Minuten bei uns melden:\n\n${url}` + GRUSS;
+    const text = `Hallo,\n\nschön, dass du dich für A Great Hair Day interessierst. Hier kannst du dich bei uns melden – das dauert insgesamt etwa zehn Minuten:\n\n${url}` + GRUSS;
     return h('div', { cls: 'card' },
       h('h2', {}, 'Neue Bewerbung'),
-      h('p', {}, 'Jemand interessiert sich? Schick zuerst diesen Link zur Kurzbewerbung. Danach erscheint die Bewerbung hier unter „Basis-Check“.'),
+      h('p', {}, 'Jemand interessiert sich? Schick diesen Link. Die Person füllt die Kurzbewerbung aus und macht gleich danach den Salon Matcher. Danach erscheint sie hier unter „Entscheidung nach dem Matcher“.'),
       h('div', { cls: 'muted', style: 'margin:8px 0 2px;word-break:break-all' }, url),
       h('div', {},
         h('button', { cls: 'btn ghost', on: () => window.open(url, '_blank', 'noopener') }, 'Karriere-Seite öffnen'),
@@ -411,7 +411,7 @@
     const v = vorname(b.name);
     const karte = h('div', { cls: 'card' }, h('h2', {}, 'Nächster Schritt'));
     const add = (...els) => karte.append(...els);
-    const linkUrl = token => new URL('bewerber.html', location.href).href.split('#')[0] + '#t=' + token;
+    const linkUrl = token => new URL('bewerber.html', location.href).href.split('#')[0].split('?')[0] + '?t=' + token;
 
     if (b.frueher && b.frueher.length && ['neu', 'basis_ok'].includes(b.status)) {
       const f = b.frueher[0];
@@ -451,7 +451,7 @@
         break;
       case 'matcher_offen': {
         const abgelaufen = new Date(b.matcher_gueltig_bis) < new Date();
-        add(h('p', {}, `Verschickt am ${datum(b.matcher_verschickt_am)}, gültig bis ${datum(b.matcher_gueltig_bis)}.` +
+        add(h('p', {}, `Offen seit ${datum(b.matcher_verschickt_am)}, gültig bis ${datum(b.matcher_gueltig_bis)}.` +
                        (b.matcher_erinnert_am ? ` Erinnert am ${datum(b.matcher_erinnert_am)}.` : '')));
         if (!abgelaufen) {
           add(h('p', { cls: 'muted', style: 'margin-top:6px' }, 'Nach 4 Tagen ohne Antwort: eine Erinnerung. Sie erzeugt einen neuen Link (der alte hört auf zu funktionieren), die Gültigkeit verlängert sich nicht.'),
@@ -469,15 +469,10 @@
       }
       case 'ausgewertet': {
         const g = b.matcher_gesamt;
-        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])));
-        if (g === 'g') add(h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
-        if (g === 'y') {
-          add(h('div', { cls: 'pz' }, h('h3', {}, 'Im Gespräch gezielt prüfen'),
-                ...pzPunkte(b).map(a => h('div', { cls: 'pz-item' },
-                  h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
-                  h('div', { cls: 'q' }, 'Frage: ' + a.prueffrage)))),
-              h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
-        }
+        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])),
+            h('p', { cls: 'muted', style: 'margin-top:8px' }, 'Eckdaten (Stelle, Stunden, Start) stehen unten bei den Basisdaten. Passen sie nicht: Absage.'));
+        if (g !== 'r') add(gespraechsfragen(b, g === 'y' ? 'Im Gespräch gezielt prüfen' : 'Im Gespräch kurz ansprechen'),
+                           h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
         if (g === 'r') add(h('p', { cls: 'regel' }, 'Keine Einladung zum Gespräch.'));
         add(h('button', { cls: 'btn ' + (g === 'r' ? 'rot' : 'ghost'), on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
         break;
@@ -485,6 +480,7 @@
       case 'gespraech':
         add(nachricht(b, 'Einladung zum Kennenlernen', VORLAGE.gespraech(v)));
         if (b.matcher_gesamt === 'y') add(pruefzone(b));
+        else add(gespraechsfragen(b, 'Im Gespräch kurz ansprechen'));
         add(h('button', { cls: 'btn', id: 'weiter-probe', disabled: b.matcher_gesamt === 'y' && !alleGeklaert(b),
                           on: () => schritt(b, 'probearbeiten') }, 'Probearbeiten vereinbaren'),
             h('button', { cls: 'btn ghost', on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
@@ -524,10 +520,15 @@
       .map(k => `${name(k)} ${wort} (${anzahl(k, c)} ${anzahl(k, c) === 1 ? 'Antwort' : 'Antworten'})`);
     const gruen = Object.keys(felder).filter(k => felder[k] === 'g').map(name);
     const g = b.matcher_gesamt;
-    const satz = g === 'g' ? 'Gesamt Grün: alle vier Felder grün.'
-      : `Gesamt ${FARBTEXT[g]}, weil: ${[...teil('r', 'rot'), ...teil('y', 'gelb')].join(', ')}.` +
+    const gelbe = teil('y', 'gelb');
+    const satz = g === 'g'
+      ? (gelbe.length ? `Gesamt Grün: ${gelbe[0]}, ${gruen.join(', ')} grün. Ein gelbes Feld ist in Ordnung – im Gespräch kurz ansprechen.`
+                      : 'Gesamt Grün: alle vier Felder grün.')
+      : `Gesamt ${FARBTEXT[g]}, weil: ${[...teil('r', 'rot'), ...gelbe].join(', ')}.` +
         (gruen.length ? ` ${gruen.join(', ')} ${gruen.length === 1 ? 'ist' : 'sind'} grün.` : '') +
-        ' Das schwächste Feld bestimmt das Gesamtergebnis – Grün gleicht nichts aus.';
+        (g === 'r' ? ' Rot bei Respekt, Wertschätzung oder Zuwendung ist Ausschluss – Grün gleicht das nicht aus.'
+                   : felder.O === 'r' ? ' Rot bei Offenheit zählt als Gelb, weil sich Offenheit trainieren lässt.'
+                   : ' Ab zwei gelben Feldern ist es Gelb.');
     karte.append(h('div', { cls: 'verdict v-' + g }, h('p', {}, satz)));
     Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
       const signale = b.antworten.filter(a => a.bewertung[k] && a.bewertung[k] !== 'g')
@@ -554,6 +555,16 @@
         tags));
     });
     return karte;
+  }
+
+  // Gesprächsfragen zu den gelben Antworten (ohne Bewertungsknöpfe)
+  function gespraechsfragen(b, titel) {
+    const punkte = pzPunkte(b);
+    if (!punkte.length) return null;
+    return h('div', { cls: 'pz' }, h('h3', {}, titel),
+      ...punkte.map(a => h('div', { cls: 'pz-item' },
+        h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
+        h('div', { cls: 'q' }, 'Frage: ' + a.prueffrage))));
   }
 
   // ── Prüfzone Gelb ──────────────────────────────────────────────────────
@@ -662,13 +673,13 @@
       h('ul', { cls: 'rules' },
         h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
         h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
-        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.')),
+        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote bei Respekt, Wertschätzung oder Zuwendung nicht aus.')),
       h('h3', {}, 'Entscheidung'),
       h('ul', { cls: 'rules' },
-        h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
-        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
-        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
-      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
+        h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (kein Feld rot, höchstens eines gelb): zum Gespräch einladen. Ein gelbes Feld im Gespräch kurz ansprechen.'),
+        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (mindestens zwei Felder gelb oder Offenheit rot – Offenheit lässt sich trainieren): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
+        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (rot bei Respekt, Wertschätzung oder Zuwendung): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
+      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot bei Respekt, Wertschätzung oder Zuwendung aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
       h('h3', {}, 'Die acht Situationen'),
       h('p', { cls: 'muted' }, 'Bewerber:innen sehen die Antworten in zufälliger Reihenfolge und nie die Farben.'));
     k.situationen.forEach((s, idx) => {
