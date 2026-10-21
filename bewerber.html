@@ -21,6 +21,9 @@
     eigene Tabelle mit RLS + explizite GRANTs, Abschicken nur über eine
     SECURITY DEFINER-Funktion (anon darf nichts lesen), Bewertung serverseitig
     berechnen, interne Sicht nur für die Chefin in der Schaltzentrale.
+    Entscheidung: Grün = einladen · Gelb = Prüfzone, Gespräch nur bei sonst
+    starkem Gesamteindruck oder fachlich besonderem Interesse, gelbe Stellen
+    gezielt prüfen · Rot = keine Einladung.
     Die Farbzuordnung darf dann NICHT mehr im öffentlichen Quelltext stehen.
   -->
   <style>
@@ -231,13 +234,13 @@
     ]},
     { art: 'Lernen', q: 'Die Chefin sieht dir beim Föhnen zu und sagt: „Sauber – aber nimm die größere Rundbürste und arbeite von unten, dann hält es länger.“ Du hast es anders gelernt, und bisher hat es immer gut ausgesehen.', a: [
       { t: 'Ich mache es ab jetzt so, wie sie sagt. Sie ist die Chefin.',
-        b: { O: 'y' }, w: 'Folgt, ohne selbst zu prüfen – Offenheit oder nur Anpassung? Im Gespräch klären.' },
-      { t: 'Ich erkläre ihr, warum ich es so mache. Wenn sie danach trotzdem darauf besteht, probiere ich es.',
-        b: { O: 'y' }, w: 'Verteidigt erst das Gewohnte, probiert nur auf Druck.' },
+        b: { O: 'y' }, w: 'Ordnet sich unter, ohne selbst zu prüfen – Offenheit oder nur Anpassung? Im Gespräch klären.' },
+      { t: 'Okay, ich probier es bei den nächsten Kundinnen so und schau, ob es wirklich länger hält.',
+        b: { O: 'g' }, w: 'Probiert die Korrektur praktisch aus und prüft selbst nach – offen, aber nicht unterwürfig.' },
       { t: 'Ich nicke und mache weiter wie bisher. Solange das Ergebnis passt, gibt es keinen Grund, etwas zu ändern.',
         b: { O: 'r', R: 'y' }, w: 'Lehnt die Korrektur ab, ohne sie auszuprobieren – und sagt es nicht offen.' },
       { t: 'Ich frage, was ihr an meiner Art fehlt, und lasse es mir einmal zeigen.',
-        b: { O: 'g', Z: 'g' } }
+        b: { O: 'g', Z: 'g' }, w: 'Will verstehen, worum es geht, statt sich zu verteidigen.' }
     ]},
     { art: 'Kundin', q: 'Eine Stammkundin hat sich die Haare selbst gefärbt, es ist fleckig geworden. Noch an der Garderobe fragt sie: „Sag ehrlich, schaut das schlimm aus?“', a: [
       { t: '„Ja, das ist ziemlich fleckig geworden. Kriegen wir aber hin – setz dich, ich schau mir das an.“',
@@ -355,9 +358,9 @@
   // 6. Interne Sicht
   const FARBTEXT = { g: 'Grün', y: 'Gelb', r: 'Rot' };
   const GESAMT = {
-    g: ['Gesamt: Grün – klare Passung', 'In keinem Pflichtfeld ein rotes oder gelbes Signal. Kennenlernen einladen.'],
-    y: ['Gesamt: Gelb – im Gespräch prüfen', 'Keine rote Flagge, aber einzelne Felder sind unklar. Einladen und die markierten Felder gezielt ansprechen.'],
-    r: ['Gesamt: Rot – passt nicht', 'In mindestens einem Pflichtfeld ein deutliches rotes Signal. Gute Antworten in anderen Feldern gleichen das nicht aus.']
+    g: ['Gesamt: Grün – zum Gespräch einladen', 'Alle vier Pflichtfelder grün.'],
+    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle unten im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
+    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Gute Antworten in anderen Feldern gleichen das nicht aus.']
   };
   function internView() {
     const { felder, gesamt } = auswerten(st.antworten);
@@ -395,11 +398,12 @@
     const ul = h('ul', { cls: 'rules' },
       h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
       h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
-      h('li', {}, 'Gesamt-Rot: mindestens ein Pflichtfeld ist rot.'),
-      h('li', {}, 'Gesamt-Gelb: kein Feld rot, mindestens eines gelb.'),
-      h('li', {}, 'Gesamt-Grün: alle vier Felder grün.'),
       h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.'));
-    put(h('h3', {}, 'Auswertungslogik'), ul);
+    const entscheid = h('ul', { cls: 'rules' },
+      h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
+      h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'),
+      h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch.'));
+    put(h('h3', {}, 'Auswertungslogik'), ul, h('h3', {}, 'Entscheidung'), entscheid);
 
     const zaehl = {};
     SITUATIONEN.forEach(s => new Set(s.a.flatMap(a => Object.keys(a.b))).forEach(k => zaehl[k] = (zaehl[k] || 0) + 1));
