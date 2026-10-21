@@ -347,7 +347,24 @@
         ...hinweise(b).map(([c, t]) => h('div', { cls: 'hinweis ' + c }, t)))));
       return karte;
     });
-    rahmen(h('p', { style: 'margin-bottom:14px' }, 'Sortiert nach dem nächsten Schritt. Bewerbungen werden 6 Monate nach Eingang automatisch gelöscht.'), ...karten);
+    rahmen(neueBewerbungKarte(),
+      h('p', { style: 'margin-bottom:14px' }, 'Sortiert nach dem nächsten Schritt. Bewerbungen werden 6 Monate nach Eingang automatisch gelöscht.'), ...karten);
+  }
+
+  // Einstieg: Link zur Kurzbewerbung an Interessierte geben (Schritt 1)
+  function neueBewerbungKarte() {
+    const url = new URL('karriere.html', location.href).href.split('#')[0];
+    const text = `Hallo,\n\nschön, dass du dich für A Great Hair Day interessierst. Hier kannst du dich in ein paar Minuten bei uns melden:\n\n${url}` + GRUSS;
+    return h('div', { cls: 'card' },
+      h('h2', {}, 'Neue Bewerbung'),
+      h('p', {}, 'Jemand interessiert sich? Schick zuerst diesen Link zur Kurzbewerbung. Danach erscheint die Bewerbung hier unter „Basis-Check“.'),
+      h('div', { cls: 'muted', style: 'margin:8px 0 2px;word-break:break-all' }, url),
+      h('div', {},
+        h('button', { cls: 'btn ghost', on: () => window.open(url, '_blank', 'noopener') }, 'Karriere-Seite öffnen'),
+        h('button', { cls: 'btn ghost', on: async ev => {
+          try { await navigator.clipboard.writeText(url); ev.target.textContent = 'Kopiert ✓'; } catch (e) { prompt('Link kopieren:', url); }
+        }}, 'Link kopieren'),
+        h('button', { cls: 'btn ghost', on: () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener') }, 'Per WhatsApp schicken')));
   }
 
   // ── Nachricht mit Kopieren / E-Mail / WhatsApp ─────────────────────────
