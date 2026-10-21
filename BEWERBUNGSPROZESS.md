@@ -32,15 +32,16 @@ Bewerber:innen erfahren nie ihre Farbe oder einzelne Bewertungen.
   im Team zählt (in Alltagssprache, ohne die Matcher-Situationen zu
   verraten), offene Stellen, **Kurzbewerbungs-Formular** als einziger
   Call-to-Action.
-- **Den Ablauf offen zeigen:** „1. Kurzbewerbung · 2. ein paar Fragen aus
-  dem Salonalltag (ca. 5 Minuten) · 3. Kennenlernen · 4. Probetag“. Wer weiß,
+- **Den Ablauf offen zeigen:** Interesse melden · Wir melden uns · Salon
+  Matcher · Kennenlernen · Probetag (Texte in `karriere.html`). Wer weiß,
   was kommt, empfindet den Matcher als Schritt und nicht als Prüfung.
 - **Der Matcher ist nirgends verlinkt.** Es gibt ihn nur über den
   persönlichen Link aus Schritt 3. Kein Menüpunkt, kein Button auf der
   Homepage, kein öffentlicher Link in Inseraten.
 - **Kurzer Begleittext** in der Einladung (Schritt 3): „Danke für deine
   Bewerbung. Bevor wir uns kennenlernen, möchten wir wissen, wie du im
-  Salonalltag handelst – acht kurze Situationen, ca. 5 Minuten.“
+  Salonalltag handelst – acht kurze Situationen, ca. 5 Minuten. Danach
+  melden wir uns in jedem Fall bei dir.“ (Vorlage in `bewerbungen.html`)
 
 ---
 
@@ -158,11 +159,42 @@ Gleichbehandlungsgesetz.
 
 ---
 
-## 6. Was das für den Prototyp bedeutet (spätere Umsetzung)
+## 6. Umsetzung
 
-- Der Matcher wird über einen **persönlichen, zufälligen, ablaufenden Link**
-  geöffnet (siehe `CLAUDE.md` Regel 4). Die Kontaktdaten kommen dann aus der
-  Kurzbewerbung, das Kontaktformular am Ende des Matchers entfällt.
-- Kurzbewerbungen, Matcher-Ergebnisse und Prüfzonen-Entscheidungen kommen
-  in Supabase-Tabellen mit RLS und expliziten GRANTs. Die Bewertung läuft
-  serverseitig, sichtbar nur für die Chefin.
+| Datei | Für wen | Was |
+|---|---|---|
+| `karriere.html` | öffentlich | Bewerbungsweg (5 Schritte) und Kurzbewerbung |
+| `bewerber.html` | nur mit persönlichem Link | Salon Matcher (`bewerber.html#t=…`) |
+| `bewerbungen.html` | nur Chefin | Übersicht nach nächstem Schritt, Basis-Check, Matcher-Link, Auswertung, Prüfzone Gelb, Nachrichtenvorlagen, Fragenkatalog |
+| `supabase/migrations/20261021120000_bewerbungen_salon_matcher.sql` | Datenbank | Tabellen mit RLS, Matcher-Inhalte, Funktionen |
+
+**Rückmeldung in jedem Fall:** Karriere-Seite (Schritt 3), Matcher-Einladung,
+Erinnerung und Matcher-Abschlussseite versprechen dasselbe: Nach dem Matcher
+meldet sich der Salon in jedem Fall, auch bei Absage. Die Datenbank sichert
+das ab: Ein Vorgang nach dem Matcher kann nur mit Zusage oder Absage enden,
+nicht still geschlossen werden. Still schließen geht nur **vor** dem Matcher
+(Pflichtangaben fehlen trotz Nachfrage, Link nicht genutzt).
+
+**Was die Datenbank erzwingt** (nicht nur die Oberfläche):
+- Rot kann nie zum Gespräch.
+- Gelb kommt nur mit Häkchen und schriftlicher Begründung (mindestens
+  10 Zeichen) zum Gespräch, und nur mit allen Prüfpunkten „geklärt“ zum
+  Probearbeiten.
+- Matcher-Link nur nach bestandenem Basis-Check, einmal ausfüllbar,
+  7 Tage gültig. Eine Erinnerung ersetzt den Link, verlängert aber nicht.
+- Die Farbzuordnung liegt nur in der Datenbank. Bewerber:innen und der
+  öffentliche Quelltext sehen sie nie.
+- Bewerbungen werden 6 Monate nach Eingang gelöscht (beim Öffnen der
+  Übersicht).
+
+**Verschicken:** Es gibt keinen automatischen Mailversand. Die Übersicht
+bereitet jede Nachricht vor (Einladung, Erinnerung, Gespräch, Probetag,
+Zusage, Absage) – kopieren, per E-Mail oder per WhatsApp öffnen.
+
+**Einrichten (einmalig):**
+1. Migration im Supabase SQL-Editor komplett ausführen. Am Ende zeigen zwei
+   Kontrollabfragen: keine Tabelle ohne RLS, Rechte nur für `service_role`.
+2. Das Chefin-Konto braucht in `teamapp_persons` die Rolle `inhaberin`
+   (wie für die Schaltzentrale – ist schon so).
+3. Nach dem Merge: `karriere.html` von Homepage, Instagram und Inseraten
+   verlinken. `bewerber.html` nirgends verlinken.

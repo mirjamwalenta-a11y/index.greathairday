@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Great Hair Day · Bei uns arbeiten</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!--
+    Öffentliche Karriere-Seite mit Kurzbewerbung (Schritt 1 in BEWERBUNGSPROZESS.md).
+    Schreibt nur über die Funktion bewerbung_einreichen() – kann nichts lesen.
+    Der Salon Matcher ist hier bewusst NICHT verlinkt: den gibt es nur über
+    den persönlichen Link nach dem Basis-Check.
+  -->
+  <style>
+    :root {
+      --bg:          #F8F4EA;
+      --card:        #FFFFFF;
+      --border:      #E4DBC5;
+      --text:        #211D17;
+      --text-soft:   #6F6858;
+      --accent:      #896C32;
+      --accent-dark: #6E5527;
+      --accent-tint: #EEE6CD;
+      --crit:        #B23A2E;
+      --radius:      14px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; padding:16px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:600px; margin:0 auto; }
+    .card {
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:var(--radius); padding:28px 22px; margin-bottom:16px;
+      box-shadow:0 8px 32px rgba(137,108,50,0.08);
+    }
+    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; }
+    h1 { font-size:24px; font-weight:700; margin:8px 0 14px; line-height:1.3; }
+    h2 { font-size:18px; font-weight:700; margin-bottom:14px; }
+    p  { font-size:14.5px; line-height:1.65; color:var(--text-soft); }
+
+    ol.schritte { list-style:none; counter-reset:s; }
+    ol.schritte li { counter-increment:s; position:relative; padding-left:40px; margin-top:16px; }
+    ol.schritte li::before {
+      content:counter(s); position:absolute; left:0; top:0;
+      width:26px; height:26px; border-radius:50%; background:var(--accent-tint); color:var(--accent-dark);
+      font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    }
+    ol.schritte b { display:block; font-size:15px; margin-bottom:2px; }
+    ol.schritte span { font-size:14px; line-height:1.6; color:var(--text-soft); }
+    .matcher { margin-top:20px; padding:14px 16px; border-radius:10px; background:var(--accent-tint); }
+    .matcher b { display:block; font-size:13px; color:var(--accent-dark); margin-bottom:4px; }
+    .matcher p { color:var(--text); font-size:14px; }
+
+    label.f { display:block; font-size:12px; font-weight:600; color:var(--text-soft); margin:14px 0 6px; }
+    input[type=text], input[type=tel], input[type=email], select, textarea {
+      width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px;
+      font:inherit; font-size:15px; background:var(--bg); color:var(--text);
+    }
+    textarea { min-height:96px; resize:vertical; }
+    .zwei { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+    @media (max-width:420px) { .zwei { grid-template-columns:1fr; } }
+    .hint { font-size:12px; color:var(--text-soft); margin-top:6px; }
+    .consent { display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:13px; line-height:1.5; color:var(--text-soft); }
+    .consent input { margin-top:3px; width:18px; height:18px; accent-color:var(--accent); flex-shrink:0; }
+    .falle { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+    .btn {
+      display:block; width:100%; margin-top:20px; padding:14px;
+      background:var(--accent); color:#fff; border:none; border-radius:10px;
+      font:inherit; font-size:15px; font-weight:600; cursor:pointer;
+    }
+    .btn:hover { background:var(--accent-dark); }
+    .btn:disabled { opacity:.6; cursor:default; }
+    .msg { margin-top:14px; padding:12px; border-radius:10px; font-size:13.5px; background:#F5DAD5; color:var(--crit); }
+    .danke { text-align:left; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <div class="brand">A Great Hair Day</div>
+    <h1>Bei uns arbeiten</h1>
+    <p>Wir suchen nicht einfach Lebensläufe, sondern Menschen, die gut zu uns passen – fachlich und menschlich. Darum gibt es bei uns einen klaren Bewerbungsweg. Er ist kurz, ehrlich und fair, für dich genauso wie für uns.</p>
+
+    <ol class="schritte">
+      <li><b>Interesse melden</b><span>Erzähl uns in ein paar Zeilen, wer du bist, was du suchst und ab wann du starten könntest. Einen Lebenslauf brauchen wir noch nicht.</span></li>
+      <li><b>Wir melden uns</b><span>In wenigen Tagen hörst du von uns, ob es von den Eckdaten her passt.</span></li>
+      <li><b>Salon Matcher</b><span>Dann schicken wir dir einen Link mit acht Situationen aus unserem Salonalltag. Nimm dir fünf ruhige Minuten dafür. Danach melden wir uns in jedem Fall bei dir.</span></li>
+      <li><b>Kennenlernen</b><span>Wir treffen uns im Salon und reden in Ruhe – über dich, über uns und darüber, wie wir arbeiten.</span></li>
+      <li><b>Probetag</b><span>Wenn es sich für beide gut anfühlt, arbeitest du einen Tag mit uns. Danach entscheiden wir gemeinsam.</span></li>
+    </ol>
+
+    <div class="matcher">
+      <b>Zum Salon Matcher</b>
+      <p>Du musst nichts vorbereiten und nichts erraten. Antworte so, wie du wirklich arbeitest – nur so merken wir beide, ob wir zusammenpassen.</p>
+    </div>
+  </div>
+
+  <div class="card" id="formular">
+    <h2>Interesse melden</h2>
+    <form id="form" novalidate>
+      <label class="f" for="name">Name *</label>
+      <input type="text" id="name" autocomplete="name" maxlength="120" required>
+
+      <div class="zwei">
+        <div>
+          <label class="f" for="telefon">Telefon</label>
+          <input type="tel" id="telefon" autocomplete="tel" maxlength="40">
+        </div>
+        <div>
+          <label class="f" for="email">E-Mail</label>
+          <input type="email" id="email" autocomplete="email" maxlength="160">
+        </div>
+      </div>
+      <div class="hint">Telefon oder E-Mail – eines davon reicht.</div>
+
+      <label class="f" for="stelle">Du interessierst dich für *</label>
+      <select id="stelle" required>
+        <option value="">Bitte wählen</option>
+        <option value="lehrstelle">eine Lehrstelle</option>
+        <option value="geselle">eine Stelle als Gesell:in</option>
+        <option value="wiedereinstieg">einen Wiedereinstieg</option>
+      </select>
+
+      <label class="f" for="ausbildung">Dein Ausbildungsstand *</label>
+      <select id="ausbildung" required>
+        <option value="">Bitte wählen</option>
+        <option value="schule">Schule / Schulabschluss</option>
+        <option value="in_ausbildung">Lehre läuft gerade</option>
+        <option value="lehrabschluss">Lehrabschluss</option>
+        <option value="meisterpruefung">Meisterprüfung</option>
+        <option value="quereinstieg">Andere Ausbildung / Quereinstieg</option>
+      </select>
+
+      <label class="f" for="ueber">Ein paar Zeilen über dich *</label>
+      <textarea id="ueber" maxlength="800" placeholder="Wer du bist, was du suchst, was du schon gemacht hast" required></textarea>
+
+      <div class="zwei">
+        <div>
+          <label class="f" for="stunden">Stundenausmaß *</label>
+          <input type="text" id="stunden" maxlength="120" placeholder="z. B. 30 Stunden" required>
+        </div>
+        <div>
+          <label class="f" for="start">Frühester Start *</label>
+          <input type="text" id="start" maxlength="80" placeholder="z. B. sofort, März" required>
+        </div>
+      </div>
+
+      <label class="f" for="portfolio">Instagram oder Portfolio (freiwillig)</label>
+      <input type="text" id="portfolio" maxlength="200">
+
+      <!-- Falle für automatische Formular-Bots, für Menschen unsichtbar -->
+      <div class="falle" aria-hidden="true">
+        <label for="website">Website</label><input type="text" id="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <label class="consent"><input type="checkbox" id="einwilligung">
+        <span>Ich bin einverstanden, dass A Great Hair Day meine Angaben und später meine Antworten im Salon Matcher zur Bearbeitung meiner Bewerbung speichert. Die Daten werden spätestens nach sechs Monaten gelöscht. Ich kann meine Einwilligung jederzeit widerrufen. *</span>
+      </label>
+
+      <div class="msg hidden" id="msg" role="alert"></div>
+      <button class="btn" type="submit" id="senden">Abschicken</button>
+    </form>
+  </div>
+
+  <div class="card danke hidden" id="danke">
+    <div class="brand">Danke</div>
+    <h1>Deine Nachricht ist angekommen</h1>
+    <p>In wenigen Tagen hörst du von uns, ob es von den Eckdaten her passt.</p>
+  </div>
+
+</div>
+
+<script>
+  const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g'; // öffentlicher anon-Schlüssel
+
+  const $ = id => document.getElementById(id);
+  const wert = id => $(id).value.trim();
+
+  function fehler(text) {
+    $('msg').textContent = text;
+    $('msg').classList.remove('hidden');
+  }
+
+  function danke() {
+    $('formular').classList.add('hidden');
+    $('danke').classList.remove('hidden');
+    $('danke').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('msg').classList.add('hidden');
+
+    if (!wert('name') || !wert('stelle') || !wert('ausbildung') || !wert('ueber') || !wert('stunden') || !wert('start')) {
+      return fehler('Bitte fülle alle Felder mit * aus.');
+    }
+    if (!wert('telefon') && !wert('email')) return fehler('Bitte gib eine Telefonnummer oder eine E-Mail-Adresse an.');
+    if (wert('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(wert('email'))) return fehler('Bitte prüfe die E-Mail-Adresse.');
+    if (!$('einwilligung').checked) return fehler('Bitte bestätige die Einwilligung zum Datenschutz.');
+    if (wert('website')) return danke(); // Bot
+
+    $('senden').disabled = true;
+    $('senden').textContent = 'Wird gesendet …';
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/rpc/bewerbung_einreichen`, {
+        method: 'POST',
+        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          p_name: wert('name'), p_telefon: wert('telefon'), p_email: wert('email'),
+          p_stelle: wert('stelle'), p_ausbildung: wert('ausbildung'), p_ueber_dich: wert('ueber'),
+          p_stunden: wert('stunden'), p_start: wert('start'), p_portfolio: wert('portfolio'),
+          p_einwilligung: true
+        })
+      });
+      if (!r.ok) throw new Error(await r.text());
+      danke();
+    } catch (err) {
+      fehler('Das hat leider nicht geklappt. Bitte versuch es gleich noch einmal.');
+      $('senden').disabled = false;
+      $('senden').textContent = 'Abschicken';
+    }
+  });
+</script>
+</body>
+</html>

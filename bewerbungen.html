@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-sitzung.js"></script>  <!-- automatisch abmelden nach 15 min ohne Bedienung -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>A Great Hair Day · Bewerbungen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!--
+    Bewerbungs-Übersicht – nur für die Chefin (BEWERBUNGSPROZESS.md).
+    Alle Daten kommen über SECURITY DEFINER-Funktionen, die selbst prüfen,
+    ob die angemeldete Person die Inhaberin ist (bewerbungen_ist_chefin).
+    Die Prüfung hier im Browser blendet nur die Oberfläche ein/aus.
+    Die Prozessregeln (Rot = keine Einladung, Gelb nur mit Begründung …)
+    erzwingt die Datenbank; die Knöpfe hier spiegeln sie nur.
+    Bewerberdaten werden ausschließlich per textContent eingesetzt.
+  -->
+  <style>
+    :root {
+      --bg:          #F8F4EA;
+      --card:        #FFFFFF;
+      --border:      #E4DBC5;
+      --text:        #211D17;
+      --text-soft:   #6F6858;
+      --accent:      #896C32;
+      --accent-dark: #6E5527;
+      --accent-tint: #EEE6CD;
+      --g:           #3F7A52;
+      --g-tint:      #DDEBDF;
+      --y:           #A67A22;
+      --y-tint:      #F3E6C4;
+      --r:           #B23A2E;
+      --r-tint:      #F5DAD5;
+      --radius:      14px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; padding:16px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:680px; margin:0 auto; }
+    .card {
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:var(--radius); padding:22px 18px; margin-bottom:14px;
+      box-shadow:0 8px 32px rgba(137,108,50,0.06);
+    }
+    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; }
+    h1 { font-size:22px; font-weight:700; margin:6px 0 4px; line-height:1.3; }
+    h2 { font-size:16px; font-weight:700; margin-bottom:10px; }
+    h3 { font-size:14px; font-weight:700; margin:18px 0 8px; }
+    p  { font-size:14px; line-height:1.6; color:var(--text-soft); }
+    .muted { font-size:12.5px; color:var(--text-soft); }
+    .hidden { display:none !important; }
+
+    .top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+    .top .links { display:flex; gap:8px; flex-wrap:wrap; }
+    .link { background:none; border:none; color:var(--accent-dark); font:inherit; font-size:13px; font-weight:600; cursor:pointer; padding:6px 0; }
+
+    /* Login */
+    .login { max-width:380px; margin:60px auto 0; }
+    label.f { display:block; font-size:12px; font-weight:600; color:var(--text-soft); margin:14px 0 6px; }
+    input[type=text], input[type=email], input[type=password], select, textarea {
+      width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px;
+      font:inherit; font-size:15px; background:var(--bg); color:var(--text);
+    }
+    textarea { min-height:160px; resize:vertical; font-size:13.5px; line-height:1.55; }
+    .btn {
+      display:inline-block; padding:11px 16px; margin:6px 6px 0 0;
+      background:var(--accent); color:#fff; border:1.5px solid var(--accent); border-radius:10px;
+      font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    }
+    .btn:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
+    .btn.ghost { background:none; color:var(--accent-dark); border-color:var(--border); }
+    .btn.rot { background:var(--r); border-color:var(--r); }
+    .btn:disabled { opacity:.45; cursor:default; }
+    .btn.voll { display:block; width:100%; margin:20px 0 0; }
+    .msg { margin-top:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; background:var(--r-tint); color:var(--r); }
+
+    /* Liste */
+    .gruppe h2 { display:flex; justify-content:space-between; align-items:baseline; }
+    .gruppe h2 span { font-size:12px; font-weight:600; color:var(--text-soft); }
+    .eintrag {
+      display:block; width:100%; text-align:left; background:var(--bg); border:1.5px solid var(--border);
+      border-radius:10px; padding:12px 14px; margin-top:8px; font:inherit; color:var(--text); cursor:pointer;
+    }
+    .eintrag:hover { border-color:var(--accent); }
+    .eintrag .zeile { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .eintrag b { font-size:14.5px; }
+    .eintrag .info { font-size:12.5px; color:var(--text-soft); margin-top:3px; }
+    .hinweis { font-size:12px; font-weight:600; margin-top:4px; }
+    .hinweis.y { color:var(--y); }
+    .hinweis.r { color:var(--r); }
+    .leer { font-size:13px; color:var(--text-soft); margin-top:6px; }
+
+    .pill { font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+    .p-g { background:var(--g-tint); color:var(--g); }
+    .p-y { background:var(--y-tint); color:var(--y); }
+    .p-r { background:var(--r-tint); color:var(--r); }
+    .p-n { background:var(--accent-tint); color:var(--accent-dark); }
+
+    /* Detail */
+    .daten { display:grid; grid-template-columns:130px 1fr; gap:6px 12px; font-size:13.5px; }
+    .daten dt { color:var(--text-soft); }
+    .daten dd { word-break:break-word; white-space:pre-wrap; }
+    @media (max-width:440px) { .daten { grid-template-columns:1fr; } .daten dd { margin-bottom:6px; } }
+    .verdict { border-radius:12px; padding:14px; margin:10px 0 4px; }
+    .verdict b { display:block; font-size:16px; margin-bottom:4px; }
+    .verdict p { color:inherit; font-size:13.5px; }
+    .v-g { background:var(--g-tint); color:var(--g); }
+    .v-y { background:var(--y-tint); color:var(--y); }
+    .v-r { background:var(--r-tint); color:var(--r); }
+    .field { border:1.5px solid var(--border); border-radius:12px; padding:12px; margin-top:10px; }
+    .field-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .field-head span:first-child { font-weight:600; font-size:14px; }
+    .sig { margin-top:10px; padding-left:10px; border-left:3px solid; font-size:13px; line-height:1.55; }
+    .sig.r { border-color:var(--r); }
+    .sig.y { border-color:var(--y); }
+    .sig .sit { color:var(--text-soft); }
+    .sig .ans { color:var(--text); margin:2px 0; }
+    .sig .why { color:var(--text-soft); font-style:italic; }
+    .ask { margin-top:10px; font-size:13px; }
+    .ask b { color:var(--text-soft); font-weight:600; }
+    .verlauf li { font-size:12.5px; color:var(--text-soft); margin:4px 0 0 18px; }
+    .nachricht { margin-top:12px; padding:12px; border-radius:12px; background:var(--accent-tint); }
+    .nachricht .muted { margin-bottom:8px; color:var(--accent-dark); font-weight:600; }
+    .regel { font-size:13px; color:var(--r); font-weight:600; margin-top:8px; }
+    .warnung { margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--y-tint); color:var(--y); font-size:13px; font-weight:600; }
+
+    /* Prüfzone Gelb */
+    .pz { border:1.5px solid var(--y); border-radius:12px; padding:14px; margin-top:12px; }
+    .pz h3 { margin-top:0; color:var(--y); }
+    .pz-step { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-soft); margin:16px 0 8px; }
+    .pz .consent { display:flex; gap:10px; align-items:flex-start; margin-top:8px; font-size:13px; line-height:1.5; }
+    .pz .consent input { margin-top:3px; width:18px; height:18px; accent-color:var(--accent); flex-shrink:0; }
+    .pz input[type=text] { margin-top:8px; font-size:14px; }
+    .pz-item { border-top:1px solid var(--border); padding-top:12px; margin-top:12px; font-size:13px; line-height:1.55; }
+    .pz-item .ans { color:var(--text-soft); }
+    .pz-item .q { color:var(--text); font-weight:600; margin:6px 0 4px; }
+    .pz-item .hint { color:var(--text-soft); }
+    .pz-item .hint b { font-weight:600; }
+    .pz-btns { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+    .pz-btn { flex:1; min-width:90px; padding:8px 6px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font:inherit; font-size:12.5px; cursor:pointer; }
+    .pz-btn.on.g { background:var(--g-tint); border-color:var(--g); color:var(--g); font-weight:600; }
+    .pz-btn.on.y { background:var(--y-tint); border-color:var(--y); color:var(--y); font-weight:600; }
+    .pz-btn.on.r { background:var(--r-tint); border-color:var(--r); color:var(--r); font-weight:600; }
+    .pz-status { margin-top:10px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; background:var(--accent-tint); color:var(--accent-dark); }
+    .pz-status.g { background:var(--g-tint); color:var(--g); }
+    .pz-status.r { background:var(--r-tint); color:var(--r); }
+
+    /* Katalog */
+    .kat-sit { margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+    .kat-meta { font-size:11.5px; color:var(--text-soft); letter-spacing:.05em; text-transform:uppercase; margin-bottom:6px; }
+    .kat-q { font-size:14px; font-weight:600; line-height:1.5; margin-bottom:8px; }
+    .kat-a { display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.5; margin-top:8px; }
+    .kat-a .tags { display:flex; flex-direction:column; gap:3px; flex-shrink:0; width:96px; }
+    .kat-a .pill { font-size:10.5px; padding:2px 7px; text-align:center; }
+    .kat-a .why { display:block; font-size:12.5px; color:var(--text-soft); font-style:italic; margin-top:2px; }
+    .rules { font-size:13.5px; line-height:1.65; margin:8px 0 0 18px; }
+    .rules li + li { margin-top:6px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card login" id="login">
+    <div class="brand">A Great Hair Day</div>
+    <h1>Bewerbungen</h1>
+    <p>Nur für die Chefin.</p>
+    <form id="login-form">
+      <label class="f" for="email">E-Mail</label>
+      <input type="email" id="email" autocomplete="username">
+      <label class="f" for="pw">Passwort</label>
+      <input type="password" id="pw" autocomplete="current-password">
+      <div class="msg hidden" id="login-msg"></div>
+      <button class="btn voll" type="submit" id="login-btn">Einloggen</button>
+    </form>
+  </div>
+
+  <div id="app" class="hidden"></div>
+</div>
+
+<script>
+  const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g'; // öffentlicher anon-Schlüssel
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  async function rpc(fn, args) {
+    const { data, error } = await sb.rpc(fn, args || {});
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  // ── Texte ──────────────────────────────────────────────────────────────
+  const STELLE = { lehrstelle: 'Lehrstelle', geselle: 'Gesell:in', wiedereinstieg: 'Wiedereinstieg' };
+  const AUSBILDUNG = { schule: 'Schule / Schulabschluss', in_ausbildung: 'Lehre läuft', lehrabschluss: 'Lehrabschluss',
+                       meisterpruefung: 'Meisterprüfung', quereinstieg: 'Andere Ausbildung / Quereinstieg' };
+  const FARBTEXT = { g: 'Grün', y: 'Gelb', r: 'Rot' };
+  const RANG = { g: 0, y: 1, r: 2 };
+  const GESAMT = {
+    g: ['Gesamt: Grün – zum Gespräch einladen', 'Alle vier Pflichtfelder grün.'],
+    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
+    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'In mindestens einem Pflichtfeld eine rote Antwort. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
+  };
+  const BASIS_GRUENDE = [
+    'Für die Stelle ist gerade kein Platz frei',
+    'Das Stundenausmaß passt nicht',
+    'Der Start liegt mehr als 6 Monate entfernt',
+    'Es gibt schon ein Matcher-Ergebnis aus den letzten 6 Monaten'
+  ];
+  const GRUPPEN = [
+    ['neu',           'Basis-Check'],
+    ['basis_ok',      'Matcher-Link verschicken'],
+    ['matcher_offen', 'Matcher offen'],
+    ['ausgewertet',   'Entscheidung nach dem Matcher'],
+    ['gespraech',     'Gespräch'],
+    ['probearbeiten', 'Probearbeiten'],
+    ['absage_offen',  'Absage freigeben und verschicken'],
+    ['fertig',        'Abgeschlossen']
+  ];
+  const STATUS_TEXT = {
+    neu: 'Basis-Check offen', basis_ok: 'Basis passt – Matcher-Link verschicken', matcher_offen: 'Matcher verschickt',
+    ausgewertet: 'Matcher ausgefüllt', gespraech: 'Zum Gespräch eingeladen', probearbeiten: 'Probearbeiten',
+    zusage: 'Zusage', absage_offen: 'Absage vorbereitet – Freigabe offen', abgesagt: 'Abgesagt', geschlossen: 'Geschlossen'
+  };
+
+  const GRUSS = '\n\nLiebe Grüße\nA Great Hair Day';
+  const VORLAGE = {
+    absage_basis: v => `Hallo ${v},\n\ndanke für dein Interesse an A Great Hair Day. Von den Eckdaten her passt es bei uns gerade leider nicht zusammen. Wir wünschen dir für deinen weiteren Weg alles Gute.` + GRUSS,
+    matcher: (v, link, bis) => `Hallo ${v},\n\ndanke für deine Bewerbung – von den Eckdaten her passt es. Als nächsten Schritt schicken wir dir unseren Salon Matcher: acht kurze Situationen aus unserem Salonalltag, etwa fünf Minuten. Du musst nichts vorbereiten und nichts erraten – antworte so, wie du wirklich arbeitest.\n\n${link}\n\nDer Link gilt bis ${bis} und lässt sich einmal ausfüllen. Danach melden wir uns in jedem Fall bei dir.` + GRUSS,
+    erinnerung: (v, link, bis) => `Hallo ${v},\n\nkurze Erinnerung an unseren Salon Matcher. Dein Link gilt noch bis ${bis}:\n\n${link}\n\nDanach melden wir uns in jedem Fall bei dir.` + GRUSS,
+    gespraech: v => `Hallo ${v},\n\ndanke, dass du dir Zeit für den Salon Matcher genommen hast. Wir würden dich gern im Salon kennenlernen. Wann passt es dir in den nächsten Tagen?` + GRUSS,
+    probearbeiten: v => `Hallo ${v},\n\ndanke für das gute Gespräch. Wir würden dich gern zu einem Probetag einladen. Welcher Tag passt dir?` + GRUSS,
+    zusage: v => `Hallo ${v},\n\nwir freuen uns sehr: Wir möchten gern mit dir zusammenarbeiten. Lass uns die nächsten Schritte besprechen – wann passt es dir?` + GRUSS,
+    absage: v => `Hallo ${v},\n\ndanke für deine Zeit und dein Interesse an A Great Hair Day. Wir haben uns alles in Ruhe angesehen und uns entschieden, den Weg nicht gemeinsam weiterzugehen. Wir wünschen dir alles Gute.` + GRUSS
+  };
+
+  // ── Hilfen ─────────────────────────────────────────────────────────────
+  const app = document.getElementById('app');
+  function h(tag, attrs = {}, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === undefined || v === null || v === false) continue;
+      if (k === 'on') e.addEventListener('click', v);
+      else if (k === 'cls') e.className = v;
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+    e.append(...kids.filter(k => k !== null && k !== undefined && k !== false));
+    return e;
+  }
+  const datum = d => d ? new Date(d).toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+  const tageSeit = d => Math.floor((Date.now() - new Date(d)) / 86400000);
+  const vorname = name => (name || '').trim().split(/\s+/)[0];
+  function plusWerktage(d, n) {
+    const x = new Date(d);
+    while (n > 0) { x.setDate(x.getDate() + 1); if (x.getDay() !== 0 && x.getDay() !== 6) n--; }
+    return x;
+  }
+  const pill = farbe => farbe ? h('span', { cls: 'pill p-' + farbe }, FARBTEXT[farbe]) : null;
+
+  // ── Anmeldung ──────────────────────────────────────────────────────────
+  async function start() {
+    const { data } = await sb.auth.getSession();
+    if (data && data.session && await istChefin()) return zeigeListe();
+    document.getElementById('login').classList.remove('hidden');
+  }
+  async function istChefin() {
+    try { return await rpc('bewerbungen_ist_chefin') === true; } catch (e) { return false; }
+  }
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
+    msg.classList.add('hidden');
+    btn.disabled = true; btn.textContent = 'Wird geprüft …';
+    const { error } = await sb.auth.signInWithPassword({
+      email: document.getElementById('email').value.trim(), password: document.getElementById('pw').value });
+    btn.disabled = false; btn.textContent = 'Einloggen';
+    if (error) { msg.textContent = 'Falsche E-Mail oder Passwort.'; msg.classList.remove('hidden'); return; }
+    if (!await istChefin()) {
+      await sb.auth.signOut();
+      msg.textContent = 'Kein Zugriff – die Bewerbungen sind der Chefin vorbehalten.'; msg.classList.remove('hidden');
+      return;
+    }
+    document.getElementById('pw').value = '';
+    zeigeListe();
+  });
+  async function abmelden() {
+    await sb.auth.signOut();
+    app.classList.add('hidden'); app.innerHTML = '';
+    document.getElementById('login').classList.remove('hidden');
+  }
+
+  function rahmen(...kids) {
+    document.getElementById('login').classList.add('hidden');
+    app.classList.remove('hidden');
+    app.innerHTML = '';
+    app.append(h('div', { cls: 'top' },
+      h('div', {}, h('div', { cls: 'brand' }, 'A Great Hair Day · nur für die Chefin'), h('h1', {}, 'Bewerbungen')),
+      h('div', { cls: 'links' },
+        h('button', { cls: 'link', on: zeigeListe }, 'Übersicht'),
+        h('button', { cls: 'link', on: zeigeKatalog }, 'Fragenkatalog'),
+        h('button', { cls: 'link', on: abmelden }, 'Abmelden'))), ...kids);
+    window.scrollTo(0, 0);
+  }
+  function fehlerKarte(e) {
+    return h('div', { cls: 'card' }, h('div', { cls: 'msg' }, 'Das hat nicht geklappt: ' + e.message));
+  }
+
+  // ── Übersicht ──────────────────────────────────────────────────────────
+  function hinweise(b) {
+    const out = [];
+    if (b.status === 'neu' && tageSeit(b.erstellt_am) >= 2) out.push(['y', `Seit ${tageSeit(b.erstellt_am)} Tagen ohne Basis-Check`]);
+    if (b.status === 'matcher_offen') {
+      if (new Date(b.matcher_gueltig_bis) < new Date()) out.push(['r', 'Link abgelaufen – Vorgang schließen']);
+      else if (!b.matcher_erinnert_am && tageSeit(b.matcher_verschickt_am) >= 4) out.push(['y', 'Erinnerung fällig']);
+      else out.push(['', 'Link gültig bis ' + datum(b.matcher_gueltig_bis)]);
+    }
+    if (b.status === 'ausgewertet' && b.gesamt === 'y' && !b.gelb_eingeladen) {
+      const frist = plusWerktage(b.matcher_ausgefuellt_am, 3);
+      out.push(frist < new Date() ? ['r', 'Frist für Begründung vorbei – Absage'] : ['y', 'Begründung bis ' + datum(frist)]);
+    }
+    if (b.status === 'ausgewertet' && b.gesamt === 'r') out.push(['r', 'Rot – Absage vorbereiten']);
+    if (b.frueher && b.frueher.length) {
+      const f = b.frueher[0];
+      out.push(['y', `Frühere Bewerbung am ${datum(f.erstellt_am)}` + (f.gesamt ? ` – Ergebnis ${FARBTEXT[f.gesamt]}` : '')]);
+    }
+    return out;
+  }
+
+  async function zeigeListe() {
+    rahmen(h('p', {}, 'Lädt …'));
+    let liste;
+    try { liste = await rpc('bewerbungen_liste'); } catch (e) { return rahmen(fehlerKarte(e)); }
+    const karten = GRUPPEN.map(([key, titel]) => {
+      const eintraege = liste.filter(b => key === 'fertig' ? ['zusage', 'abgesagt', 'geschlossen'].includes(b.status) : b.status === key);
+      const karte = h('div', { cls: 'card gruppe' }, h('h2', {}, titel, h('span', {}, String(eintraege.length))));
+      if (!eintraege.length) karte.append(h('div', { cls: 'leer' }, 'Nichts offen.'));
+      eintraege.forEach(b => karte.append(h('button', { cls: 'eintrag', on: () => zeigeDetail(b.id) },
+        h('div', { cls: 'zeile' }, h('b', {}, b.name), pill(b.gesamt)),
+        h('div', { cls: 'info' }, `${STELLE[b.stelle]} · eingegangen ${datum(b.erstellt_am)}` + (key === 'fertig' ? ' · ' + STATUS_TEXT[b.status] : '')),
+        ...hinweise(b).map(([c, t]) => h('div', { cls: 'hinweis ' + c }, t)))));
+      return karte;
+    });
+    rahmen(h('p', { style: 'margin-bottom:14px' }, 'Sortiert nach dem nächsten Schritt. Bewerbungen werden 6 Monate nach Eingang automatisch gelöscht.'), ...karten);
+  }
+
+  // ── Nachricht mit Kopieren / E-Mail / WhatsApp ─────────────────────────
+  function nachricht(b, titel, text) {
+    const ta = h('textarea', {});
+    ta.value = text;
+    const knoepfe = h('div', {},
+      h('button', { cls: 'btn ghost', on: async ev => {
+        try { await navigator.clipboard.writeText(ta.value); ev.target.textContent = 'Kopiert ✓'; }
+        catch (e) { ta.select(); document.execCommand('copy'); ev.target.textContent = 'Kopiert ✓'; }
+      }}, 'Text kopieren'));
+    if (b.email) knoepfe.append(h('button', { cls: 'btn ghost', on: () => {
+      location.href = `mailto:${encodeURIComponent(b.email)}?subject=${encodeURIComponent('Deine Bewerbung bei A Great Hair Day')}&body=${encodeURIComponent(ta.value)}`;
+    }}, 'Per E-Mail'));
+    if (b.telefon) knoepfe.append(h('button', { cls: 'btn ghost', on: () => {
+      let nr = b.telefon.replace(/\D/g, '');
+      if (nr.startsWith('00')) nr = nr.slice(2); else if (nr.startsWith('0')) nr = '43' + nr.slice(1);
+      window.open(`https://wa.me/${nr}?text=${encodeURIComponent(ta.value)}`, '_blank', 'noopener');
+    }}, 'Per WhatsApp'));
+    return h('div', { cls: 'nachricht' }, h('div', { cls: 'muted' }, titel), ta, knoepfe);
+  }
+
+  // ── Detail ─────────────────────────────────────────────────────────────
+  async function zeigeDetail(id, extra) {
+    let b;
+    try { b = await rpc('bewerbung_detail', { p_id: id }); } catch (e) { return rahmen(fehlerKarte(e)); }
+    const y = window.scrollY;
+    rahmen(
+      h('div', { cls: 'card' },
+        h('div', { cls: 'brand' }, `${STELLE[b.stelle]} · eingegangen ${datum(b.erstellt_am)}`),
+        h('h1', {}, b.name),
+        h('div', { style: 'display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap' },
+          h('span', { cls: 'pill p-n' }, STATUS_TEXT[b.status]), pill(b.matcher_gesamt))),
+      aktionenKarte(b, extra),
+      b.antworten ? auswertungKarte(b) : null,
+      datenKarte(b),
+      h('div', { cls: 'card' }, h('h2', {}, 'Verlauf'),
+        h('ul', { cls: 'verlauf' }, ...(b.verlauf || []).map(v => h('li', {}, `${datum(v.zeit)} – ${v.text}`)))));
+    if (extra && extra.scroll) window.scrollTo(0, y);
+  }
+
+  async function schritt(b, aktion, notiz, extra) {
+    try {
+      if (b.pzFlush) await b.pzFlush();
+      await rpc('bewerbung_schritt', { p_id: b.id, p_aktion: aktion, p_notiz: notiz || null });
+      zeigeDetail(b.id, extra);
+    } catch (e) { alert(e.message); }
+  }
+
+  function aktionenKarte(b, extra) {
+    const v = vorname(b.name);
+    const karte = h('div', { cls: 'card' }, h('h2', {}, 'Nächster Schritt'));
+    const add = (...els) => karte.append(...els);
+    const linkUrl = token => new URL('bewerber.html', location.href).href.split('#')[0] + '#t=' + token;
+
+    if (b.frueher && b.frueher.length && ['neu', 'basis_ok'].includes(b.status)) {
+      const f = b.frueher[0];
+      add(h('div', { cls: 'warnung' }, `Frühere Bewerbung am ${datum(f.erstellt_am)}` +
+        (f.gesamt ? ` mit Ergebnis ${FARBTEXT[f.gesamt]}. Es gilt das bestehende Ergebnis – kein neuer Matcher.` : '.')));
+    }
+
+    switch (b.status) {
+      case 'neu': {
+        add(h('p', {}, 'Nur prüfen, ob die Bewerbung grundsätzlich in Frage kommt – keine Bewertung von Ton oder Sympathie.'),
+            h('p', { cls: 'muted', style: 'margin-top:6px' }, 'Gesell:in ohne Abschluss? Nicht absagen, sondern auf die Lehrstelle umleiten, wenn eine frei ist.'));
+        const grund = h('select', {}, h('option', { value: '' }, 'Grund wählen …'),
+          ...BASIS_GRUENDE.map(g => h('option', {}, g)), h('option', { value: 'sonst' }, 'Anderer Grund …'));
+        const sonst = h('input', { type: 'text', maxlength: '200', placeholder: 'Grund' });
+        sonst.classList.add('hidden');
+        grund.addEventListener('change', () => sonst.classList.toggle('hidden', grund.value !== 'sonst'));
+        add(h('button', { cls: 'btn', on: () => schritt(b, 'basis_passt') }, 'Basis passt'),
+            h('h3', {}, 'Basis passt nicht'), grund, sonst,
+            h('button', { cls: 'btn ghost', on: () => {
+              const g = grund.value === 'sonst' ? sonst.value.trim() : grund.value;
+              if (!g) return alert('Bitte einen Grund wählen.');
+              schritt(b, 'basis_passt_nicht', g);
+            }}, 'Basis passt nicht – Absage vorbereiten'),
+            h('h3', {}, 'Pflichtangaben fehlen trotz Nachfrage'),
+            h('button', { cls: 'btn ghost', on: () => confirm('Vorgang ohne Rückmeldung schließen?') && schritt(b, 'schliessen', 'Pflichtangaben fehlen trotz Nachfrage') }, 'Vorgang schließen'));
+        break;
+      }
+      case 'basis_ok':
+        add(h('p', {}, 'Der Link ist persönlich, gilt 7 Tage und lässt sich einmal ausfüllen.'),
+            h('button', { cls: 'btn', on: async () => {
+              try {
+                const r = await rpc('bewerbung_matcher_link', { p_id: b.id });
+                zeigeDetail(b.id, { nachricht: ['Einladung zum Salon Matcher – jetzt verschicken. Der Link wird nur dieses eine Mal angezeigt.', VORLAGE.matcher(v, linkUrl(r.token), datum(r.gueltig_bis))] });
+              } catch (e) { alert(e.message); }
+            }}, 'Matcher-Link erstellen'),
+            h('button', { cls: 'btn ghost', on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage', 'Stelle inzwischen vergeben') }, 'Absage (z. B. Stelle vergeben)'));
+        break;
+      case 'matcher_offen': {
+        const abgelaufen = new Date(b.matcher_gueltig_bis) < new Date();
+        add(h('p', {}, `Verschickt am ${datum(b.matcher_verschickt_am)}, gültig bis ${datum(b.matcher_gueltig_bis)}.` +
+                       (b.matcher_erinnert_am ? ` Erinnert am ${datum(b.matcher_erinnert_am)}.` : '')));
+        if (!abgelaufen) {
+          add(h('p', { cls: 'muted', style: 'margin-top:6px' }, 'Nach 4 Tagen ohne Antwort: eine Erinnerung. Sie erzeugt einen neuen Link (der alte hört auf zu funktionieren), die Gültigkeit verlängert sich nicht.'),
+              h('button', { cls: 'btn ghost', on: async () => {
+                try {
+                  const r = await rpc('bewerbung_matcher_link', { p_id: b.id, p_erinnerung: true });
+                  zeigeDetail(b.id, { nachricht: ['Erinnerung – jetzt verschicken. Der neue Link wird nur dieses eine Mal angezeigt.', VORLAGE.erinnerung(v, linkUrl(r.token), datum(r.gueltig_bis))] });
+                } catch (e) { alert(e.message); }
+              }}, b.matcher_erinnert_am ? 'Link nochmal neu erzeugen' : 'Erinnerung mit neuem Link'));
+        } else {
+          add(h('p', { cls: 'regel' }, 'Der Link ist abgelaufen. Einen neuen Versuch gibt es nicht.'),
+              h('button', { cls: 'btn', on: () => schritt(b, 'schliessen', 'Matcher nicht ausgefüllt') }, 'Vorgang schließen'));
+        }
+        break;
+      }
+      case 'ausgewertet': {
+        const g = b.matcher_gesamt;
+        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])));
+        if (g === 'g') add(h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
+        if (g === 'y') {
+          const frist = plusWerktage(b.matcher_ausgefuellt_am, 3);
+          add(h('p', { cls: 'muted', style: 'margin-top:8px' }, `Ohne Begründung bis ${datum(frist)} → Absage.`),
+              pruefzone(b, { einladung: true }),
+              h('button', { cls: 'btn', id: 'gelb-einladen', disabled: !(b.pruefzone && b.pruefzone.eingeladen),
+                            on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
+        }
+        if (g === 'r') add(h('p', { cls: 'regel' }, 'Keine Einladung zum Gespräch.'));
+        add(h('button', { cls: 'btn ' + (g === 'r' ? 'rot' : 'ghost'), on: () => (g === 'r' || confirm('Absage vorbereiten?')) && schritt(b, 'absage') }, 'Absage vorbereiten'));
+        break;
+      }
+      case 'gespraech':
+        add(nachricht(b, 'Einladung zum Kennenlernen', VORLAGE.gespraech(v)));
+        if (b.matcher_gesamt === 'y') add(pruefzone(b, { einladung: false }));
+        add(h('button', { cls: 'btn', id: 'weiter-probe', disabled: b.matcher_gesamt === 'y' && !alleGeklaert(b),
+                          on: () => schritt(b, 'probearbeiten') }, 'Probearbeiten vereinbaren'),
+            h('button', { cls: 'btn ghost', on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
+        break;
+      case 'probearbeiten':
+        add(nachricht(b, 'Einladung zum Probetag', VORLAGE.probearbeiten(v)),
+            h('button', { cls: 'btn', on: () => confirm('Zusage geben?') && schritt(b, 'zusage') }, 'Zusage'),
+            h('button', { cls: 'btn ghost', on: () => confirm('Absage vorbereiten?') && schritt(b, 'absage') }, 'Absage vorbereiten'));
+        break;
+      case 'absage_offen':
+        add(h('p', {}, 'Die Freigabe prüft nur, ob Name und Vorgang stimmen – nicht, ob es vielleicht doch passt.'),
+            nachricht(b, 'Absage', b.basis_grund ? VORLAGE.absage_basis(v) : VORLAGE.absage(v)),
+            h('button', { cls: 'btn', on: () => confirm('Ist die Absage verschickt?') && schritt(b, 'absage_verschickt') }, 'Absage freigegeben und verschickt'));
+        break;
+      case 'zusage':
+        add(nachricht(b, 'Zusage', VORLAGE.zusage(v)));
+        break;
+      default:
+        add(h('p', {}, 'Abgeschlossen.'));
+    }
+    if (extra && extra.nachricht) karte.insertBefore(nachricht(b, ...extra.nachricht), karte.children[1]);
+    return karte;
+  }
+
+  // ── Auswertung ─────────────────────────────────────────────────────────
+  function auswertungKarte(b) {
+    const karte = h('div', { cls: 'card' }, h('h2', {}, 'Auswertung Salon Matcher'),
+      h('p', { cls: 'muted' }, `Ausgefüllt am ${datum(b.matcher_ausgefuellt_am)}`));
+    const felder = b.matcher_felder || {};
+    Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
+      const signale = b.antworten.filter(a => a.bewertung[k] && a.bewertung[k] !== 'g')
+        .sort((x, y) => RANG[y.bewertung[k]] - RANG[x.bewertung[k]]);
+      const box = h('div', { cls: 'field' },
+        h('div', { cls: 'field-head' }, h('span', {}, b.felder_info[k].name), pill(felder[k])));
+      if (!signale.length) box.append(h('div', { cls: 'muted', style: 'margin-top:8px' }, 'Alle Signale grün.'));
+      signale.forEach(a => box.append(h('div', { cls: 'sig ' + a.bewertung[k] },
+        h('div', { cls: 'sit' }, (a.bewertung[k] === 'r' ? 'Rote Flagge · ' : 'Gelb · ') + a.frage),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
+        h('div', { cls: 'why' }, a.begruendung || ''))));
+      if (felder[k] !== 'g') box.append(h('div', { cls: 'ask' }, h('b', {}, 'Im Gespräch fragen: '), b.felder_info[k].gespraech));
+      karte.append(box);
+    });
+    return karte;
+  }
+
+  // ── Prüfzone Gelb ──────────────────────────────────────────────────────
+  const pzPunkte = b => b.antworten.filter(a => a.prueffrage);
+  const pzKey = a => a.situation + '-' + a.option;
+  function alleGeklaert(b) {
+    const u = (b.pruefzone && b.pruefzone.urteile) || {};
+    return pzPunkte(b).every(a => u[pzKey(a)] === 'g');
+  }
+
+  function pruefzone(b, { einladung }) {
+    const pz = Object.assign({ stark: false, fach: false, begruendung: '', urteile: {}, eingeladen: false }, b.pruefzone || {});
+    pz.urteile = Object.assign({}, pz.urteile);
+    const punkte = pzPunkte(b);
+    const box = h('div', { cls: 'pz' }, h('h3', {}, 'Prüfzone Gelb'));
+    const status1 = h('div', { cls: 'pz-status' });
+    const teil2 = h('div');
+    const status3 = h('div', { cls: 'pz-status' });
+    const gespeichert = h('div', { cls: 'muted', style: 'margin-top:6px' });
+
+    let timer = null;
+    async function jetztSpeichern() {
+      clearTimeout(timer); timer = null;
+      try {
+        await rpc('bewerbung_pruefzone', { p_id: b.id, p_daten: { stark: pz.stark, fach: pz.fach, begruendung: pz.begruendung, urteile: pz.urteile } });
+        gespeichert.textContent = 'Gespeichert.';
+      } catch (e) { gespeichert.textContent = 'Nicht gespeichert: ' + e.message; }
+    }
+    function speichern() {
+      clearTimeout(timer);
+      gespeichert.textContent = 'Wird gespeichert …';
+      timer = setTimeout(jetztSpeichern, 500);
+    }
+    // Vor „Zum Gespräch“ / „Probearbeiten“: Ausstehendes zuerst speichern
+    b.pzFlush = () => timer ? jetztSpeichern() : Promise.resolve();
+
+    // Schritt 1 – Begründung (nach der Einladung nicht mehr änderbar)
+    box.append(h('div', { cls: 'pz-step' }, 'Schritt 1 · Vor der Einladung'));
+    if (einladung && !pz.eingeladen) {
+      const check = (feld, text) => {
+        const c = h('input', { type: 'checkbox' });
+        c.checked = pz[feld];
+        c.addEventListener('change', () => { pz[feld] = c.checked; update(); speichern(); });
+        return h('label', { cls: 'consent' }, c, h('span', {}, text));
+      };
+      const grund = h('input', { type: 'text', maxlength: '500', placeholder: 'Woran genau? (Pflicht, wenn du einlädst)' });
+      grund.value = pz.begruendung;
+      grund.addEventListener('input', () => { pz.begruendung = grund.value; update(); speichern(); });
+      box.append(check('stark', 'Der Gesamteindruck der Bewerbung ist sonst stark.'),
+        check('fach', 'Die Bewerbung ist fachlich besonders interessant (z. B. Portfolio, Erfahrung, Spezialgebiet).'),
+        grund,
+        h('div', { cls: 'muted', style: 'margin-top:6px' }, 'Sympathie oder Mitleid zählen hier nicht.'),
+        status1);
+    } else {
+      box.append(h('div', { cls: 'pz-status g' }, 'Eingeladen. Begründung: ' + (pz.begruendung || '–')));
+    }
+
+    // Schritt 2 – im Gespräch prüfen
+    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 2 · Im Gespräch gezielt prüfen'));
+    punkte.forEach(a => {
+      const key = pzKey(a);
+      const wrap = h('div', { cls: 'pz-btns' });
+      [['g', 'Geklärt'], ['y', 'Bleibt unklar'], ['r', 'Bestätigt sich']].forEach(([v, t]) => {
+        const btn = h('button', { cls: 'pz-btn ' + v + (pz.urteile[key] === v ? ' on' : ''), on: () => {
+          pz.urteile[key] = v;
+          wrap.querySelectorAll('.pz-btn').forEach(x => x.classList.remove('on'));
+          btn.classList.add('on');
+          update(); speichern();
+        }}, t);
+        wrap.append(btn);
+      });
+      const felder = Object.keys(a.bewertung).filter(k => a.bewertung[k] === 'y').map(k => b.felder_info[k].name).join(' · ');
+      teil2.append(h('div', { cls: 'pz-item' },
+        h('div', { cls: 'muted' }, felder),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + a.text),
+        h('div', { cls: 'q' }, 'Frage: ' + a.prueffrage),
+        h('div', { cls: 'hint' }, h('b', {}, 'Spricht für Passung: '), a.pruef_gut),
+        h('div', { cls: 'hint' }, h('b', {}, 'Bleibt kritisch: '), a.pruef_krit),
+        wrap));
+    });
+    teil2.append(h('div', { cls: 'pz-step' }, 'Schritt 3 · Entscheidung nach dem Gespräch'), status3);
+    box.append(teil2, gespeichert);
+
+    function update() {
+      const eingeladen = pz.eingeladen || ((pz.stark || pz.fach) && pz.begruendung.trim().length >= 10);
+      status1.className = 'pz-status' + (eingeladen ? ' g' : (pz.stark || pz.fach) ? '' : ' r');
+      status1.textContent = eingeladen ? 'Einladen. Im Gespräch jede gelbe Stelle unten gezielt prüfen.'
+        : (pz.stark || pz.fach) ? 'Begründung fehlt – noch keine Einladung.' : 'Nicht einladen.';
+      teil2.classList.toggle('hidden', !eingeladen);
+      const btnEinladen = document.getElementById('gelb-einladen');
+      if (btnEinladen) btnEinladen.disabled = !eingeladen;
+
+      const u = punkte.map(a => pz.urteile[pzKey(a)]);
+      const offen = u.filter(x => !x).length;
+      if (u.includes('r')) {
+        status3.className = 'pz-status r';
+        status3.textContent = 'Absage. Eine gelbe Stelle hat sich im Gespräch bestätigt – das zählt wie Rot.';
+      } else if (offen) {
+        status3.className = 'pz-status';
+        status3.textContent = `Noch ${offen} von ${punkte.length} Punkten zu prüfen.`;
+      } else if (u.includes('y')) {
+        status3.className = 'pz-status r';
+        status3.textContent = 'Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.';
+      } else {
+        status3.className = 'pz-status g';
+        status3.textContent = 'Alle gelben Stellen geklärt. Weiter zum nächsten Schritt (z. B. Probearbeiten).';
+      }
+      const btnProbe = document.getElementById('weiter-probe');
+      if (btnProbe) btnProbe.disabled = !(u.length && u.every(x => x === 'g'));
+    }
+    // erst nach dem Einhängen in die Seite (Knöpfe existieren dann)
+    setTimeout(update);
+    update();
+    return box;
+  }
+
+  // ── Basisdaten ─────────────────────────────────────────────────────────
+  function datenKarte(b) {
+    const zeile = (t, w) => w ? [h('dt', {}, t), h('dd', {}, w)] : [];
+    return h('div', { cls: 'card' }, h('h2', {}, 'Basisdaten'),
+      h('dl', { cls: 'daten' },
+        ...zeile('Telefon', b.telefon), ...zeile('E-Mail', b.email),
+        ...zeile('Stelle', STELLE[b.stelle]), ...zeile('Ausbildung', AUSBILDUNG[b.ausbildung]),
+        ...zeile('Über sich', b.ueber_dich), ...zeile('Stunden', b.stunden), ...zeile('Start', b.start),
+        ...zeile('Portfolio', b.portfolio), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
+        ...zeile('Löschung am', datum(b.loeschen_am))));
+  }
+
+  // ── Fragenkatalog ──────────────────────────────────────────────────────
+  async function zeigeKatalog() {
+    rahmen(h('p', {}, 'Lädt …'));
+    let k;
+    try { k = await rpc('matcher_katalog'); } catch (e) { return rahmen(fehlerKarte(e)); }
+    const karte = h('div', { cls: 'card' },
+      h('h2', {}, 'Auswertungslogik'),
+      h('ul', { cls: 'rules' },
+        h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
+        h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
+        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.')),
+      h('h3', {}, 'Entscheidung'),
+      h('ul', { cls: 'rules' },
+        h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (alle vier Felder grün): zum Gespräch einladen.'),
+        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (kein Feld rot, mindestens eines gelb): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt – mit schriftlicher Begründung. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
+        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (mindestens ein Feld rot): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
+      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
+      h('h3', {}, 'Die acht Situationen'),
+      h('p', { cls: 'muted' }, 'Bewerber:innen sehen die Antworten in zufälliger Reihenfolge und nie die Farben.'));
+    k.situationen.forEach((s, idx) => {
+      const box = h('div', { cls: 'kat-sit' },
+        h('div', { cls: 'kat-meta' }, `Situation ${idx + 1} · ${s.art}`),
+        h('div', { cls: 'kat-q' }, s.frage));
+      s.optionen.forEach(o => {
+        const tags = h('div', { cls: 'tags' });
+        Object.entries(o.bewertung).forEach(([f, c]) => tags.append(h('span', { cls: 'pill p-' + c }, `${k.felder[f].name.split(' ')[0]} · ${FARBTEXT[c]}`)));
+        const txt = h('div', {}, o.text);
+        if (o.begruendung) txt.append(h('span', { cls: 'why' }, o.begruendung));
+        if (o.prueffrage) txt.append(h('span', { cls: 'why' }, 'Prüffrage bei Gelb: ' + o.prueffrage));
+        box.append(h('div', { cls: 'kat-a' }, tags, txt));
+      });
+      karte.append(box);
+    });
+    rahmen(karte);
+  }
+
+  start();
+</script>
+</body>
+</html>
