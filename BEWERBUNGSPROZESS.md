@@ -75,11 +75,15 @@ Einen neuen Link oder einen zweiten Versuch gibt es nicht.
 
 ### Schritt 4 – Auswertung
 
-**Gesamt-Grün**
-Zum Gespräch einladen: der Chefin zur Terminvergabe vorlegen, dann
-Terminvorschläge an die Bewerberin bzw. den Bewerber schicken.
+Einordnung (seit 2026-10-21): ein Feld rot → Rot · zwei oder mehr Felder
+gelb → Gelb · sonst Grün (höchstens ein Feld gelb).
 
-**Gesamt-Gelb – Prüfzone, kein Durchwinken**
+**Gesamt-Grün** (kein Feld rot, höchstens eines gelb)
+Zum Gespräch einladen: der Chefin zur Terminvergabe vorlegen, dann
+Terminvorschläge an die Bewerberin bzw. den Bewerber schicken. Ist ein Feld
+gelb, wird es im Gespräch kurz angesprochen (Fragen stehen in der Übersicht).
+
+**Gesamt-Gelb – Prüfzone, kein Durchwinken** (mindestens zwei Felder gelb)
 - Kein automatisches Ja.
 - Der Chefin vorlegen mit den gelben Prüfpunkten und den passenden
   Gesprächsfragen aus der Prüfzone.
