@@ -1612,8 +1612,9 @@ function Woerni() {
             <h1 className="header-h1">{tageszeitBegruessung()}</h1>
             <p className="header-sub">{heuteStr()}</p>
           </div>
-          <div style={{display:'flex',gap:8}}>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
             <button className="btn-nav" onClick={() => window.location.href='index.html'}>← Start</button>
+            <button className="btn-nav" onClick={() => window.location.href='bewerbungen.html'}>Bewerbungen</button>
             <button className="btn-add-header" onClick={() => setNeueAufgabe(true)}>+ Aufgabe</button>
           </div>
         </div>

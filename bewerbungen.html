@@ -304,6 +304,7 @@
       h('div', { cls: 'links' },
         h('button', { cls: 'link', on: zeigeListe }, 'Übersicht'),
         h('button', { cls: 'link', on: zeigeKatalog }, 'Fragenkatalog'),
+        h('button', { cls: 'link', on: () => { location.href = 'schaltzentrale.html'; } }, '← Schaltzentrale'),
         h('button', { cls: 'link', on: abmelden }, 'Abmelden'))), ...kids);
     window.scrollTo(0, 0);
   }
