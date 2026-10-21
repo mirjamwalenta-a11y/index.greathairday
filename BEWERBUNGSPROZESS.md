@@ -13,13 +13,18 @@ angepasst werden.
 
 | # | Schritt | Wer | Ergebnis |
 |---|---|---|---|
-| 1 | **Kurzbewerbung** über das Formular auf der Karriere-Seite (ca. 2 Minuten) | Bewerber:in | automatische Eingangsbestätigung |
-| 2 | **Basis-Check** innerhalb von 2 Werktagen *(Vorschlag)* | Agent | passt → Schritt 3 · passt nicht → freundliche Absage, kein Matcher |
-| 3 | **Matcher-Einladung** mit persönlichem Link (gültig 7 Tage, nur einmal ausfüllbar) *(Vorschlag)* | Agent | Matcher ausgefüllt · ohne Antwort: eine Erinnerung nach 4 Tagen, danach Vorgang schließen |
-| 4 | **Auswertung** Grün / Gelb / Rot | System + Agent | Ergebnis mit Prüfpunkten an die Chefin |
-| 5 | **Entscheidung** | Chefin (Agent bereitet vor) | Grün → Gespräch · Gelb → Prüfzone · Rot → Absage |
-| 6 | **Persönliches Gespräch**, bei Gelb mit den Prüffragen aus der Prüfzone | Chefin | Gelb: alle Punkte geklärt → weiter, sonst Absage |
-| 7 | **Probearbeiten** und Zusage | Chefin + Team | Zusage oder Absage |
+| 1 | **Kurzbewerbung** über das Formular auf der Karriere-Seite (ca. 2 Minuten) | Bewerber:in | weiter direkt zum Matcher |
+| 2 | **Salon Matcher** gleich im Anschluss (ca. 5 Minuten, persönlich, einmal ausfüllbar, 7 Tage gültig) | Bewerber:in | Abschlussseite: „Wir melden uns in jedem Fall“ · bei Abbruch auf demselben Gerät fortsetzbar, sonst eine Erinnerung nach 4 Tagen |
+| 3 | **Auswertung** Grün / Gelb / Rot | System | Ergebnis mit Prüfpunkten an die Chefin |
+| 4 | **Basis-Check und Entscheidung** in einem Schritt | Chefin | Eckdaten passen nicht → Absage · sonst Grün → Gespräch · Gelb → Prüfzone · Rot → Absage |
+| 5 | **Persönliches Gespräch**, bei Gelb mit den Prüffragen aus der Prüfzone | Chefin | Gelb: alle Punkte geklärt → weiter, sonst Absage |
+| 6 | **Probearbeiten** und Zusage | Chefin + Team | Zusage oder Absage |
+
+Seit 2026-10-21 startet der Matcher direkt nach der Kurzbewerbung
+(Entscheidung der Chefin: der Weg über Basis-Check und Link war zu
+umständlich). Die Abschnitte 3 und 5 unten beschreiben noch den älteren
+Ablauf mit Basis-Check vor dem Matcher; er gilt nur für Bewerbungen, die
+davor eingegangen sind.
 
 Bewerber:innen erfahren nie ihre Farbe oder einzelne Bewertungen.
 

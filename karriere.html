@@ -10,8 +10,9 @@
   <!--
     Öffentliche Karriere-Seite mit Kurzbewerbung (Schritt 1 in BEWERBUNGSPROZESS.md).
     Schreibt nur über die Funktion bewerbung_einreichen() – kann nichts lesen.
-    Der Salon Matcher ist hier bewusst NICHT verlinkt: den gibt es nur über
-    den persönlichen Link nach dem Basis-Check.
+    Nach dem Abschicken startet der Salon Matcher direkt im Anschluss über
+    ein persönliches, einmal nutzbares Token (bewerber.html?t=…). Einen
+    offenen Link zum Matcher gibt es nicht.
   -->
   <style>
     :root {
@@ -91,8 +92,8 @@
 
     <ol class="schritte">
       <li><b>Interesse melden</b><span>Erzähl uns in ein paar Zeilen, wer du bist, was du suchst und ab wann du starten könntest. Einen Lebenslauf brauchen wir noch nicht.</span></li>
-      <li><b>Wir melden uns</b><span>In wenigen Tagen hörst du von uns, ob es von den Eckdaten her passt.</span></li>
-      <li><b>Salon Matcher</b><span>Dann schicken wir dir einen Link mit acht Situationen aus unserem Salonalltag. Nimm dir fünf ruhige Minuten dafür. Danach melden wir uns in jedem Fall bei dir.</span></li>
+      <li><b>Salon Matcher</b><span>Gleich im Anschluss: acht kurze Situationen aus unserem Salonalltag. Nimm dir fünf ruhige Minuten dafür.</span></li>
+      <li><b>Wir melden uns</b><span>In den nächsten Tagen melden wir uns in jedem Fall bei dir.</span></li>
       <li><b>Kennenlernen</b><span>Wir treffen uns im Salon und reden in Ruhe – über dich, über uns und darüber, wie wir arbeiten.</span></li>
       <li><b>Probetag</b><span>Wenn es sich für beide gut anfühlt, arbeitest du einen Tag mit uns. Danach entscheiden wir gemeinsam.</span></li>
     </ol>
@@ -166,14 +167,15 @@
       </label>
 
       <div class="msg hidden" id="msg" role="alert"></div>
-      <button class="btn" type="submit" id="senden">Abschicken</button>
+      <button class="btn" type="submit" id="senden">Weiter zum Salon Matcher</button>
     </form>
   </div>
 
   <div class="card danke hidden" id="danke">
     <div class="brand">Danke</div>
-    <h1>Deine Nachricht ist angekommen</h1>
-    <p>In wenigen Tagen hörst du von uns, ob es von den Eckdaten her passt.</p>
+    <h1>Deine Angaben sind angekommen</h1>
+    <p>Jetzt noch der letzte Schritt: der Salon Matcher. Acht kurze Situationen aus unserem Salonalltag, etwa fünf Minuten.</p>
+    <a class="btn" id="matcher-start" href="bewerber.html" style="text-align:center;text-decoration:none">Salon Matcher starten</a>
   </div>
 
 </div>
@@ -190,11 +192,33 @@
     $('msg').classList.remove('hidden');
   }
 
-  function danke() {
+  // Token merken, damit man nach einem Abbruch auf demselben Gerät weitermachen kann
+  const MERK = 'ghd-matcher-token';
+  function danke(token) {
+    if (token) {
+      try { localStorage.setItem(MERK, token); } catch (e) { /* egal */ }
+      $('matcher-start').href = 'bewerber.html?t=' + encodeURIComponent(token);
+    }
     $('formular').classList.add('hidden');
     $('danke').classList.remove('hidden');
     $('danke').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+  // Schon abgeschickt, Matcher aber noch offen? Dann gleich dorthin anbieten.
+  (async () => {
+    let t = null;
+    try { t = localStorage.getItem(MERK); } catch (e) { /* egal */ }
+    if (!t) return;
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/rpc/matcher_laden`, {
+        method: 'POST',
+        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_token: t })
+      });
+      const d = await r.json();
+      if (d && d.status === 'ok') danke(t);
+      else localStorage.removeItem(MERK);
+    } catch (e) { /* dann eben das Formular */ }
+  })();
 
   $('form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -206,7 +230,7 @@
     if (!wert('telefon') && !wert('email')) return fehler('Bitte gib eine Telefonnummer oder eine E-Mail-Adresse an.');
     if (wert('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(wert('email'))) return fehler('Bitte prüfe die E-Mail-Adresse.');
     if (!$('einwilligung').checked) return fehler('Bitte bestätige die Einwilligung zum Datenschutz.');
-    if (wert('website')) return danke(); // Bot
+    if (wert('website')) return; // Bot
 
     $('senden').disabled = true;
     $('senden').textContent = 'Wird gesendet …';
@@ -222,11 +246,13 @@
         })
       });
       if (!r.ok) throw new Error(await r.text());
-      danke();
+      const d = await r.json();
+      danke(d.token);
+      location.href = 'bewerber.html?t=' + encodeURIComponent(d.token);
     } catch (err) {
       fehler('Das hat leider nicht geklappt. Bitte versuch es gleich noch einmal.');
       $('senden').disabled = false;
-      $('senden').textContent = 'Abschicken';
+      $('senden').textContent = 'Weiter zum Salon Matcher';
     }
   });
 </script>

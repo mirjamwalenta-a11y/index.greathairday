@@ -217,7 +217,7 @@
   const GRUPPEN = [
     ['neu',           'Basis-Check'],
     ['basis_ok',      'Matcher-Link verschicken'],
-    ['matcher_offen', 'Matcher offen'],
+    ['matcher_offen', 'Matcher noch nicht fertig'],
     ['ausgewertet',   'Entscheidung nach dem Matcher'],
     ['gespraech',     'Gespräch'],
     ['probearbeiten', 'Probearbeiten'],
@@ -347,10 +347,10 @@
   // Einstieg: Link zur Kurzbewerbung an Interessierte geben (Schritt 1)
   function neueBewerbungKarte() {
     const url = new URL('karriere.html', location.href).href.split('#')[0];
-    const text = `Hallo,\n\nschön, dass du dich für A Great Hair Day interessierst. Hier kannst du dich in ein paar Minuten bei uns melden:\n\n${url}` + GRUSS;
+    const text = `Hallo,\n\nschön, dass du dich für A Great Hair Day interessierst. Hier kannst du dich bei uns melden – das dauert insgesamt etwa zehn Minuten:\n\n${url}` + GRUSS;
     return h('div', { cls: 'card' },
       h('h2', {}, 'Neue Bewerbung'),
-      h('p', {}, 'Jemand interessiert sich? Schick zuerst diesen Link zur Kurzbewerbung. Danach erscheint die Bewerbung hier unter „Basis-Check“.'),
+      h('p', {}, 'Jemand interessiert sich? Schick diesen Link. Die Person füllt die Kurzbewerbung aus und macht gleich danach den Salon Matcher. Danach erscheint sie hier unter „Entscheidung nach dem Matcher“.'),
       h('div', { cls: 'muted', style: 'margin:8px 0 2px;word-break:break-all' }, url),
       h('div', {},
         h('button', { cls: 'btn ghost', on: () => window.open(url, '_blank', 'noopener') }, 'Karriere-Seite öffnen'),
@@ -411,7 +411,7 @@
     const v = vorname(b.name);
     const karte = h('div', { cls: 'card' }, h('h2', {}, 'Nächster Schritt'));
     const add = (...els) => karte.append(...els);
-    const linkUrl = token => new URL('bewerber.html', location.href).href.split('#')[0] + '#t=' + token;
+    const linkUrl = token => new URL('bewerber.html', location.href).href.split('#')[0].split('?')[0] + '?t=' + token;
 
     if (b.frueher && b.frueher.length && ['neu', 'basis_ok'].includes(b.status)) {
       const f = b.frueher[0];
@@ -451,7 +451,7 @@
         break;
       case 'matcher_offen': {
         const abgelaufen = new Date(b.matcher_gueltig_bis) < new Date();
-        add(h('p', {}, `Verschickt am ${datum(b.matcher_verschickt_am)}, gültig bis ${datum(b.matcher_gueltig_bis)}.` +
+        add(h('p', {}, `Offen seit ${datum(b.matcher_verschickt_am)}, gültig bis ${datum(b.matcher_gueltig_bis)}.` +
                        (b.matcher_erinnert_am ? ` Erinnert am ${datum(b.matcher_erinnert_am)}.` : '')));
         if (!abgelaufen) {
           add(h('p', { cls: 'muted', style: 'margin-top:6px' }, 'Nach 4 Tagen ohne Antwort: eine Erinnerung. Sie erzeugt einen neuen Link (der alte hört auf zu funktionieren), die Gültigkeit verlängert sich nicht.'),
@@ -469,7 +469,8 @@
       }
       case 'ausgewertet': {
         const g = b.matcher_gesamt;
-        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])));
+        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])),
+            h('p', { cls: 'muted', style: 'margin-top:8px' }, 'Eckdaten (Stelle, Stunden, Start) stehen unten bei den Basisdaten. Passen sie nicht: Absage.'));
         if (g !== 'r') add(gespraechsfragen(b, g === 'y' ? 'Im Gespräch gezielt prüfen' : 'Im Gespräch kurz ansprechen'),
                            h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
         if (g === 'r') add(h('p', { cls: 'regel' }, 'Keine Einladung zum Gespräch.'));
