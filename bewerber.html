@@ -3,16 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Great Hair Day · Passt du zu uns?</title>
+  <title>Salon Matcher</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!--
-    PROTOTYP – speichert und versendet nichts.
-    Öffentliche Seite für Bewerber/innen (kein Login). Beim späteren Anbinden
-    an Supabase gelten die Regeln aus CLAUDE.md: eigene Tabelle mit RLS,
-    Abschicken nur über eine SECURITY DEFINER-Funktion (anon darf nichts
-    lesen), Auswertung nur für die Chefin in der Schaltzentrale.
+    SALON MATCHER – PROTOTYP, speichert und versendet nichts.
+
+    Kultureller Passungsfilter mit 8 Alltagssituationen à 4 Antworten.
+    Jede Antwort ist intern einem oder zwei Pflichtfeldern zugeordnet
+    (grün / gelb / rot). Keine Durchschnittsbildung: ein rotes Signal in
+    einem Feld macht das Feld rot, ein rotes Feld macht das Gesamtergebnis rot.
+    Bewerber:innen sehen ihre Bewertung nie – alle bekommen dieselbe
+    Abschlussseite, damit sich der Test nicht durch Wiederholen „lernen“ lässt.
+
+    Beim späteren Anbinden an Supabase gelten die Regeln aus CLAUDE.md:
+    eigene Tabelle mit RLS + explizite GRANTs, Abschicken nur über eine
+    SECURITY DEFINER-Funktion (anon darf nichts lesen), Bewertung serverseitig
+    berechnen, interne Sicht nur für die Chefin in der Schaltzentrale.
+    Die Farbzuordnung darf dann NICHT mehr im öffentlichen Quelltext stehen.
   -->
   <style>
     :root {
@@ -20,14 +29,29 @@
       --card:        #FFFFFF;
       --border:      #E4DBC5;
       --text:        #211D17;
-      --text-soft:   #7C7565;
+      --text-soft:   #6F6858;
       --accent:      #896C32;
       --accent-dark: #6E5527;
       --accent-tint: #EEE6CD;
-      --ok:          #4C7A5B;
-      --mid:         #A67A22;
-      --low:         #B23A2E;
+      --g:           #3F7A52;
+      --g-tint:      #DDEBDF;
+      --y:           #A67A22;
+      --y-tint:      #F3E6C4;
+      --r:           #B23A2E;
+      --r-tint:      #F5DAD5;
       --radius:      14px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:#1B1813; --card:#25211A; --border:#3B3428; --text:#F1EADB; --text-soft:#B5AC99;
+        --accent:#C9A55C; --accent-dark:#E0C07E; --accent-tint:#3A3020;
+        --g:#7DBB8F; --g-tint:#23362A; --y:#D9AE55; --y-tint:#3A3020; --r:#E07A6E; --r-tint:#3D2420;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg:#1B1813; --card:#25211A; --border:#3B3428; --text:#F1EADB; --text-soft:#B5AC99;
+      --accent:#C9A55C; --accent-dark:#E0C07E; --accent-tint:#3A3020;
+      --g:#7DBB8F; --g-tint:#23362A; --y:#D9AE55; --y-tint:#3A3020; --r:#E07A6E; --r-tint:#3D2420;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
     body {
@@ -36,7 +60,7 @@
       min-height:100vh; padding:16px;
       -webkit-font-smoothing:antialiased;
     }
-    .wrap { max-width:560px; margin:0 auto; }
+    .wrap { max-width:600px; margin:0 auto; }
     .proto {
       background:var(--accent-tint); color:var(--accent-dark);
       font-size:12px; font-weight:600; text-align:center;
@@ -47,25 +71,25 @@
       border-radius:var(--radius); padding:28px 22px;
       box-shadow:0 8px 32px rgba(137,108,50,0.08);
     }
-    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; text-align:center; }
-    h1 { font-size:24px; font-weight:700; text-align:center; margin:10px 0 8px; line-height:1.3; }
-    h2 { font-size:19px; font-weight:700; line-height:1.4; margin-bottom:6px; }
-    h3 { font-size:15px; font-weight:700; margin:22px 0 10px; }
-    p  { font-size:14.5px; line-height:1.6; color:var(--text-soft); }
-    .center { text-align:center; }
+    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; }
+    h1 { font-size:23px; font-weight:700; margin:8px 0 14px; line-height:1.3; }
+    h2 { font-size:18px; font-weight:600; line-height:1.5; }
+    h3 { font-size:15px; font-weight:700; margin:24px 0 8px; }
+    p  { font-size:14.5px; line-height:1.65; color:var(--text-soft); }
+    p + p { margin-top:10px; }
+    .muted { font-size:12.5px; color:var(--text-soft); }
 
-    .bar { height:6px; background:var(--accent-tint); border-radius:3px; overflow:hidden; margin-bottom:18px; }
-    .bar > div { height:100%; background:var(--accent); width:0; transition:width .3s; }
-    .step { font-size:11px; letter-spacing:.1em; color:var(--text-soft); text-transform:uppercase; margin-bottom:8px; }
+    .bar { height:5px; background:var(--accent-tint); border-radius:3px; overflow:hidden; margin-bottom:18px; }
+    .bar > div { height:100%; background:var(--accent); transition:width .3s; }
+    .step { font-size:11px; letter-spacing:.1em; color:var(--text-soft); text-transform:uppercase; margin-bottom:10px; }
 
-    .options { display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+    .options { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
     .opt {
       background:var(--bg); border:1.5px solid var(--border); border-radius:10px;
-      padding:14px 16px; text-align:left; font:inherit; font-size:14.5px; color:var(--text);
-      cursor:pointer; transition:border-color .15s, background .15s;
+      padding:14px 16px; text-align:left; font:inherit; font-size:14.5px; line-height:1.5; color:var(--text);
+      cursor:pointer; transition:border-color .15s;
     }
-    .opt:hover { border-color:var(--accent); }
-    .opt.sel   { border-color:var(--accent); background:var(--accent-tint); font-weight:600; }
+    .opt:hover, .opt:focus-visible { border-color:var(--accent); outline:none; }
 
     .btn {
       display:block; width:100%; margin-top:20px; padding:14px;
@@ -73,30 +97,52 @@
       font:inherit; font-size:15px; font-weight:600; cursor:pointer;
     }
     .btn:hover { background:var(--accent-dark); }
-    .btn:disabled { opacity:.45; cursor:default; }
     .btn.ghost { background:none; color:var(--accent-dark); border:1.5px solid var(--border); }
-    .back { background:none; border:none; color:var(--text-soft); font:inherit; font-size:13px; cursor:pointer; margin-top:14px; }
+    .link { background:none; border:none; color:var(--text-soft); font:inherit; font-size:13px; cursor:pointer; margin-top:16px; text-decoration:underline; }
 
     label.f { display:block; font-size:12px; font-weight:600; color:var(--text-soft); margin:14px 0 6px; }
-    input[type=text], input[type=tel], textarea {
+    input[type=text], input[type=tel], select {
       width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px;
       font:inherit; font-size:15px; background:var(--bg); color:var(--text);
     }
-    textarea { min-height:90px; resize:vertical; }
     .consent { display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; line-height:1.5; color:var(--text-soft); }
     .consent input { margin-top:3px; width:18px; height:18px; accent-color:var(--accent); flex-shrink:0; }
-    .hint { font-size:12.5px; color:var(--text-soft); margin-top:8px; }
     .msg { margin-top:14px; padding:12px; border-radius:10px; background:var(--accent-tint); color:var(--accent-dark); font-size:13.5px; }
 
-    /* Chefin-Vorschau */
-    .rep-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14.5px; }
-    .dots { display:flex; gap:6px; }
-    .dot  { width:14px; height:14px; border-radius:50%; border:2px solid; display:inline-block; vertical-align:middle; }
-    .d-ok  { background:var(--ok); border-color:var(--ok); }
-    .d-mid { border-color:var(--mid); background:linear-gradient(90deg, var(--mid) 50%, transparent 50%); }
-    .d-low { border-color:var(--low); }
-    .rep-list { margin:6px 0 0 18px; font-size:14px; line-height:1.7; }
-    .legend { font-size:12px; color:var(--text-soft); margin-top:10px; }
+    /* interne Sicht */
+    .verdict { border-radius:12px; padding:16px; margin:14px 0 6px; }
+    .verdict b { display:block; font-size:17px; margin-bottom:4px; }
+    .verdict p { color:inherit; font-size:13.5px; }
+    .v-g { background:var(--g-tint); color:var(--g); }
+    .v-y { background:var(--y-tint); color:var(--y); }
+    .v-r { background:var(--r-tint); color:var(--r); }
+    .field { border:1.5px solid var(--border); border-radius:12px; padding:14px; margin-top:12px; }
+    .field-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .field-head span:first-child { font-weight:600; font-size:14.5px; }
+    .pill { font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+    .p-g { background:var(--g-tint); color:var(--g); }
+    .p-y { background:var(--y-tint); color:var(--y); }
+    .p-r { background:var(--r-tint); color:var(--r); }
+    .sig { margin-top:10px; padding-left:10px; border-left:3px solid; font-size:13px; line-height:1.55; }
+    .sig.r { border-color:var(--r); }
+    .sig.y { border-color:var(--y); }
+    .sig .sit { color:var(--text-soft); }
+    .sig .ans { color:var(--text); margin:2px 0; }
+    .sig .why { color:var(--text-soft); font-style:italic; }
+    .ask { margin-top:10px; font-size:13px; color:var(--text); }
+    .ask b { color:var(--text-soft); font-weight:600; }
+
+    /* Fragenkatalog */
+    .kat-sit { margin-top:22px; padding-top:18px; border-top:1px solid var(--border); }
+    .kat-sit:first-of-type { border-top:none; padding-top:0; }
+    .kat-meta { font-size:11.5px; color:var(--text-soft); letter-spacing:.05em; text-transform:uppercase; margin-bottom:6px; }
+    .kat-q { font-size:14.5px; font-weight:600; line-height:1.5; margin-bottom:10px; }
+    .kat-a { display:flex; gap:10px; align-items:flex-start; font-size:13.5px; line-height:1.5; margin-top:8px; }
+    .kat-a .tags { display:flex; flex-direction:column; gap:3px; flex-shrink:0; width:86px; }
+    .kat-a .pill { font-size:10.5px; padding:2px 7px; text-align:center; }
+    .kat-a .why { display:block; font-size:12.5px; color:var(--text-soft); font-style:italic; margin-top:2px; }
+    .rules { font-size:13.5px; line-height:1.65; margin:8px 0 0 18px; }
+    .rules li + li { margin-top:6px; }
     .hidden { display:none; }
   </style>
 </head>
@@ -107,242 +153,273 @@
 </div>
 
 <script>
-  // Bewertung je Antwort: 2 = passt stark, 1 = teilweise, 0 = eher nicht.
-  // Die Bewertung sieht nur die Chefin, nie der Bewerber.
-  const WERTE = {
-    team:  { name: 'Teamgeist',      icon: '🤝', frage: 'Wie stellst du dir die Zusammenarbeit im Team vor, wenn es stressig wird?' },
-    zeit:  { name: 'Pünktlichkeit',  icon: '⏰', frage: 'Was hilft dir, morgens pünktlich und startklar zu sein?' },
-    freund:{ name: 'Freundlichkeit', icon: '😊', frage: 'Erzähl von einer schwierigen Kundin – wie bist du damit umgegangen?' },
-    wert:  { name: 'Wertschätzung',  icon: '💛', frage: 'Wie gibst und bekommst du am liebsten Feedback?' }
+  // ── Pflichtfelder ──────────────────────────────────────────────────────
+  const FELDER = {
+    Z: { name: 'Zuwendung statt Selbstdarstellung',
+         gespraech: 'Erzähl von einem Kundengespräch, bei dem du erst spät verstanden hast, was die Person eigentlich wollte. Woran hast du es gemerkt?' },
+    O: { name: 'Offenheit statt vorschneller Ablehnung',
+         gespraech: 'Was hast du zuletzt bei der Arbeit anders gemacht als gewohnt – und wie lange hast du es ausprobiert, bevor du dir eine Meinung gebildet hast?' },
+    R: { name: 'Respekt im Alltag',
+         gespraech: 'Wann hast du dich zuletzt bei jemandem im Team oder bei einer Kundin entschuldigt – und wofür?' },
+    W: { name: 'Wertschätzung für Menschen',
+         gespraech: 'Wie gehst du mit Kundinnen oder Kunden um, mit denen die Verständigung schwierig ist? Wie reagierst du, wenn im Team über jemanden gelästert wird?' }
   };
 
-  const FRAGEN = [
-    { wert: 'team', q: 'Deine Kollegin hat zwei Kundinnen gleichzeitig – und du hättest jetzt 10 Minuten Pause.', a: [
-      ['Ich frage, ob ich etwas übernehmen kann, und hole die Pause später nach.', 2],
-      ['Ich sage der Chefin Bescheid, dass es gerade eng wird.', 1],
-      ['Ich mache Pause – erholt arbeite ich danach besser.', 0] ]},
-    { wert: 'team', q: 'Deine Kundinnen sind fertig, die anderen arbeiten noch. Eigentlich hättest du jetzt Feierabend.', a: [
-      ['Ich fange schon mal mit dem allgemeinen Aufräumen an.', 2],
-      ['Ich frage, ob jemand noch Hilfe braucht.', 2],
-      ['Ich räume meinen Platz auf und gehe – ausgemacht ist ausgemacht.', 0] ]},
-    { wert: 'zeit', q: 'Du merkst in der Früh: Ich komme 10 Minuten zu spät.', a: [
-      ['Ich rufe sofort im Salon an, damit man die erste Kundin einplanen kann.', 2],
-      ['Ich schreibe kurz in die Team-Gruppe.', 1],
-      ['Ich beeile mich – 10 Minuten fallen kaum auf.', 0] ]},
-    { wert: 'zeit', q: 'Wann bist du an einem normalen Arbeitstag im Salon?', a: [
-      ['10–15 Minuten vorher, damit ich startklar bin.', 2],
-      ['Genau zu Dienstbeginn.', 1],
-      ['Kommt drauf an, ob gleich ein Termin ansteht.', 0] ]},
-    { wert: 'freund', q: 'Eine Kundin ist schlecht gelaunt und unfreundlich zu dir.', a: [
-      ['Ich bleibe freundlich und versuche herauszufinden, was los ist.', 2],
-      ['Ich arbeite professionell, rede aber nur das Nötigste.', 1],
-      ['Ich frage, ob eine Kollegin übernehmen kann.', 0] ]},
-    { wert: 'freund', q: 'Jemand kommt ohne Termin herein, alle sind besetzt – du schneidest gerade.', a: [
-      ['Ich begrüße ihn kurz und sage, dass sich gleich jemand kümmert.', 2],
-      ['Ich nicke ihm zu und arbeite weiter, bis jemand frei ist.', 1],
-      ['Ich arbeite weiter – um so etwas kümmert sich die Rezeption.', 0] ]},
-    { wert: 'wert', nur: 'geselle', q: 'Ein Lehrling macht vor der Kundin beim Föhnen einen Fehler.', a: [
-      ['Ich zeige es ruhig und unauffällig und erkläre es später in Ruhe.', 2],
-      ['Ich übernehme selbst, damit die Kundin zufrieden ist.', 1],
-      ['Ich sage es direkt – so lernt er am schnellsten.', 0] ]},
-    { wert: 'wert', nur: 'lehrling', q: 'Eine Gesellin korrigiert dich vor der Kundin.', a: [
-      ['Ich nehme es an und frage später, wie es besser geht.', 2],
-      ['Ich sage ihr danach in Ruhe, dass ich das vor Kunden unangenehm fand.', 2],
-      ['Es ist mir peinlich – ich sage lieber nichts.', 1] ]},
-    { wert: 'wert', q: 'Wie zeigst du im Team, dass du jemanden schätzt?', a: [
-      ['Ich sage es direkt, wenn mir etwas gefällt.', 2],
-      ['Durch Taten – ich helfe mit, wo ich kann.', 2],
-      ['Ich bin eher zurückhaltend, aber dafür zuverlässig.', 1] ]}
+  // ── 8 Situationen ──────────────────────────────────────────────────────
+  // b: Bewertung je Pflichtfeld – g = grün, y = gelb, r = rot
+  // w: interne Begründung (nur in der Chefin-Sicht)
+  const SITUATIONEN = [
+    { art: 'Kundin', q: 'Eine neue Kundin sitzt zur Beratung bei dir. Sie erzählt ziemlich ausführlich, was sie bei ihrem letzten Friseur gestört hat. Du hast nach zwei Sätzen schon ein Bild im Kopf, was ihr stehen würde.', a: [
+      { t: 'Ich lasse sie ausreden und frage nach, was genau sie gestört hat, bevor ich etwas vorschlage.',
+        b: { Z: 'g' } },
+      { t: 'Ich sage ihr, dass ich schon eine klare Idee habe, und zeige ihr ein paar meiner Arbeiten auf dem Handy. Das gibt ihr Sicherheit.',
+        b: { Z: 'r' }, w: 'Unterbricht und rückt die eigene Arbeit in den Mittelpunkt, bevor die Kundin verstanden ist.' },
+      { t: 'Ich höre zu, sage aber wenig. Sie soll sich nicht gedrängt fühlen – wenn sie fertig ist, lege ich los.',
+        b: { Z: 'y' }, w: 'Hört zu, fragt aber nicht nach – Interesse bleibt passiv.' },
+      { t: 'Ich erkläre ihr kurz, wie ich normalerweise arbeite, damit sie gleich weiß, was sie bei mir erwartet.',
+        b: { Z: 'y' }, w: 'Freundlich, aber stark auf die eigene Rolle statt auf die Kundin gerichtet.' }
+    ]},
+    { art: 'Team', q: 'In der Teambesprechung erzählt eine neue Kollegin, wie in ihrem alten Salon die Farbberatung abgelaufen ist. Bei euch läuft das seit Jahren anders – und gut.', a: [
+      { t: 'Ich frage sie, was dort besser funktioniert hat und wo es gehakt hat.',
+        b: { Z: 'g', O: 'g' } },
+      { t: 'Ich warte, bis sie fertig ist, und erzähle dann von einem ähnlichen Fall bei mir, der gut ausgegangen ist.',
+        b: { Z: 'r', O: 'y' }, w: 'Nimmt das Thema der Kollegin als Anlass für die eigene Geschichte.' },
+      { t: 'Ich höre zu und denke mir meinen Teil. Wenn sie länger da ist, sieht sie ja, wie es bei uns läuft.',
+        b: { Z: 'y', O: 'r' }, w: 'Hat das Neue innerlich schon abgelehnt, ohne es zu prüfen.' },
+      { t: 'Ich finde es interessant, würde es aber erst ausprobieren, wenn die Chefin sagt, dass wir es ändern.',
+        b: { Z: 'g', O: 'y' }, w: 'Offen, braucht aber Absicherung von oben, bevor etwas ausprobiert wird.' }
+    ]},
+    { art: 'Neuer Ablauf', q: 'Ab nächstem Monat sollen Rezepturen und Kundennotizen nicht mehr auf die Karteikarte, sondern ins Tablet. Die ersten Tage dauert dadurch alles etwas länger.', a: [
+      { t: 'Ich arbeite damit, so gut es geht, und schreibe mir auf, was mich stört. Nach zwei, drei Wochen kann ich sagen, ob es etwas bringt.',
+        b: { O: 'g' } },
+      { t: 'Ich trage alles ins Tablet ein, schreibe aber zur Sicherheit weiter auf die Karte, bis ich sicher bin, dass nichts verloren geht.',
+        b: { O: 'y' }, w: 'Macht mit, braucht aber ein Sicherheitsnetz.' },
+      { t: 'Ich sage offen, dass ich das für unnötig halte. Die Karteikarte hat immer funktioniert und geht schneller.',
+        b: { O: 'r' }, w: 'Lehnt ab, bevor es ausprobiert ist – „hat immer funktioniert“.' },
+      { t: 'Ich mache es, wenn alle es machen. Einen Sinn sehe ich nicht, aber ich will auch nicht die sein, die bremst.',
+        b: { O: 'r' }, w: 'Fügt sich, hat das Urteil aber schon vor dem Ausprobieren gefällt.' }
+    ]},
+    { art: 'Alltag', q: 'Du stehst im Stau. Deine erste Kundin kommt um 8:30, du wirst etwa zehn Minuten zu spät sein. Es ist 8:15.', a: [
+      { t: 'Ich rufe im Salon an, damit jemand die Kundin empfängt, und entschuldige mich bei ihr, wenn ich da bin.',
+        b: { R: 'g' } },
+      { t: 'Ich schreibe kurz in die Team-Gruppe und lege gleich los, wenn ich da bin. Die zehn Minuten hole ich beim Föhnen wieder rein.',
+        b: { R: 'r' }, w: 'Behandelt die Verspätung als Zeitproblem, nicht als Frage des Respekts – keine Entschuldigung.' },
+      { t: 'Ich sage im Salon Bescheid. Ob ich mich bei der Kundin extra entschuldige, hängt davon ab, wie sie drauf ist.',
+        b: { R: 'y' }, w: 'Entschuldigung ist situationsabhängig statt selbstverständlich.' },
+      { t: 'Ich melde mich nicht extra – bis jemand die Nachricht liest, bin ich sowieso schon da. Vor Ort sage ich dann allen Bescheid.',
+        b: { R: 'y' }, w: 'Pragmatisch, lässt aber Team und Kundin im Unklaren.' }
+    ]},
+    { art: 'Team', q: 'Samstag, voller Salon. Eine Kollegin sagt dir im Vorbeigehen ziemlich scharf, du sollst deinen Platz endlich aufräumen – vor deiner Kundin.', a: [
+      { t: 'Ich räume auf und spreche sie später unter vier Augen darauf an, dass mich der Ton gestört hat.',
+        b: { R: 'g' } },
+      { t: 'Ich sage ihr gleich, dass ich das vor der Kundin nicht okay finde. Lieber sofort klar als später herumdrucksen.',
+        b: { R: 'y' }, w: 'Berechtigter Punkt, aber im Moment und vor der Kundin – Stress wird weitergegeben.' },
+      { t: 'Ich räume auf und sage nichts. Samstags ist jeder mal kurz angebunden, das nehme ich nicht persönlich.',
+        b: { R: 'y' }, w: 'Hält Schroffheit unter Stress für normal.' },
+      { t: 'Ich räume auf und erzähle es später den anderen, damit sie wissen, wie sie manchmal ist.',
+        b: { R: 'r', W: 'y' }, w: 'Klärt nicht direkt, sondern redet hinter dem Rücken über die Kollegin.' }
+    ]},
+    { art: 'Kunde', q: 'Ein Kunde spricht kaum Deutsch. Er zeigt dir ein Foto auf dem Handy, ihr versteht euch nur mit Mühe. Die Kollegin am Nebenplatz sagt halblaut: „Viel Spaß, das wird eh nix.“', a: [
+      { t: 'Ich nehme die Übersetzungs-App dazu und frage nach, bis ich sicher bin, was er will. Der Kollegin sage ich später, dass der Spruch unnötig war.',
+        b: { W: 'g', Z: 'g' } },
+      { t: 'Ich lache kurz mit – sie meint es ja nicht böse – und gebe mir dann besonders Mühe mit ihm.',
+        b: { W: 'r' }, w: 'Macht die Abwertung mit, während der Kunde danebensitzt.' },
+      { t: 'Ich schneide nach dem Foto, so gut es geht. Viel nachfragen bringt bei der Sprache wenig, und das Foto ist ja eindeutig.',
+        b: { W: 'y', Z: 'y' }, w: 'Bemüht sich wenig um Verständigung – Distanz statt Zuwendung.' },
+      { t: 'Ich frage, ob jemand im Team seine Sprache spricht und übernehmen kann. Dann ist er besser aufgehoben.',
+        b: { W: 'y' }, w: 'Gut gemeint, gibt den Kunden aber ab statt selbst Kontakt aufzubauen.' }
+    ]},
+    { art: 'Lernen', q: 'Die Chefin sieht dir beim Föhnen zu und sagt: „Sauber – aber nimm die größere Rundbürste und arbeite von unten, dann hält es länger.“ Du hast es anders gelernt, und bisher hat es immer gut ausgesehen.', a: [
+      { t: 'Ich mache es ab jetzt so, wie sie sagt. Sie ist die Chefin.',
+        b: { O: 'y' }, w: 'Folgt, ohne selbst zu prüfen – Offenheit oder nur Anpassung? Im Gespräch klären.' },
+      { t: 'Ich erkläre ihr, warum ich es so mache. Wenn sie danach trotzdem darauf besteht, probiere ich es.',
+        b: { O: 'y' }, w: 'Verteidigt erst das Gewohnte, probiert nur auf Druck.' },
+      { t: 'Ich nicke und mache weiter wie bisher. Solange das Ergebnis passt, gibt es keinen Grund, etwas zu ändern.',
+        b: { O: 'r', R: 'y' }, w: 'Lehnt die Korrektur ab, ohne sie auszuprobieren – und sagt es nicht offen.' },
+      { t: 'Ich frage, was ihr an meiner Art fehlt, und lasse es mir einmal zeigen.',
+        b: { O: 'g', Z: 'g' } }
+    ]},
+    { art: 'Kundin', q: 'Eine Stammkundin kommt mit selbst gefärbten Haaren, das Ergebnis ist richtig misslungen. Sie fragt halb lachend: „Sag ehrlich – schlimm, oder?“', a: [
+      { t: '„Ganz ehrlich: ja. Das hättest du dir sparen können – aber wir kriegen das wieder hin.“',
+        b: { W: 'r' }, w: 'Ehrlichkeit wird zur Spitze gegen die Kundin.' },
+      { t: '„Ach was, so schlimm ist es nicht.“ Sie soll sich nicht schlecht fühlen.',
+        b: { W: 'y' }, w: 'Rücksichtsvoll, aber ausweichend – Klarheit fehlt.' },
+      { t: '„Es ist ungleichmäßig geworden, ja. Das passiert mit Drogeriefarbe schnell. Schauen wir, was wir draus machen.“',
+        b: { W: 'g' } },
+      { t: 'Ich lache mit, sage „Ich hab schon Schlimmeres gesehen“ und erzähle ihr von einer Kundin letzte Woche.',
+        b: { W: 'y', Z: 'r' }, w: 'Lenkt mit einer eigenen Geschichte – über eine andere Kundin – vom Anliegen ab.' }
+    ]}
   ];
 
-  const WICHTIG = ['Gutes Teamklima', 'Schulungen & Weiterbildung', 'Planbare Arbeitszeiten',
-    'Kreative Freiheit', 'Verdienst & Prämien', 'Kurzer Arbeitsweg', 'Eine Chefin, die sich Zeit nimmt'];
-  const STAERKEN = ['Farbe', 'Schnitt', 'Herren', 'Hochsteck', 'Beratung'];
+  // ── Bewertung: keine Durchschnitte ─────────────────────────────────────
+  // Feld rot  = mindestens ein rotes Signal im Feld
+  // Feld gelb = kein rotes, aber mindestens ein gelbes Signal
+  // Feld grün = nur grüne Signale
+  // Gesamt    = schlechtestes Feld
+  const RANG = { g: 0, y: 1, r: 2 };
+  function auswerten(antworten) {
+    const felder = {};
+    for (const k of Object.keys(FELDER)) felder[k] = { farbe: 'g', signale: [] };
+    antworten.forEach(({ s, a }) => {
+      const opt = SITUATIONEN[s].a[a];
+      for (const [k, farbe] of Object.entries(opt.b)) {
+        felder[k].signale.push({ s, a, farbe });
+        if (RANG[farbe] > RANG[felder[k].farbe]) felder[k].farbe = farbe;
+      }
+    });
+    const gesamt = Object.values(felder).reduce((m, f) => RANG[f.farbe] > RANG[m] ? f.farbe : m, 'g');
+    return { felder, gesamt };
+  }
 
+  // ── Oberfläche ─────────────────────────────────────────────────────────
   const app = document.getElementById('app');
   let st;
 
-  function reset() {
-    st = { stufe: null, fragen: [], i: 0, antworten: [], wichtig: [], staerken: [], warum: '' };
-    render(startView);
-  }
-
+  function reset() { st = { reihenfolge: [], i: 0, antworten: [], kontakt: null }; render(introView); }
   function render(view) { app.innerHTML = ''; view(); window.scrollTo(0, 0); }
-
-  function el(tag, attrs = {}, ...kids) {
+  function h(tag, attrs = {}, ...kids) {
     const e = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) {
       if (k === 'on') e.addEventListener('click', v);
       else if (k === 'cls') e.className = v;
       else e.setAttribute(k, v);
     }
-    for (const k of kids) e.append(k);
-    app.append(e);
+    e.append(...kids);
     return e;
   }
-  function add(parent, tag, attrs, ...kids) { const e = el(tag, attrs, ...kids); parent.append(e); return e; }
+  const put = (...els) => app.append(...els);
+  const mischen = arr => arr.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 
-  function bar(anteil) {
-    const b = el('div', { cls: 'bar' });
-    add(b, 'div').style.width = Math.round(anteil * 100) + '%';
+  // 4. Einleitung
+  function introView() {
+    put(h('div', { cls: 'brand' }, 'A Great Hair Day · Salon Matcher'),
+        h('h1', {}, 'Bevor wir uns kennenlernen'),
+        h('p', {}, 'Wir sind ein kleines Team und arbeiten eng zusammen – miteinander und mit unseren Kundinnen und Kunden. Deshalb ist uns wichtig, wie jemand im Alltag handelt, nicht nur, was jemand kann.'),
+        h('p', {}, 'Du bekommst acht kurze Situationen, wie sie bei uns vorkommen. Zu jeder gibt es vier Möglichkeiten. Oft passt keine ganz genau – wähle die, die dem am nächsten kommt, was du tatsächlich tun würdest.'),
+        h('p', {}, 'Es geht nicht um Fachwissen. Du brauchst etwa fünf Minuten. Zurückspringen ist nicht möglich – die erste Wahl ist meistens die ehrlichste.'),
+        h('button', { cls: 'btn', on: () => {
+          st.reihenfolge = SITUATIONEN.map((s, idx) => ({ s: idx, opts: mischen([0, 1, 2, 3]) }));
+          render(situationView);
+        }}, 'Beginnen'),
+        h('button', { cls: 'link', on: () => render(katalogView) }, 'Prototyp: Fragenkatalog mit Bewertung ansehen'));
   }
 
-  // ── Start ──
-  function startView() {
-    el('div', { cls: 'brand' }, 'A Great Hair Day');
-    el('h1', {}, 'Passt du in unser Team? ✂️');
-    el('p', { cls: 'center' }, 'Ein paar Situationen aus dem Salonalltag – es gibt kein Richtig oder Falsch. Antworte so, wie du es wirklich machen würdest. Dauert ca. 4 Minuten.');
-    el('h3', {}, 'Wo stehst du gerade?');
-    const o = el('div', { cls: 'options' });
-    [['lehrling', 'Ich suche eine Lehrstelle'], ['geselle', 'Ich bin Geselle/Gesellin'], ['wieder', 'Ich steige wieder ein']]
-      .forEach(([k, t]) => add(o, 'button', { cls: 'opt', on: () => {
-        st.stufe = k;
-        const lehr = k === 'lehrling';
-        st.fragen = FRAGEN.filter(f => !f.nur || f.nur === (lehr ? 'lehrling' : 'geselle'));
-        render(frageView);
-      }}, t));
-  }
-
-  // ── Situationsfragen ──
-  function frageView() {
-    const f = st.fragen[st.i];
-    bar(st.i / (st.fragen.length + 2));
-    el('div', { cls: 'step' }, `Situation ${st.i + 1} von ${st.fragen.length}`);
-    el('h2', {}, f.q);
-    const o = el('div', { cls: 'options' });
-    // Reihenfolge mischen, damit die „beste“ Antwort nicht immer oben steht
-    const gemischt = f.a.map((a, idx) => [a, idx]).sort(() => Math.random() - .5);
-    gemischt.forEach(([[text, punkte]]) => add(o, 'button', { cls: 'opt', on: () => {
-      st.antworten[st.i] = { wert: f.wert, frage: f.q, text, punkte };
+  // 1. Situationen
+  function situationView() {
+    const { s, opts } = st.reihenfolge[st.i];
+    const sit = SITUATIONEN[s];
+    const fill = h('div'); fill.style.width = (st.i / SITUATIONEN.length * 100) + '%';
+    const o = h('div', { cls: 'options' });
+    opts.forEach(a => o.append(h('button', { cls: 'opt', on: () => {
+      st.antworten.push({ s, a });
       st.i++;
-      render(st.i < st.fragen.length ? frageView : wichtigView);
-    }}, text));
-    el('button', { cls: 'back', on: () => {
-      if (st.i === 0) render(startView); else { st.i--; render(frageView); }
-    }}, '← zurück');
+      render(st.i < SITUATIONEN.length ? situationView : abschlussView);
+    }}, sit.a[a].t)));
+    put(h('div', { cls: 'bar' }, fill),
+        h('div', { cls: 'step' }, `Situation ${st.i + 1} von ${SITUATIONEN.length}`),
+        h('h2', {}, sit.q), o);
   }
 
-  // ── Was ist dir wichtig? ──
-  function wichtigView() {
-    bar((st.fragen.length) / (st.fragen.length + 2));
-    el('div', { cls: 'step' }, 'Jetzt bist du dran');
-    el('h2', {}, 'Was ist dir bei einem Arbeitgeber am wichtigsten?');
-    el('p', {}, 'Wähle genau 3.');
-    const o = el('div', { cls: 'options' });
-    const weiter = () => btn.disabled = st.wichtig.length !== 3;
-    WICHTIG.forEach(w => {
-      const b = add(o, 'button', { cls: 'opt' + (st.wichtig.includes(w) ? ' sel' : ''), on: () => {
-        if (st.wichtig.includes(w)) st.wichtig = st.wichtig.filter(x => x !== w);
-        else if (st.wichtig.length < 3) st.wichtig.push(w);
-        b.classList.toggle('sel', st.wichtig.includes(w));
-        weiter();
-      }}, w);
-    });
-    const btn = el('button', { cls: 'btn', on: () => render(zusatzView) }, 'Weiter');
-    weiter();
-    el('button', { cls: 'back', on: () => { st.i = st.fragen.length - 1; render(frageView); } }, '← zurück');
+  // 5. Abschluss für Kandidat:innen – für alle gleich, ohne Bewertung
+  function abschlussView() {
+    const fill = h('div'); fill.style.width = '100%';
+    const name = h('input', { type: 'text', id: 'name', autocomplete: 'name', maxlength: '80' });
+    const tel  = h('input', { type: 'tel', id: 'tel', autocomplete: 'tel', maxlength: '30' });
+    const stelle = h('select', { id: 'stelle' },
+      h('option', { value: '' }, 'Bitte wählen'), h('option', {}, 'Lehrstelle'), h('option', {}, 'Gesell:in'), h('option', {}, 'Wiedereinstieg'));
+    const insta = h('input', { type: 'text', id: 'insta', maxlength: '120' });
+    const ok = h('input', { type: 'checkbox' });
+    const msg = h('div', { cls: 'msg hidden' });
+    put(h('div', { cls: 'bar' }, fill),
+        h('div', { cls: 'brand' }, 'Danke für deine Zeit'),
+        h('h1', {}, 'Deine Antworten sind vollständig'),
+        h('p', {}, 'Wir sehen uns jede Rückmeldung persönlich an – es entscheidet kein Programm. Wenn wir den Eindruck haben, dass es für beide Seiten passen kann, melden wir uns für ein Kennenlernen im Salon.'),
+        h('p', {}, 'Damit wir dich erreichen können, brauchen wir noch ein paar Angaben.'),
+        h('label', { cls: 'f', for: 'name' }, 'Name *'), name,
+        h('label', { cls: 'f', for: 'tel' }, 'Telefonnummer *'), tel,
+        h('label', { cls: 'f', for: 'stelle' }, 'Du interessierst dich für *'), stelle,
+        h('label', { cls: 'f', for: 'insta' }, 'Instagram oder Portfolio (freiwillig)'), insta,
+        h('label', { cls: 'consent' }, ok, h('span', {}, 'Ich bin einverstanden, dass A Great Hair Day meine Angaben und Antworten zur Bearbeitung meiner Bewerbung speichert. Die Daten werden spätestens nach sechs Monaten gelöscht. Ich kann meine Einwilligung jederzeit widerrufen. *')),
+        msg,
+        h('button', { cls: 'btn', on: () => {
+          msg.classList.remove('hidden');
+          if (!name.value.trim() || !tel.value.trim() || !stelle.value) { msg.textContent = 'Bitte fülle Name, Telefonnummer und Stelle aus.'; return; }
+          if (!ok.checked) { msg.textContent = 'Bitte bestätige die Einwilligung zum Datenschutz.'; return; }
+          st.kontakt = { name: name.value.trim(), tel: tel.value.trim(), stelle: stelle.value, insta: insta.value.trim() };
+          msg.textContent = 'Prototyp: Hier würde die Bewerbung abgeschickt. Es wurde nichts gespeichert oder versendet.';
+        }}, 'Abschicken'),
+        h('button', { cls: 'btn ghost', on: () => render(internView) }, 'Prototyp: Interne Sicht der Chefin'),
+        h('button', { cls: 'link', on: reset }, 'Neu starten'));
   }
 
-  // ── Zusatzfrage je nach Stufe ──
-  function zusatzView() {
-    bar((st.fragen.length + 1) / (st.fragen.length + 2));
-    if (st.stufe === 'lehrling') {
-      el('h2', {}, 'Warum willst du Friseur/in werden?');
-      el('p', {}, 'Freiwillig – ein, zwei Sätze reichen.');
-      const t = el('textarea', { maxlength: '500' });
-      t.value = st.warum;
-      t.addEventListener('input', () => st.warum = t.value);
-    } else {
-      el('h2', {}, 'Wo liegen deine Stärken?');
-      el('p', {}, 'Mehrfachauswahl möglich.');
-      const o = el('div', { cls: 'options' });
-      STAERKEN.forEach(s => {
-        const b = add(o, 'button', { cls: 'opt' + (st.staerken.includes(s) ? ' sel' : ''), on: () => {
-          st.staerken = st.staerken.includes(s) ? st.staerken.filter(x => x !== s) : [...st.staerken, s];
-          b.classList.toggle('sel', st.staerken.includes(s));
-        }}, s);
+  // 6. Interne Sicht
+  const FARBTEXT = { g: 'Grün', y: 'Gelb', r: 'Rot' };
+  const GESAMT = {
+    g: ['Gesamt: Grün – klare Passung', 'In keinem Pflichtfeld ein rotes oder gelbes Signal. Kennenlernen einladen.'],
+    y: ['Gesamt: Gelb – im Gespräch prüfen', 'Keine rote Flagge, aber einzelne Felder sind unklar. Einladen und die markierten Felder gezielt ansprechen.'],
+    r: ['Gesamt: Rot – passt nicht', 'In mindestens einem Pflichtfeld ein deutliches rotes Signal. Gute Antworten in anderen Feldern gleichen das nicht aus.']
+  };
+  function internView() {
+    const { felder, gesamt } = auswerten(st.antworten);
+    const k = st.kontakt;
+    put(h('div', { cls: 'brand' }, 'Intern · nur für die Chefin'),
+        h('h1', {}, k ? `${k.name} · ${k.stelle}` : 'Bewerbung (ohne Kontaktdaten)'),
+        h('div', { cls: 'verdict v-' + gesamt }, h('b', {}, GESAMT[gesamt][0]), h('p', {}, GESAMT[gesamt][1])));
+
+    // Rote Felder zuerst
+    const reihen = Object.entries(felder).sort((x, y) => RANG[y[1].farbe] - RANG[x[1].farbe]);
+    for (const [key, f] of reihen) {
+      const box = h('div', { cls: 'field' },
+        h('div', { cls: 'field-head' }, h('span', {}, FELDER[key].name), h('span', { cls: 'pill p-' + f.farbe }, FARBTEXT[f.farbe])));
+      const auff = f.signale.filter(x => x.farbe !== 'g').sort((x, y) => RANG[y.farbe] - RANG[x.farbe]);
+      if (!auff.length) box.append(h('div', { cls: 'muted', style: 'margin-top:8px' }, `${f.signale.length} Signale, alle grün.`));
+      auff.forEach(x => {
+        const sit = SITUATIONEN[x.s], opt = sit.a[x.a];
+        box.append(h('div', { cls: 'sig ' + x.farbe },
+          h('div', { cls: 'sit' }, (x.farbe === 'r' ? 'Rote Flagge · ' : 'Gelb · ') + sit.q),
+          h('div', { cls: 'ans' }, 'Gewählt: ' + opt.t),
+          h('div', { cls: 'why' }, opt.w || '')));
       });
+      if (f.farbe !== 'g') box.append(h('div', { cls: 'ask' }, h('b', {}, 'Im Gespräch fragen: '), FELDER[key].gespraech));
+      put(box);
     }
-    el('button', { cls: 'btn', on: () => render(ergebnisView) }, 'Zum Ergebnis');
-    el('button', { cls: 'back', on: () => render(wichtigView) }, '← zurück');
+    put(h('button', { cls: 'btn ghost', on: () => render(abschlussView) }, 'Zurück'),
+        h('button', { cls: 'link', on: reset }, 'Neu starten'));
   }
 
-  // ── Ergebnis für Bewerber (positiv, ohne Zahl) + Express-Bewerbung ──
-  function ergebnisView() {
-    bar(1);
-    el('div', { cls: 'brand' }, 'Danke fürs Mitmachen');
-    el('h1', {}, 'Schön, dass du dabei warst! 🌿');
-    el('p', { cls: 'center' }, 'Uns sind Teamgeist, Pünktlichkeit, Freundlichkeit und Wertschätzung besonders wichtig. Deine Antworten helfen uns, im Kennenlerngespräch genau über das zu reden, was für dich und für uns zählt.');
-    el('p', { cls: 'center', style: 'margin-top:10px' }, 'Dir ist besonders wichtig: ' + st.wichtig.join(', ') + '.');
+  // 1–3 im Überblick: Katalog mit Zuordnung und Regeln (nur Prototyp)
+  function katalogView() {
+    put(h('div', { cls: 'brand' }, 'Intern · Fragenkatalog'),
+        h('h1', {}, 'Situationen und Bewertung'),
+        h('p', {}, 'Bewerber:innen sehen die Antworten in zufälliger Reihenfolge und nie die Farben.'));
+    const ul = h('ul', { cls: 'rules' },
+      h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
+      h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
+      h('li', {}, 'Gesamt-Rot: mindestens ein Pflichtfeld ist rot.'),
+      h('li', {}, 'Gesamt-Gelb: kein Feld rot, mindestens eines gelb.'),
+      h('li', {}, 'Gesamt-Grün: alle vier Felder grün.'),
+      h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote nicht aus.'));
+    put(h('h3', {}, 'Auswertungslogik'), ul);
 
-    el('h3', {}, 'Lass uns kennenlernen');
-    el('label', { cls: 'f', for: 'name' }, 'Name *');
-    const name = el('input', { type: 'text', id: 'name', autocomplete: 'name', maxlength: '80' });
-    el('label', { cls: 'f', for: 'tel' }, 'Telefonnummer *');
-    const tel = el('input', { type: 'tel', id: 'tel', autocomplete: 'tel', maxlength: '30' });
-    el('label', { cls: 'f', for: 'insta' }, 'Instagram / Portfolio (freiwillig)');
-    const insta = el('input', { type: 'text', id: 'insta', maxlength: '120' });
+    const zaehl = {};
+    SITUATIONEN.forEach(s => new Set(s.a.flatMap(a => Object.keys(a.b))).forEach(k => zaehl[k] = (zaehl[k] || 0) + 1));
+    put(h('p', { style: 'margin-top:10px' }, 'Situationen pro Feld: ' + Object.keys(FELDER).map(k => `${FELDER[k].name.split(' ')[0]} ${zaehl[k]}×`).join(' · ')));
 
-    const c = el('label', { cls: 'consent' });
-    const ok = add(c, 'input', { type: 'checkbox' });
-    add(c, 'span', {}, 'Ich bin einverstanden, dass A Great Hair Day meine Angaben und Antworten zur Bearbeitung meiner Bewerbung speichert. Die Daten werden spätestens nach 6 Monaten gelöscht. Ich kann die Einwilligung jederzeit widerrufen. *');
-
-    const msg = el('div', { cls: 'msg hidden' });
-    el('button', { cls: 'btn', on: () => {
-      msg.classList.remove('hidden');
-      if (!name.value.trim() || !tel.value.trim()) { msg.textContent = 'Bitte gib deinen Namen und deine Telefonnummer an.'; return; }
-      if (!ok.checked) { msg.textContent = 'Bitte bestätige die Einwilligung zum Datenschutz.'; return; }
-      st.kontakt = { name: name.value.trim(), tel: tel.value.trim(), insta: insta.value.trim() };
-      msg.textContent = 'Prototyp: Hier würde die Bewerbung jetzt abgeschickt. Es wurde nichts gespeichert oder versendet.';
-    }}, 'Bewerbung abschicken');
-
-    el('button', { cls: 'btn ghost', on: () => render(chefinView) }, 'Vorschau: Was die Chefin sieht');
-    el('button', { cls: 'back', on: reset }, '↺ Nochmal von vorne');
-  }
-
-  // ── Vorschau der Chefin-Auswertung (kommt später in die Schaltzentrale) ──
-  function chefinView() {
-    const stufen = { lehrling: 'Lehrling', geselle: 'Geselle/Gesellin', wieder: 'Wiedereinsteiger/in' };
-    el('div', { cls: 'brand' }, 'Vorschau · nur für die Chefin');
-    el('h2', {}, (st.kontakt ? st.kontakt.name : 'Bewerber/in') + ' · ' + stufen[st.stufe]);
-
-    const klasse = p => p === 2 ? 'd-ok' : p === 1 ? 'd-mid' : 'd-low';
-    const punkt = (parent, p) => add(parent, 'span', { cls: 'dot ' + klasse(p) });
-    for (const [k, w] of Object.entries(WERTE)) {
-      const row = el('div', { cls: 'rep-row' });
-      add(row, 'span', {}, w.icon + ' ' + w.name);
-      const d = add(row, 'span', { cls: 'dots' });
-      st.antworten.filter(a => a.wert === k).forEach(a => punkt(d, a.punkte));
-    }
-    const lg = el('div', { cls: 'legend' });
-    [[2, 'passt stark'], [1, 'teilweise'], [0, 'eher nicht']].forEach(([p, t]) => {
-      punkt(lg, p); lg.append(' ' + t + '   ');
-    });
-
-    el('h3', {}, 'Wichtig für den/die Bewerber/in');
-    el('p', {}, st.wichtig.join(' · '));
-    if (st.stufe === 'lehrling' && st.warum.trim()) {
-      el('h3', {}, 'Warum Friseur/in?');
-      el('p', {}, st.warum.trim());
-    }
-    if (st.stufe !== 'lehrling' && st.staerken.length) {
-      el('h3', {}, 'Stärken');
-      el('p', {}, st.staerken.join(' · '));
-    }
-
-    const offen = st.antworten.filter(a => a.punkte < 2);
-    el('h3', {}, 'Fragen fürs Gespräch');
-    if (!offen.length) el('p', {}, 'Keine Auffälligkeiten – einfach locker kennenlernen.');
-    else {
-      const ul = el('ul', { cls: 'rep-list' });
-      const schon = new Set();
-      offen.forEach(a => {
-        if (!schon.has(a.wert)) { schon.add(a.wert); add(ul, 'li', {}, WERTE[a.wert].frage); }
-        add(ul, 'li', { style: 'color:var(--text-soft);font-size:13px' }, `Situation: ${a.frage} → Antwort: ${a.text}`);
+    put(h('h3', {}, 'Die acht Situationen'));
+    SITUATIONEN.forEach((s, idx) => {
+      const box = h('div', { cls: 'kat-sit' },
+        h('div', { cls: 'kat-meta' }, `Situation ${idx + 1} · ${s.art}`),
+        h('div', { cls: 'kat-q' }, s.q));
+      s.a.forEach(a => {
+        const tags = h('div', { cls: 'tags' });
+        for (const [k, f] of Object.entries(a.b)) tags.append(h('span', { cls: 'pill p-' + f }, `${FELDER[k].name.split(' ')[0]} · ${FARBTEXT[f]}`));
+        const txt = h('div', {}, a.t);
+        if (a.w) txt.append(h('span', { cls: 'why' }, a.w));
+        box.append(h('div', { cls: 'kat-a' }, tags, txt));
       });
-    }
-
-    el('button', { cls: 'btn ghost', on: () => render(ergebnisView) }, '← zurück zum Ergebnis');
+      put(box);
+    });
+    put(h('button', { cls: 'btn ghost', on: reset }, 'Zurück zum Start'));
   }
 
   reset();
