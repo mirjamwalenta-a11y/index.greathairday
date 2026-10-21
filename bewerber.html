@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>A Great Hair Day · Salon Matcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!--
+    SALON MATCHER – Schritt 3 in BEWERBUNGSPROZESS.md.
+    Öffnet sich nur über den persönlichen Link aus der Bewerbungs-Übersicht
+    (bewerber.html#t=<Token>). Das Token steht nach dem # und wird deshalb nie
+    an den Webserver geschickt.
+
+    Situationen und Antworttexte kommen aus der Datenbank (matcher_laden).
+    Die Bewertung grün/gelb/rot steht NICHT in dieser Seite – sie passiert
+    beim Abschicken in der Datenbank (matcher_abschicken). Bewerber:innen
+    sehen ihr Ergebnis nie; alle bekommen dieselbe Abschlussseite.
+  -->
+  <style>
+    :root {
+      --bg:          #F8F4EA;
+      --card:        #FFFFFF;
+      --border:      #E4DBC5;
+      --text:        #211D17;
+      --text-soft:   #6F6858;
+      --accent:      #896C32;
+      --accent-dark: #6E5527;
+      --accent-tint: #EEE6CD;
+      --crit:        #B23A2E;
+      --radius:      14px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; padding:16px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:600px; margin:0 auto; }
+    .card {
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:var(--radius); padding:28px 22px;
+      box-shadow:0 8px 32px rgba(137,108,50,0.08);
+    }
+    .brand { font-size:11px; letter-spacing:.12em; color:var(--text-soft); text-transform:uppercase; }
+    h1 { font-size:23px; font-weight:700; margin:8px 0 14px; line-height:1.3; }
+    h2 { font-size:18px; font-weight:600; line-height:1.5; }
+    p  { font-size:14.5px; line-height:1.65; color:var(--text-soft); }
+    p + p { margin-top:10px; }
+
+    .bar { height:5px; background:var(--accent-tint); border-radius:3px; overflow:hidden; margin-bottom:18px; }
+    .bar > div { height:100%; background:var(--accent); transition:width .3s; }
+    .step { font-size:11px; letter-spacing:.1em; color:var(--text-soft); text-transform:uppercase; margin-bottom:10px; }
+
+    .options { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+    .opt {
+      background:var(--bg); border:1.5px solid var(--border); border-radius:10px;
+      padding:14px 16px; text-align:left; font:inherit; font-size:14.5px; line-height:1.5; color:var(--text);
+      cursor:pointer; transition:border-color .15s;
+    }
+    .opt:hover, .opt:focus-visible { border-color:var(--accent); outline:none; }
+
+    .btn {
+      display:block; width:100%; margin-top:20px; padding:14px;
+      background:var(--accent); color:#fff; border:none; border-radius:10px;
+      font:inherit; font-size:15px; font-weight:600; cursor:pointer;
+    }
+    .btn:hover { background:var(--accent-dark); }
+    .btn:disabled { opacity:.6; cursor:default; }
+    .msg { margin-top:14px; padding:12px; border-radius:10px; font-size:13.5px; background:#F5DAD5; color:var(--crit); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="app"><p>Einen Moment …</p></div>
+</div>
+
+<script>
+  const SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g'; // öffentlicher anon-Schlüssel
+
+  const TOKEN = new URLSearchParams(location.hash.slice(1)).get('t') || '';
+
+  async function rpc(name, body) {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const t = await r.text();
+    if (!r.ok) throw new Error(t);
+    return t ? JSON.parse(t) : null;
+  }
+
+  // ── Oberfläche ─────────────────────────────────────────────────────────
+  const app = document.getElementById('app');
+  let situationen = [];
+  let st;
+
+  function render(view) { app.innerHTML = ''; view(); window.scrollTo(0, 0); }
+  function h(tag, attrs = {}, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'on') e.addEventListener('click', v);
+      else if (k === 'cls') e.className = v;
+      else e.setAttribute(k, v);
+    }
+    e.append(...kids);
+    return e;
+  }
+  const put = (...els) => app.append(...els);
+  const mischen = arr => arr.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
+
+  // Link nicht (mehr) nutzbar
+  const HINWEIS = {
+    ungueltig:  ['Dieser Link funktioniert leider nicht', 'Bitte öffne den Link genau so, wie du ihn von uns bekommen hast.'],
+    abgelaufen: ['Dieser Link ist nicht mehr gültig', 'Der Link war sieben Tage lang gültig. Danke für dein Interesse an A Great Hair Day.'],
+    erledigt:   ['Deine Antworten sind schon bei uns', 'Du hast den Salon Matcher bereits ausgefüllt. In den nächsten Tagen melden wir uns in jedem Fall bei dir.'],
+    fehler:     ['Das hat gerade nicht geklappt', 'Bitte prüfe deine Internetverbindung und lade die Seite neu.']
+  };
+  function hinweisView(art) {
+    put(h('div', { cls: 'brand' }, 'A Great Hair Day · Salon Matcher'),
+        h('h1', {}, HINWEIS[art][0]),
+        h('p', {}, HINWEIS[art][1]));
+  }
+
+  // Einleitung
+  function introView() {
+    put(h('div', { cls: 'brand' }, 'A Great Hair Day · Salon Matcher'),
+        h('h1', {}, 'Bevor wir uns kennenlernen'),
+        h('p', {}, 'Wir sind ein kleines Team und arbeiten eng zusammen – miteinander und mit unseren Kundinnen und Kunden. Deshalb ist uns wichtig, wie jemand im Alltag handelt, nicht nur, was jemand kann.'),
+        h('p', {}, 'Du bekommst acht kurze Situationen, wie sie bei uns vorkommen. Zu jeder gibt es vier Möglichkeiten. Oft passt keine ganz genau – wähle die, die dem am nächsten kommt, was du tatsächlich tun würdest.'),
+        h('p', {}, 'Es geht nicht um Fachwissen. Du brauchst etwa fünf Minuten. Zurückspringen ist nicht möglich – die erste Wahl ist meistens die ehrlichste.'),
+        h('button', { cls: 'btn', on: () => {
+          st = { i: 0, antworten: new Array(situationen.length), reihenfolge: situationen.map(s => mischen(s.optionen)) };
+          render(situationView);
+        }}, 'Beginnen'));
+  }
+
+  // Situationen
+  function situationView() {
+    const sit = situationen[st.i];
+    const fill = h('div'); fill.style.width = (st.i / situationen.length * 100) + '%';
+    const o = h('div', { cls: 'options' });
+    st.reihenfolge[st.i].forEach(opt => o.append(h('button', { cls: 'opt', on: () => {
+      st.antworten[sit.nr] = opt.nr;
+      st.i++;
+      render(st.i < situationen.length ? situationView : abschickenView);
+    }}, opt.text)));
+    put(h('div', { cls: 'bar' }, fill),
+        h('div', { cls: 'step' }, `Situation ${st.i + 1} von ${situationen.length}`),
+        h('h2', {}, sit.frage), o);
+  }
+
+  // Abschicken (bei Verbindungsproblemen ohne Antworten zu verlieren)
+  function abschickenView() {
+    const fill = h('div'); fill.style.width = '100%';
+    const msg = h('div', { cls: 'msg', role: 'alert' });
+    msg.hidden = true;
+    const btn = h('button', { cls: 'btn' }, 'Nochmal versuchen');
+    btn.hidden = true;
+    put(h('div', { cls: 'bar' }, fill), h('p', {}, 'Deine Antworten werden gesendet …'), msg, btn);
+
+    async function senden() {
+      btn.disabled = true;
+      try {
+        await rpc('matcher_abschicken', { p_token: TOKEN, p_antworten: st.antworten });
+        render(abschlussView);
+      } catch (e) {
+        // Schon angekommen (z. B. doppelt getippt)? Dann Abschluss zeigen.
+        try {
+          const s = await rpc('matcher_laden', { p_token: TOKEN });
+          if (s && s.status === 'erledigt') return render(abschlussView);
+        } catch (e2) { /* weiter unten */ }
+        msg.textContent = 'Deine Antworten konnten gerade nicht gesendet werden. Bitte prüfe die Verbindung und versuch es noch einmal.';
+        msg.hidden = false; btn.hidden = false; btn.disabled = false;
+      }
+    }
+    btn.addEventListener('click', senden);
+    senden();
+  }
+
+  // Abschluss – für alle gleich, ohne Bewertung
+  function abschlussView() {
+    put(h('div', { cls: 'brand' }, 'Danke für deine Zeit'),
+        h('h1', {}, 'Deine Antworten sind bei uns angekommen'),
+        h('p', {}, 'Wir sehen uns jede Rückmeldung persönlich an – es entscheidet kein Programm.'),
+        h('p', {}, 'In den nächsten Tagen melden wir uns in jedem Fall bei dir, auch wenn es nicht passt.'));
+  }
+
+  (async () => {
+    if (!TOKEN) return render(() => hinweisView('ungueltig'));
+    try {
+      const d = await rpc('matcher_laden', { p_token: TOKEN });
+      if (!d || d.status !== 'ok') return render(() => hinweisView(d && HINWEIS[d.status] ? d.status : 'ungueltig'));
+      situationen = d.situationen;
+      render(introView);
+    } catch (e) {
+      render(() => hinweisView('fehler'));
+    }
+  })();
+</script>
+</body>
+</html>
