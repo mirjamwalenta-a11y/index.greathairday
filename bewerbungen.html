@@ -164,6 +164,9 @@
     .kat-a .why { display:block; font-size:12.5px; color:var(--text-soft); font-style:italic; margin-top:2px; }
     .rules { font-size:13.5px; line-height:1.65; margin:8px 0 0 18px; }
     .rules li + li { margin-top:6px; }
+    .regeltab { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
+    .regeltab th, .regeltab td { text-align:left; padding:6px 6px; border-bottom:1px solid var(--border); vertical-align:top; }
+    .regeltab th { color:var(--text-soft); font-weight:600; }
   </style>
 </head>
 <body>
@@ -203,11 +206,20 @@
                        meisterpruefung: 'Meisterprüfung', quereinstieg: 'Andere Ausbildung / Quereinstieg' };
   const FARBTEXT = { g: 'Grün', y: 'Gelb', r: 'Rot' };
   const RANG = { g: 0, y: 1, r: 2 };
-  const GESAMT = {
-    g: ['Gesamt: Grün – zum Gespräch einladen', 'Kein Feld rot, höchstens eines gelb. Ein gelbes Feld im Gespräch kurz ansprechen.'],
-    y: ['Gesamt: Gelb – Prüfzone, kein automatisches Ja', 'Mindestens zwei Felder gelb oder Offenheit rot. Einladen, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Dann jede gelbe Stelle im Gespräch gezielt prüfen. Gelb ist kein Ausschluss, aber auch kein Durchwinken.'],
-    r: ['Gesamt: Rot – keine Einladung zum Gespräch', 'Eine rote Antwort bei Respekt, Wertschätzung oder Zuwendung. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.']
-  };
+  // Bewertungsregel der Chefin (2026-10-22): Lehrlinge und fertige Stylist:innen
+  // werden unterschiedlich gelesen. Die Rechnung selbst macht die Datenbank.
+  const istLehrling = b => b.stelle === 'lehrstelle';
+  function gesamtText(g, b) {
+    if (g === 'g') return ['Gesamt: Grün – gute Grundpassung, Gespräch führen',
+      'Ein einzelnes gelbes Feld im Gespräch kurz ansprechen.'];
+    if (g === 'r') return ['Gesamt: Rot – keine Weiterführung',
+      'Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.'];
+    return istLehrling(b)
+      ? ['Gesamt: Gelb – kein Ausschluss, gezielte Prüfzone im Gespräch',
+         'Leitfrage: Ist das unreif, aber entwickelbar? Oder zeigt sich hier schon ein Muster, das später im Alltag viel Energie kostet? Jugendliche Unsicherheit, Vorsicht oder Unreife sind nicht automatisch negativ.']
+      : ['Gesamt: Gelb – vorsichtig prüfen',
+         'Von fertigen Stylist:innen erwarten wir deutlich mehr Reife. Nur weitergehen, wenn jeder gelbe Punkt im Gespräch konkret ansprechbar ist und klar entkräftet wird.'];
+  }
   const BASIS_GRUENDE = [
     'Für die Stelle ist gerade kein Platz frei',
     'Das Stundenausmaß passt nicht',
@@ -469,7 +481,7 @@
       }
       case 'ausgewertet': {
         const g = b.matcher_gesamt;
-        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, GESAMT[g][0]), h('p', {}, GESAMT[g][1])),
+        add(h('div', { cls: 'verdict v-' + g }, h('b', {}, gesamtText(g, b)[0]), h('p', {}, gesamtText(g, b)[1])),
             h('p', { cls: 'muted', style: 'margin-top:8px' }, 'Eckdaten (Stelle, Stunden, Start) stehen unten bei den Basisdaten. Passen sie nicht: Absage.'));
         if (g !== 'r') add(gespraechsfragen(b, g === 'y' ? 'Im Gespräch gezielt prüfen' : 'Im Gespräch kurz ansprechen'),
                            h('button', { cls: 'btn', on: () => schritt(b, 'gespraech') }, 'Zum Gespräch einladen'));
@@ -479,7 +491,7 @@
       }
       case 'gespraech':
         add(nachricht(b, 'Einladung zum Kennenlernen', VORLAGE.gespraech(v)));
-        if (b.matcher_gesamt === 'y') add(pruefzone(b));
+        if (b.matcher_gesamt === 'y') add(h('div', { cls: 'verdict v-y' }, h('p', {}, gesamtText('y', b)[1])), pruefzone(b));
         else add(gespraechsfragen(b, 'Im Gespräch kurz ansprechen'));
         add(h('button', { cls: 'btn', id: 'weiter-probe', disabled: b.matcher_gesamt === 'y' && !alleGeklaert(b),
                           on: () => schritt(b, 'probearbeiten') }, 'Probearbeiten vereinbaren'),
@@ -526,8 +538,9 @@
                       : 'Gesamt Grün: alle vier Felder grün.')
       : `Gesamt ${FARBTEXT[g]}, weil: ${[...teil('r', 'rot'), ...gelbe].join(', ')}.` +
         (gruen.length ? ` ${gruen.join(', ')} ${gruen.length === 1 ? 'ist' : 'sind'} grün.` : '') +
-        (g === 'r' ? ' Rot bei Respekt, Wertschätzung oder Zuwendung ist Ausschluss – Grün gleicht das nicht aus.'
-                   : felder.O === 'r' ? ' Rot bei Offenheit zählt als Gelb, weil sich Offenheit trainieren lässt.'
+        (g === 'r' ? (istLehrling(b) ? ' Bei Lehrlingen ist Rot bei Respekt, Wertschätzung oder Offenheit ein Ausschluss – Grün gleicht das nicht aus.'
+                                     : ' Von fertigen Stylist:innen erwarten wir mehr Reife: ein rotes Feld ist Ausschluss – Grün gleicht das nicht aus.')
+                   : istLehrling(b) && felder.Z === 'r' ? ' Rot bei Zuwendung zählt bei Lehrlingen als Gelb – oft jugendliche Unreife, im Gespräch prüfen.'
                    : ' Ab zwei gelben Feldern ist es Gelb.');
     karte.append(h('div', { cls: 'verdict v-' + g }, h('p', {}, satz)));
     Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
@@ -669,17 +682,37 @@
     let k;
     try { k = await rpc('matcher_katalog'); } catch (e) { return rahmen(fehlerKarte(e)); }
     const karte = h('div', { cls: 'card' },
-      h('h2', {}, 'Auswertungslogik'),
+      h('h2', {}, 'Bewertungsregel'),
+      h('p', {}, 'Der Salon Matcher ist ein Kulturfilter, kein Persönlichkeitstest und kein endgültiges Urteil über einen Menschen. Er zeigt, wie genau wir hinschauen müssen.'),
+      h('h3', {}, 'Für fertige Stylist:innen'),
+      h('p', {}, 'Wir erwarten eine deutlich höhere berufliche und menschliche Reife.'),
+      h('ul', { cls: 'rules' },
+        h('li', {}, h('b', {}, 'Grün'), ' bedeutet: gute Grundpassung, Gespräch führen.'),
+        h('li', {}, h('b', {}, 'Gelb'), ' bedeutet: vorsichtig prüfen, nur weitergehen, wenn der gelbe Punkt konkret ansprechbar und im Gespräch klar entkräftbar ist.'),
+        h('li', {}, h('b', {}, 'Rot'), ' bedeutet: keine Weiterführung.')),
+      h('h3', {}, 'Für Lehrlinge'),
+      h('p', {}, 'Wir prüfen stärker auf Haltung, Lernbereitschaft und Entwicklungspotenzial als auf fertige Reife.'),
+      h('ul', { cls: 'rules' },
+        h('li', {}, h('b', {}, 'Grün'), ' bedeutet: gute Grundpassung, Gespräch führen.'),
+        h('li', {}, h('b', {}, 'Gelb'), ' bedeutet: kein Ausschluss, sondern gezielte Prüfzone im Gespräch.'),
+        h('li', {}, h('b', {}, 'Rot'), ' bedeutet: keine Weiterführung, wenn das Rot auf Haltung, Respektlosigkeit, Geringschätzung, Abwehr oder fehlende Lernoffenheit hinweist.')),
+      h('p', { style: 'margin-top:10px' }, 'Jugendliche Unsicherheit, Vorsicht oder Unreife sind nicht automatisch negativ. Frühe Geringschätzung, fehlender Respekt, abwertendes Verhalten und dauernde Opferhaltung werden auch bei Lehrlingen nicht verharmlost.'),
+      h('p', { style: 'margin-top:10px' }, h('b', {}, 'Leitfrage bei gelben Lehrlings-Profilen: '), 'Ist das unreif, aber entwickelbar? Oder zeigt sich hier schon ein Muster, das später im Alltag viel Energie kostet?'),
+      h('p', { style: 'margin-top:10px' }, h('b', {}, 'Gesprächsziel bei Gelb: '), 'Der Matcher entscheidet nicht über Zu- oder Absage. Er zeigt, worüber wir im Gespräch gezielt sprechen müssen.'),
+      h('h2', { style: 'margin-top:22px' }, 'Auswertungslogik'),
       h('ul', { cls: 'rules' },
         h('li', {}, 'Ein Pflichtfeld ist rot, sobald darin eine rote Antwort vorkommt.'),
         h('li', {}, 'Ein Pflichtfeld ist gelb, wenn keine rote, aber mindestens eine gelbe Antwort vorkommt.'),
-        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen eine rote bei Respekt, Wertschätzung oder Zuwendung nicht aus.')),
-      h('h3', {}, 'Entscheidung'),
-      h('ul', { cls: 'rules' },
-        h('li', {}, h('b', {}, 'Gesamt-Grün'), ' (kein Feld rot, höchstens eines gelb): zum Gespräch einladen. Ein gelbes Feld im Gespräch kurz ansprechen.'),
-        h('li', {}, h('b', {}, 'Gesamt-Gelb'), ' (mindestens zwei Felder gelb oder Offenheit rot – Offenheit lässt sich trainieren): kein automatisches Ja. Gespräch nur, wenn der Gesamteindruck sonst stark ist oder die Bewerbung fachlich besonders interessant wirkt. Die gelben Stellen werden im Gespräch gezielt geprüft. Danach: alle geklärt → nächster Schritt; eine bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Wenn es trotz gezielter Prüfung nicht klar wird, passt es nicht.'),
-        h('li', {}, h('b', {}, 'Gesamt-Rot'), ' (rot bei Respekt, Wertschätzung oder Zuwendung): keine Einladung zum Gespräch. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf. Rot bleibt Ausschluss.')),
-      h('p', { style: 'margin-top:10px' }, 'Grüne Antworten gleichen kein Rot bei Respekt, Wertschätzung oder Zuwendung aus. Der Matcher ist ein Vorfilter für Kultur, nicht ein netter Eindruckstest.'),
+        h('li', {}, 'Es wird nichts verrechnet – grüne Antworten gleichen ein Rot nicht aus.')),
+      h('h3', {}, 'Gesamtfarbe'),
+      h('table', { cls: 'regeltab' },
+        h('tr', {}, h('th', {}, ''), h('th', {}, 'Stylist:in'), h('th', {}, 'Lehrling')),
+        h('tr', {}, h('td', {}, 'Rot bei Respekt oder Wertschätzung'), h('td', {}, 'Rot'), h('td', {}, 'Rot')),
+        h('tr', {}, h('td', {}, 'Rot bei Offenheit'), h('td', {}, 'Rot'), h('td', {}, 'Rot (fehlende Lernoffenheit)')),
+        h('tr', {}, h('td', {}, 'Rot bei Zuwendung'), h('td', {}, 'Rot'), h('td', {}, 'zählt als gelbes Feld')),
+        h('tr', {}, h('td', {}, 'zwei oder mehr Felder gelb'), h('td', {}, 'Gelb'), h('td', {}, 'Gelb')),
+        h('tr', {}, h('td', {}, 'sonst (höchstens ein Feld gelb)'), h('td', {}, 'Grün'), h('td', {}, 'Grün'))),
+      h('p', { style: 'margin-top:10px' }, 'Nach dem Gespräch bei Gelb: alle Punkte geklärt → nächster Schritt; einer bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine Warteschleife. Keine Ausnahme aus Sympathie, Mitleid oder Lebenslauf.'),
       h('h3', {}, 'Die acht Situationen'),
       h('p', { cls: 'muted' }, 'Bewerber:innen sehen die Antworten in zufälliger Reihenfolge und nie die Farben.'));
     k.situationen.forEach((s, idx) => {

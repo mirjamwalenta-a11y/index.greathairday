@@ -80,18 +80,45 @@ Einen neuen Link oder einen zweiten Versuch gibt es nicht.
 
 ### Schritt 4 – Auswertung
 
-Einordnung (seit 2026-10-21): Respekt und Wertschätzung sind am wichtigsten,
-Offenheit lässt sich trainieren.
-- Rot bei Respekt, Wertschätzung oder Zuwendung → **Rot**
-- Rot bei Offenheit oder zwei und mehr Felder gelb → **Gelb**
-- sonst (höchstens ein Feld gelb) → **Grün**
+**Bewertungsregel (seit 2026-10-22).** Der Salon Matcher ist ein
+Kulturfilter, kein Persönlichkeitstest und kein endgültiges Urteil über
+einen Menschen. Er zeigt, wie genau wir hinschauen müssen.
 
-**Gesamt-Grün** (kein Feld rot, höchstens eines gelb)
+- **Fertige Stylist:innen:** deutlich höhere berufliche und menschliche
+  Reife erwartet. Grün = gute Grundpassung, Gespräch führen. Gelb =
+  vorsichtig prüfen, nur weitergehen, wenn der gelbe Punkt konkret
+  ansprechbar und im Gespräch klar entkräftbar ist. Rot = keine
+  Weiterführung.
+- **Lehrlinge:** stärker Haltung, Lernbereitschaft und
+  Entwicklungspotenzial als fertige Reife. Grün = gute Grundpassung,
+  Gespräch führen. Gelb = kein Ausschluss, gezielte Prüfzone im Gespräch.
+  Rot = keine Weiterführung, wenn das Rot auf Haltung, Respektlosigkeit,
+  Geringschätzung, Abwehr oder fehlende Lernoffenheit hinweist.
+- Jugendliche Unsicherheit, Vorsicht oder Unreife sind nicht automatisch
+  negativ. Frühe Geringschätzung, fehlender Respekt, abwertendes Verhalten
+  und dauernde Opferhaltung werden auch bei Lehrlingen nicht verharmlost.
+- Leitfrage bei gelben Lehrlings-Profilen: Ist das unreif, aber
+  entwickelbar? Oder zeigt sich hier schon ein Muster, das später im Alltag
+  viel Energie kostet?
+- Gesprächsziel bei Gelb: Der Matcher entscheidet nicht über Zu- oder
+  Absage. Er zeigt, worüber wir im Gespräch gezielt sprechen müssen.
+
+Gesamtfarbe (`20261022090000_bewertung_nach_stelle.sql`):
+
+| | Stylist:in | Lehrling |
+|---|---|---|
+| Rot bei Respekt oder Wertschätzung | Rot | Rot |
+| Rot bei Offenheit | Rot | Rot (fehlende Lernoffenheit) |
+| Rot bei Zuwendung | Rot | zählt als gelbes Feld |
+| zwei oder mehr Felder gelb | Gelb | Gelb |
+| sonst (höchstens ein Feld gelb) | Grün | Grün |
+
+**Gesamt-Grün**
 Zum Gespräch einladen: der Chefin zur Terminvergabe vorlegen, dann
 Terminvorschläge an die Bewerberin bzw. den Bewerber schicken. Ist ein Feld
 gelb, wird es im Gespräch kurz angesprochen (Fragen stehen in der Übersicht).
 
-**Gesamt-Gelb – Prüfzone, kein Durchwinken** (mindestens zwei Felder gelb oder Offenheit rot)
+**Gesamt-Gelb – Prüfzone, kein Durchwinken**
 - Kein automatisches Ja.
 - Der Chefin vorlegen mit den gelben Prüfpunkten und den passenden
   Gesprächsfragen aus der Prüfzone.
@@ -103,7 +130,7 @@ gelb, wird es im Gespräch kurz angesprochen (Fragen stehen in der Übersicht).
   bleibt unklar oder bestätigt sich → Absage. Gelb ist eine Prüfzone, keine
   Warteschleife.
 
-**Gesamt-Rot** (rot bei Respekt, Wertschätzung oder Zuwendung)
+**Gesamt-Rot**
 - Keine Einladung zum Gespräch.
 - Absage vorbereiten und der Chefin zur Freigabe vorlegen. Die Freigabe
   prüft nur, ob Daten und Ergebnis zum richtigen Vorgang gehören – **nicht**,
