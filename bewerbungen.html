@@ -407,7 +407,13 @@
       b.antworten ? auswertungKarte(b) : null,
       datenKarte(b),
       h('div', { cls: 'card' }, h('h2', {}, 'Verlauf'),
-        h('ul', { cls: 'verlauf' }, ...(b.verlauf || []).map(v => h('li', {}, `${datum(v.zeit)} – ${v.text}`)))));
+        h('ul', { cls: 'verlauf' }, ...(b.verlauf || []).map(v => h('li', {}, `${datum(v.zeit)} – ${v.text}`)))),
+      h('div', { cls: 'card' }, h('h2', {}, 'Bewerbung löschen'),
+        h('p', {}, 'Für Test-Einträge oder wenn die Person ihre Einwilligung widerruft. Löscht die Bewerbung samt Matcher-Antworten endgültig.'),
+        h('button', { cls: 'btn rot', on: async () => {
+          if (!confirm(`Bewerbung von ${b.name} endgültig löschen? Das lässt sich nicht rückgängig machen.`)) return;
+          try { await rpc('bewerbung_loeschen', { p_id: b.id }); zeigeListe(); } catch (e) { alert(e.message); }
+        }}, 'Endgültig löschen')));
     if (extra && extra.scroll) window.scrollTo(0, y);
   }
 

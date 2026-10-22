@@ -225,6 +225,8 @@ nicht still geschlossen werden. Still schließen geht nur **vor** dem Matcher
   7 Tage gültig. Eine Erinnerung ersetzt den Link, verlängert aber nicht.
 - Die Farbzuordnung liegt nur in der Datenbank. Bewerber:innen und der
   öffentliche Quelltext sehen sie nie.
+- Die Chefin kann eine Bewerbung in der Übersicht endgültig löschen
+  (Test-Einträge, Widerruf der Einwilligung).
 - Bewerbungen werden 6 Monate nach Eingang gelöscht (beim Öffnen der
   Übersicht).
 
