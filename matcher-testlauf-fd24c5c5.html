@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>A Great Hair Day · Salon Matcher Testlauf</title>
+  <!--
+    TESTLAUF für Freund:innen – zeigt am Ende die Auswertung und speichert
+    nichts. Bewusst unter einer nicht erratbaren Adresse und nirgends
+    verlinkt: Diese Seite verrät, wie die Antworten bewertet werden.
+    Den Link nur an Vertraute geben, nie an Bewerber:innen.
+    Inhalte und Regeln entsprechen dem echten Matcher (Stand 2026-10-22);
+    ändern sich Situationen oder Bewertungsregel, hier mit anpassen.
+  -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: eine schmale Karte wie der echte Matcher, Auswertung darunter gestapelt */
+  :root {
+    --bg:#F8F4EA; --card:#FFFFFF; --border:#E4DBC5; --text:#211D17; --soft:#6F6858;
+    --accent:#896C32; --accent-dark:#6E5527; --tint:#EEE6CD;
+    --g:#3F7A52; --g-tint:#DDEBDF; --y:#A0731A; --y-tint:#F3E6C4; --r:#B23A2E; --r-tint:#F5DAD5;
+    --font:'Poppins', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg:#1B1813; --card:#25211A; --border:#3B3428; --text:#F1EADB; --soft:#B5AC99;
+    --accent:#C9A55C; --accent-dark:#E0C07E; --tint:#3A3020;
+    --g:#7DBB8F; --g-tint:#23362A; --y:#D9AE55; --y-tint:#3A3020; --r:#E07A6E; --r-tint:#3D2420; color-scheme:dark; } }
+  :root[data-theme="dark"] {
+    --bg:#1B1813; --card:#25211A; --border:#3B3428; --text:#F1EADB; --soft:#B5AC99;
+    --accent:#C9A55C; --accent-dark:#E0C07E; --tint:#3A3020;
+    --g:#7DBB8F; --g-tint:#23362A; --y:#D9AE55; --y-tint:#3A3020; --r:#E07A6E; --r-tint:#3D2420; color-scheme:dark; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:var(--font); -webkit-font-smoothing:antialiased;
+         padding-block:16px 32px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width:600px; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+  .hinweis { background:var(--tint); color:var(--accent-dark); font-size:12.5px; font-weight:600; padding:9px 12px; border-radius:10px; text-align:center; }
+  .card { background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:26px 20px; }
+  .brand { font-size:11px; letter-spacing:.12em; color:var(--soft); text-transform:uppercase; }
+  h1 { font-size:23px; font-weight:700; margin:8px 0 14px; line-height:1.3; text-wrap:balance; }
+  h2 { font-size:18px; font-weight:600; line-height:1.5; margin:0; text-wrap:balance; }
+  h3 { font-size:15px; font-weight:700; margin:22px 0 8px; }
+  p { font-size:14.5px; line-height:1.65; color:var(--soft); margin:0; }
+  p + p { margin-top:10px; }
+  .bar { height:5px; background:var(--tint); border-radius:3px; overflow:hidden; margin-bottom:18px; }
+  .bar > div { height:100%; background:var(--accent); transition:width .3s; }
+  .step { font-size:11px; letter-spacing:.1em; color:var(--soft); text-transform:uppercase; margin-bottom:10px; }
+  .options { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+  .opt { background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:14px 16px; text-align:left;
+         font:inherit; font-size:14.5px; line-height:1.5; color:var(--text); cursor:pointer; }
+  .opt:hover, .opt:focus-visible { border-color:var(--accent); outline:none; }
+  .btn { display:block; width:100%; margin-top:20px; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:10px;
+         font:inherit; font-size:15px; font-weight:600; cursor:pointer; }
+  .btn:hover { background:var(--accent-dark); }
+  .btn:focus-visible { outline:2px solid var(--accent-dark); outline-offset:2px; }
+  .btn.ghost { background:none; color:var(--accent-dark); border:1.5px solid var(--border); }
+  .verdict { border-radius:12px; padding:16px; margin-top:12px; }
+  .verdict b { display:block; font-size:17px; margin-bottom:6px; }
+  .verdict p { color:inherit; font-size:13.5px; }
+  .v-g { background:var(--g-tint); color:var(--g); } .v-y { background:var(--y-tint); color:var(--y); } .v-r { background:var(--r-tint); color:var(--r); }
+  .field { border:1.5px solid var(--border); border-radius:12px; padding:13px; margin-top:10px; }
+  .field-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .field-head span:first-child { font-weight:600; font-size:14px; min-width:0; }
+  .pill { font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+  .p-g { background:var(--g-tint); color:var(--g); } .p-y { background:var(--y-tint); color:var(--y); } .p-r { background:var(--r-tint); color:var(--r); }
+  .sig { margin-top:10px; padding-left:10px; border-left:3px solid var(--g); font-size:13px; line-height:1.55; }
+  .sig.r { border-color:var(--r); } .sig.y { border-color:var(--y); }
+  .sig .sit { color:var(--soft); } .sig .ans { margin:2px 0; } .sig .why { color:var(--soft); font-style:italic; }
+  .tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; }
+  .muted { font-size:12.5px; color:var(--soft); }
+  @media (prefers-reduced-motion: reduce) { .bar > div { transition:none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="hinweis">Testlauf – es wird nichts gespeichert. Am Ende siehst du die Auswertung.</div>
+  <div class="card" id="app"></div>
+</div>
+
+<script>
+  // Gleiche Situationen und Farben wie der echte Salon Matcher (Stand 22.10.2026)
+  const { FELDER, SITUATIONEN } = {"FELDER":{"Z":{"name":"Zuwendung statt Selbstdarstellung","gespraech":"Erzähl von einem Kundengespräch, bei dem du erst spät verstanden hast, was die Person eigentlich wollte. Woran hast du es gemerkt?"},"O":{"name":"Offenheit statt vorschneller Ablehnung","gespraech":"Was hast du zuletzt bei der Arbeit anders gemacht als gewohnt – und wie lange hast du es ausprobiert, bevor du dir eine Meinung gebildet hast?"},"R":{"name":"Respekt im Alltag","gespraech":"Wann hast du dich zuletzt bei jemandem im Team oder bei einer Kundin entschuldigt – und wofür?"},"W":{"name":"Wertschätzung für Menschen","gespraech":"Wie gehst du mit Kundinnen oder Kunden um, mit denen die Verständigung schwierig ist? Wie reagierst du, wenn im Team über jemanden gelästert wird?"}},"SITUATIONEN":[{"art":"Kundin","q":"Eine neue Kundin sitzt zur Beratung bei dir. Sie erzählt ziemlich ausführlich, was sie bei ihrem letzten Friseur gestört hat. Du hast nach zwei Sätzen schon ein Bild im Kopf, was ihr stehen würde.","a":[{"t":"Ich lasse sie ausreden und frage nach, was genau sie gestört hat, bevor ich etwas vorschlage.","b":{"Z":"g"}},{"t":"Ich sage ihr, dass ich schon eine klare Idee habe, und zeige ihr ein paar meiner Arbeiten auf dem Handy. Das gibt ihr Sicherheit.","b":{"Z":"r"},"w":"Unterbricht und rückt die eigene Arbeit in den Mittelpunkt, bevor die Kundin verstanden ist."},{"t":"Ich höre zu, sage aber wenig. Sie soll sich nicht gedrängt fühlen – wenn sie fertig ist, lege ich los.","b":{"Z":"y"},"w":"Hört zu, fragt aber nicht nach – Interesse bleibt passiv."},{"t":"Ich erkläre ihr kurz, wie ich normalerweise arbeite, damit sie gleich weiß, was sie bei mir erwartet.","b":{"Z":"y"},"w":"Freundlich, aber stark auf die eigene Rolle statt auf die Kundin gerichtet."}]},{"art":"Team","q":"In der Teambesprechung erzählt eine neue Kollegin, wie in ihrem alten Salon die Farbberatung abgelaufen ist. Bei euch läuft das seit Jahren anders – und gut.","a":[{"t":"Ich frage sie, was dort besser funktioniert hat und wo es gehakt hat.","b":{"Z":"g","O":"g"}},{"t":"Ich warte, bis sie fertig ist, und erzähle dann von einem ähnlichen Fall bei mir, der gut ausgegangen ist.","b":{"Z":"r","O":"y"},"w":"Nimmt das Thema der Kollegin als Anlass für die eigene Geschichte."},{"t":"Ich höre zu und denke mir meinen Teil. Wenn sie länger da ist, sieht sie ja, wie es bei uns läuft.","b":{"Z":"y","O":"r"},"w":"Hat das Neue innerlich schon abgelehnt, ohne es zu prüfen."},{"t":"Ich finde es interessant, würde es aber erst ausprobieren, wenn die Chefin sagt, dass wir es ändern.","b":{"Z":"g","O":"y"},"w":"Offen, braucht aber Absicherung von oben, bevor etwas ausprobiert wird."}]},{"art":"Neuer Ablauf","q":"Ab nächstem Monat kommen Rezepturen und Kundennotizen nicht mehr auf die Karteikarte, sondern ins Tablet. Die ersten Tage dauert dadurch alles etwas länger.","a":[{"t":"Am Anfang nervt mich das sicher. Aber ich geb dem ein paar Wochen, dann weiß ich, ob es was taugt.","b":{"O":"g"},"w":"Gibt dem Neuen eine echte Chance und urteilt erst danach."},{"t":"Ich trag es ein, wie es verlangt wird. Was ich davon halte, spielt ja eigentlich keine große Rolle.","b":{"O":"y"},"w":"Macht mit, setzt sich aber nicht damit auseinander."},{"t":"Das hatten wir in meinem alten Salon auch. Nach drei Monaten haben wieder alle auf Papier geschrieben – ich würde uns die Umstellung sparen.","b":{"O":"r"},"w":"Urteilt aus alter Erfahrung, bevor es hier ausprobiert ist."},{"t":"Ich trag alles ins Tablet ein, schreib die Rezepturen aber zusätzlich auf die Karte. Wenn das Ding einmal abstürzt, ist sonst alles weg.","b":{"O":"y"},"w":"Probiert, traut dem Neuen aber nicht und sichert doppelt ab."}]},{"art":"Alltag","q":"Du stehst im Stau. Deine erste Kundin kommt um 8:30, du wirst etwa zehn Minuten zu spät sein. Es ist 8:15.","a":[{"t":"Ich rufe im Salon an, damit jemand die Kundin empfängt, und entschuldige mich bei ihr, wenn ich da bin.","b":{"R":"g"}},{"t":"Ich schreibe kurz in die Team-Gruppe und lege gleich los, wenn ich da bin. Die zehn Minuten hole ich beim Föhnen wieder rein.","b":{"R":"r"},"w":"Behandelt die Verspätung als Zeitproblem, nicht als Frage des Respekts – keine Entschuldigung."},{"t":"Ich sage im Salon Bescheid. Ob ich mich bei der Kundin extra entschuldige, hängt davon ab, wie sie drauf ist.","b":{"R":"y"},"w":"Entschuldigung ist situationsabhängig statt selbstverständlich."},{"t":"Ich melde mich nicht extra – bis jemand die Nachricht liest, bin ich sowieso schon da. Vor Ort sage ich dann allen Bescheid.","b":{"R":"y"},"w":"Pragmatisch, lässt aber Team und Kundin im Unklaren."}]},{"art":"Team","q":"Samstag, voller Salon. Eine Kollegin sagt dir im Vorbeigehen ziemlich scharf, du sollst deinen Platz endlich aufräumen – vor deiner Kundin.","a":[{"t":"Ich räume auf und spreche sie später unter vier Augen darauf an, dass mich der Ton gestört hat.","b":{"R":"g"}},{"t":"Ich sage ihr gleich, dass ich das vor der Kundin nicht okay finde. Lieber sofort klar als später herumdrucksen.","b":{"R":"y"},"w":"Berechtigter Punkt, aber im Moment und vor der Kundin – Stress wird weitergegeben."},{"t":"Ich räume auf und sage nichts. Samstags ist jeder mal kurz angebunden, das nehme ich nicht persönlich.","b":{"R":"y"},"w":"Hält Schroffheit unter Stress für normal."},{"t":"Ich räume auf und erzähle es später den anderen, damit sie wissen, wie sie manchmal ist.","b":{"R":"r","W":"y"},"w":"Klärt nicht direkt, sondern redet hinter dem Rücken über die Kollegin."}]},{"art":"Kunde","q":"Ein Kunde spricht kaum Deutsch. Er zeigt dir ein Foto auf dem Handy, ihr versteht euch nur mühsam. Die Kollegin am Nebenplatz sagt halblaut: „Viel Spaß, das wird eh nix.“","a":[{"t":"Ich zeig ihm am Foto und an seinen Haaren, wie kurz – Stück für Stück, zwischendurch mit dem Spiegel. Wenn ich unsicher bin, hol ich kurz jemanden dazu.","b":{"W":"g","Z":"g"},"w":"Bleibt beim Kunden, findet einfache Wege, holt Hilfe statt aufzugeben."},{"t":"Ich schneid nach dem Foto, so gut es geht. Ganz genau wird es bei der Verständigung eh nicht, da muss man realistisch sein.","b":{"W":"r","Z":"y"},"w":"Gibt wegen der Sprache früh auf – der Kunde bekommt weniger als andere."},{"t":"Ich frag die Kollegin vorne, ob sie ihn übernimmt. Sie hat bei so was mehr Routine, dann geht es für alle schneller.","b":{"W":"y","Z":"y"},"w":"Gibt den Kunden ab, weil es bequemer ist – „bei so was“."},{"t":"Auf den Spruch geh ich nicht ein, auch später nicht. Sie meint es nicht so, und das bringt nur Stimmung ins Team.","b":{"W":"y"},"w":"Lässt die Abwertung stehen, um Ruhe zu haben."}]},{"art":"Lernen","q":"Die Chefin sieht dir beim Föhnen zu und sagt: „Sauber – aber nimm die größere Rundbürste und arbeite von unten, dann hält es länger.“ Du hast es anders gelernt, und bisher hat es immer gut ausgesehen.","a":[{"t":"Ich mache es ab jetzt so, wie sie sagt. Sie ist die Chefin.","b":{"O":"y"},"w":"Ordnet sich unter, ohne selbst zu prüfen – Offenheit oder nur Anpassung? Im Gespräch klären."},{"t":"Okay, ich probier es bei den nächsten Kundinnen so und schau, ob es wirklich länger hält.","b":{"O":"g"},"w":"Probiert die Korrektur praktisch aus und prüft selbst nach – offen, aber nicht unterwürfig."},{"t":"Ich nicke und mache weiter wie bisher. Solange das Ergebnis passt, gibt es keinen Grund, etwas zu ändern.","b":{"O":"r","R":"y"},"w":"Lehnt die Korrektur ab, ohne sie auszuprobieren – und sagt es nicht offen."},{"t":"Ich frage, was ihr an meiner Art fehlt, und lasse es mir einmal zeigen.","b":{"O":"g","Z":"g"},"w":"Will verstehen, worum es geht, statt sich zu verteidigen."}]},{"art":"Kundin","q":"Eine Stammkundin hat sich die Haare selbst gefärbt, es ist fleckig geworden. Noch an der Garderobe fragt sie: „Sag ehrlich, schaut das schlimm aus?“","a":[{"t":"„Ja, das ist ziemlich fleckig geworden. Kriegen wir aber hin – setz dich, ich schau mir das an.“","b":{"W":"g"},"w":"Ehrlich und gleich bei der Lösung."},{"t":"„Ehrlich gesagt schon. Ich sag es dir lieber gleich direkt – sonst probierst du es beim nächsten Mal wieder selber.“","b":{"W":"r"},"w":"Ehrlichkeit als Erziehungsmaßnahme – die Würde der Kundin wird zweitrangig."},{"t":"„Komm erst mal rein. Was hast du denn genommen?“ Was ich davon halte, sag ich ihr, wenn ich es bei Licht gesehen hab.","b":{"W":"g","Z":"g"},"w":"Fängt sie auf und will erst verstehen, bevor bewertet wird."},{"t":"„Mach dir nichts draus – letzte Woche war eine da, bei der war es noch viel ärger.“","b":{"W":"y","Z":"y"},"w":"Beruhigt mit einer anderen Kundin, statt bei ihr zu bleiben."}]}]};
+  const RANG = { g: 0, y: 1, r: 2 }, FARBE = { g: 'Grün', y: 'Gelb', r: 'Rot' };
+
+  // Bewertungsregel der Chefin: Stylist:in jedes Rot = Rot; Lehrling: Rot bei Zuwendung zählt als gelbes Feld
+  function auswerten(antw, lehrling) {
+    const felder = { Z: 'g', O: 'g', R: 'g', W: 'g' };
+    antw.forEach((a, s) => Object.entries(SITUATIONEN[s].a[a].b).forEach(([k, f]) => { if (RANG[f] > RANG[felder[k]]) felder[k] = f; }));
+    const zMild = k => lehrling && k === 'Z';
+    const gelb = Object.entries(felder).filter(([k, f]) => f === 'y' || (zMild(k) && f === 'r')).length;
+    const gesamt = Object.entries(felder).some(([k, f]) => f === 'r' && !zMild(k)) ? 'r'
+                 : (lehrling && felder.Z === 'r') || gelb >= 2 ? 'y' : 'g';
+    return { felder, gesamt };
+  }
+  function gesamtText(g, lehrling) {
+    if (g === 'g') return ['Gesamt: Grün – gute Grundpassung, Gespräch führen', 'Ein einzelnes gelbes Feld würde im Gespräch kurz angesprochen.'];
+    if (g === 'r') return ['Gesamt: Rot – keine Weiterführung', 'Im echten Ablauf gäbe es hier keine Einladung zum Gespräch.'];
+    return lehrling
+      ? ['Gesamt: Gelb – kein Ausschluss, gezielte Prüfzone im Gespräch', 'Leitfrage: Ist das unreif, aber entwickelbar? Oder zeigt sich hier schon ein Muster, das später im Alltag viel Energie kostet?']
+      : ['Gesamt: Gelb – vorsichtig prüfen', 'Von fertigen Stylist:innen wird mehr Reife erwartet. Weiter nur, wenn jeder gelbe Punkt im Gespräch klar entkräftet wird.'];
+  }
+
+  const app = document.getElementById('app');
+  let st;
+  function h(tag, attrs = {}, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'on') e.addEventListener('click', v); else if (k === 'cls') e.className = v; else e.setAttribute(k, v);
+    }
+    e.append(...kids.filter(x => x != null));
+    return e;
+  }
+  function render(view) { app.replaceChildren(); view(); window.scrollTo(0, 0); }
+  const put = (...els) => app.append(...els);
+  const mischen = arr => arr.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
+
+  function startView() {
+    put(h('div', { cls: 'brand' }, 'A Great Hair Day · Salon Matcher'),
+        h('h1', {}, 'Bevor wir uns kennenlernen'),
+        h('p', {}, 'Wir sind ein kleines Team und arbeiten eng zusammen – miteinander und mit unseren Kundinnen und Kunden. Deshalb ist uns wichtig, wie jemand im Alltag handelt, nicht nur, was jemand kann.'),
+        h('p', {}, 'Du bekommst acht kurze Situationen, wie sie bei uns vorkommen. Zu jeder gibt es vier Möglichkeiten. Oft passt keine ganz genau – wähle die, die dem am nächsten kommt, was du tatsächlich tun würdest.'),
+        h('p', {}, 'Es geht nicht um Fachwissen. Du brauchst etwa fünf Minuten. Zurückspringen ist nicht möglich – die erste Wahl ist meistens die ehrlichste.'),
+        h('h3', {}, 'Als wer machst du den Test?'),
+        h('div', { cls: 'options' },
+          h('button', { cls: 'opt', id: 'als-lehrling', on: () => los(true) }, 'Als Lehrling (Lehrstelle)'),
+          h('button', { cls: 'opt', id: 'als-stylist', on: () => los(false) }, 'Als fertige Stylist:in (Gesell:in, Wiedereinstieg)')));
+  }
+  function los(lehrling) {
+    st = { lehrling, i: 0, antw: [], reihenfolge: SITUATIONEN.map(s => mischen([0, 1, 2, 3])) };
+    render(situationView);
+  }
+  function situationView() {
+    const s = SITUATIONEN[st.i];
+    const fill = h('div'); fill.style.width = (st.i / SITUATIONEN.length * 100) + '%';
+    put(h('div', { cls: 'bar' }, fill),
+        h('div', { cls: 'step' }, `Situation ${st.i + 1} von ${SITUATIONEN.length}`),
+        h('h2', {}, s.q),
+        h('div', { cls: 'options' }, ...st.reihenfolge[st.i].map(a => h('button', { cls: 'opt', on: () => {
+          st.antw[st.i] = a; st.i++;
+          render(st.i < SITUATIONEN.length ? situationView : ergebnisView);
+        }}, s.a[a].t))));
+  }
+  function ergebnisView() {
+    const { felder, gesamt } = auswerten(st.antw, st.lehrling);
+    const name = k => FELDER[k].name.split(' ')[0];
+    const [titel, text] = gesamtText(gesamt, st.lehrling);
+    put(h('div', { cls: 'brand' }, `Auswertung · ${st.lehrling ? 'Lehrling' : 'Stylist:in'}`),
+        h('h1', {}, 'So hätte der Matcher dich eingeordnet'),
+        h('div', { cls: 'verdict v-' + gesamt }, h('b', {}, titel), h('p', {}, text)));
+    Object.keys(felder).sort((x, y) => RANG[felder[y]] - RANG[felder[x]]).forEach(k => {
+      const box = h('div', { cls: 'field' }, h('div', { cls: 'field-head' }, h('span', {}, FELDER[k].name), h('span', { cls: 'pill p-' + felder[k] }, FARBE[felder[k]])));
+      const auff = st.antw.map((a, s) => ({ s, o: SITUATIONEN[s].a[a] })).filter(x => x.o.b[k] && x.o.b[k] !== 'g');
+      if (!auff.length) box.append(h('div', { cls: 'muted', style: 'margin-top:8px' }, 'Alle Antworten grün.'));
+      auff.forEach(x => box.append(h('div', { cls: 'sig ' + x.o.b[k] },
+        h('div', { cls: 'sit' }, `Situation ${x.s + 1}: ${SITUATIONEN[x.s].q}`),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + x.o.t),
+        x.o.w ? h('div', { cls: 'why' }, x.o.w) : null)));
+      if (st.lehrling && k === 'Z' && felder.Z === 'r') box.append(h('div', { cls: 'muted', style: 'margin-top:8px' }, 'Bei Lehrlingen zählt Rot bei Zuwendung als Gelb – oft jugendliche Unreife.'));
+      app.append(box);
+    });
+    put(h('h3', {}, 'Alle Antworten'));
+    st.antw.forEach((a, s) => {
+      const o = SITUATIONEN[s].a[a], farben = Object.values(o.b);
+      app.append(h('div', { cls: 'sig ' + (farben.includes('r') ? 'r' : farben.includes('y') ? 'y' : 'g') },
+        h('div', { cls: 'sit' }, `Situation ${s + 1}: ${SITUATIONEN[s].q}`),
+        h('div', { cls: 'ans' }, 'Gewählt: ' + o.t),
+        h('div', { cls: 'tags' }, ...Object.entries(o.b).map(([f, c]) => h('span', { cls: 'pill p-' + c }, `${name(f)} · ${FARBE[c]}`)))));
+    });
+    put(h('button', { cls: 'btn ghost', on: () => render(startView) }, 'Noch einmal testen'));
+  }
+  render(startView);
+</script>
+
+</body>
+</html>
