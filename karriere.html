@@ -172,10 +172,11 @@
   </div>
 
   <div class="card danke hidden" id="danke">
-    <div class="brand">Danke</div>
-    <h1>Deine Angaben sind angekommen</h1>
-    <p>Jetzt noch der letzte Schritt: der Salon Matcher. Acht kurze Situationen aus unserem Salonalltag, etwa fünf Minuten.</p>
+    <div class="brand" id="danke-brand">Danke</div>
+    <h1 id="danke-titel">Deine Angaben sind angekommen</h1>
+    <p id="danke-text">Jetzt noch der letzte Schritt: der Salon Matcher. Acht kurze Situationen aus unserem Salonalltag, etwa fünf Minuten.</p>
     <a class="btn" id="matcher-start" href="bewerber.html" style="text-align:center;text-decoration:none">Salon Matcher starten</a>
+    <button class="btn hidden" id="neu-beginnen" type="button" style="background:none;color:var(--accent-dark);border:1.5px solid var(--border)">Ich bin jemand anderes – neu beginnen</button>
   </div>
 
 </div>
@@ -192,22 +193,50 @@
     $('msg').classList.remove('hidden');
   }
 
-  // Token merken, damit man nach einem Abbruch auf demselben Gerät weitermachen kann
+  // Token (und Vorname) merken, damit man nach einem Abbruch auf demselben
+  // Gerät weitermachen kann. Auf einem gemeinsam genutzten Gerät (z. B. im
+  // Salon) kann die nächste Person mit „neu beginnen“ sauber anfangen.
   const MERK = 'ghd-matcher-token';
-  function danke(token) {
+  function gemerkt() {
+    try {
+      const roh = localStorage.getItem(MERK);
+      if (!roh) return null;
+      return roh.startsWith('{') ? JSON.parse(roh) : { t: roh, n: '' };
+    } catch (e) { return null; }
+  }
+  function vergessen() { try { localStorage.removeItem(MERK); } catch (e) { /* egal */ } }
+  function danke(token, vorname, weitermachen) {
     if (token) {
-      try { localStorage.setItem(MERK, token); } catch (e) { /* egal */ }
+      try { localStorage.setItem(MERK, JSON.stringify({ t: token, n: vorname || '' })); } catch (e) { /* egal */ }
       $('matcher-start').href = 'bewerber.html?t=' + encodeURIComponent(token);
+    }
+    if (weitermachen) {
+      $('danke-brand').textContent = 'Salon Matcher';
+      $('danke-titel').textContent = vorname ? `Weitermachen als ${vorname}?` : 'Weitermachen?';
+      $('danke-text').textContent = 'Auf diesem Gerät wurde eine Bewerbung begonnen, der Salon Matcher ist aber noch nicht fertig.';
+      $('matcher-start').textContent = 'Salon Matcher fortsetzen';
+      $('neu-beginnen').classList.remove('hidden');
     }
     $('formular').classList.add('hidden');
     $('danke').classList.remove('hidden');
     $('danke').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  // Schon abgeschickt, Matcher aber noch offen? Dann gleich dorthin anbieten.
+  $('neu-beginnen').addEventListener('click', () => {
+    vergessen();
+    $('form').reset();
+    $('danke').classList.add('hidden');
+    $('formular').classList.remove('hidden');
+    $('formular').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  // Formular immer leer anzeigen – auch nach „Zurück“ (z. B. auf einem Salon-Gerät)
+  $('form').reset();
+  // Browser stellen Formularwerte nach „Zurück“ teils erst nach dem Laden wieder her
+  window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); else $('form').reset(); });
+  // Schon abgeschickt, Matcher aber noch offen? Dann Weitermachen anbieten.
   (async () => {
-    let t = null;
-    try { t = localStorage.getItem(MERK); } catch (e) { /* egal */ }
-    if (!t) return;
+    const m = gemerkt();
+    if (!m) return;
+    const t = m.t;
     try {
       const r = await fetch(`${SB_URL}/rest/v1/rpc/matcher_laden`, {
         method: 'POST',
@@ -215,8 +244,8 @@
         body: JSON.stringify({ p_token: t })
       });
       const d = await r.json();
-      if (d && d.status === 'ok') danke(t);
-      else localStorage.removeItem(MERK);
+      if (d && d.status === 'ok') danke(t, m.n, true);
+      else vergessen();
     } catch (e) { /* dann eben das Formular */ }
   })();
 
@@ -250,7 +279,7 @@
       try { d = text ? JSON.parse(text) : null; } catch (e) { /* kein JSON */ }
       if (!r.ok) throw new Error((d && d.message) || text || `Fehler ${r.status}`);
       if (!d || !d.token) throw new Error('Keine Matcher-Freigabe von der Datenbank erhalten');
-      danke(d.token);
+      danke(d.token, wert('name').split(/\s+/)[0]);
       location.href = 'bewerber.html?t=' + encodeURIComponent(d.token);
     } catch (err) {
       // Genaue Ursache klein mitanzeigen, damit sich ein Fehler schnell finden lässt
