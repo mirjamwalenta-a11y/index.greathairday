@@ -65,21 +65,49 @@
 <header>
   <a class="zurueck" href="index.html">← Zurück</a>
   <h1>Sponsorenwand</h1>
-  <p>Logos hochladen, Texte anpassen, als Bild herunterladen. Alles bleibt auf deinem Gerät.</p>
+  <p>Dankeswand oder Einladung: Logos hochladen, Texte anpassen, als Bild herunterladen. Alles bleibt auf deinem Gerät.</p>
 </header>
 
 <div class="wrap">
   <div>
     <div class="panel">
+      <h2>Was soll es werden?</h2>
+      <div class="seg" id="fModus">
+        <button type="button" data-v="dank" class="on">Dankeswand</button>
+        <button type="button" data-v="einladung">Einladung</button>
+      </div>
+    </div>
+
+    <div class="panel">
       <h2>Veranstaltung</h2>
-      <label for="fTitel">Überschrift</label>
-      <input type="text" id="fTitel" value="Danke an unsere Sponsoren">
+      <div class="nur-dank">
+        <label for="fTitel">Überschrift</label>
+        <input type="text" id="fTitel" value="Danke an unsere Sponsoren">
+      </div>
+      <div class="nur-einladung" hidden>
+        <label for="fETitel">Überschrift</label>
+        <input type="text" id="fETitel" value="Einladung zum">
+      </div>
       <div class="row">
         <div><label for="fEvent">Veranstaltung</label><input type="text" id="fEvent" value="Genussabend"></div>
-        <div><label for="fDatum">Datum</label><input type="text" id="fDatum" value="09.11.2026"></div>
+        <div><label for="fDatum">Datum</label><input type="text" id="fDatum" value="09.11.2026" placeholder="TT.MM.JJJJ"></div>
       </div>
-      <label for="fText">Dankestext (optional)</label>
-      <textarea id="fText">Das Haarnetzwerk sagt von Herzen Danke für eure Unterstützung.</textarea>
+      <div class="nur-dank">
+        <label for="fText">Dankestext (optional)</label>
+        <textarea id="fText">Das Haarnetzwerk sagt von Herzen Danke für eure Unterstützung.</textarea>
+      </div>
+      <div class="nur-einladung" hidden>
+        <label for="fZeit">Uhrzeit</label>
+        <input type="text" id="fZeit" placeholder="z. B. ab 19:00 Uhr">
+        <label for="fOrt">Ort</label>
+        <textarea id="fOrt" placeholder="Name der Location&#10;Straße, PLZ Ort"></textarea>
+        <label for="fEText">Einladungstext (optional)</label>
+        <textarea id="fEText">Wir laden dich herzlich zu einem Abend voller Genuss, Austausch und guter Gespräche im Kreis des Haarnetzwerks ein.</textarea>
+        <label for="fAnmeldung">Anmeldung (optional)</label>
+        <input type="text" id="fAnmeldung" placeholder="z. B. Um Anmeldung wird gebeten bis 30.10.2026">
+        <label for="fELabel">Zeile über den Logos</label>
+        <input type="text" id="fELabel" value="Mit freundlicher Unterstützung von">
+      </div>
       <label for="fFuss">Fußzeile (optional)</label>
       <input type="text" id="fFuss" value="#Haarnetzwerk">
     </div>
@@ -140,7 +168,7 @@ const STILE = {
   schwarz: { bg: '#141312', ink: '#F4EFE8', muted: '#B3AA9E', line: '#4A4540', card: '#FFFFFF', shadow: 'rgba(0,0,0,.35)' },
 };
 
-const state = { sponsoren: [], veranstalter: null, stil: 'creme' };
+const state = { sponsoren: [], veranstalter: null, stil: 'creme', modus: 'dank' };
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
 
@@ -263,6 +291,7 @@ function besteRaster(n, W, H, gap, ziel) {
 }
 
 function zeichne() {
+  if (state.modus === 'einladung') return zeichneEinladung();
   const [W, H] = $('fFormat').value.split('x').map(Number);
   cv.width = W; cv.height = H;
   const S = STILE[state.stil];
@@ -319,30 +348,32 @@ function zeichne() {
     unten -= 44 * s;
   }
 
-  // Logo-Raster
+  zeichneLogos(P, y, W - 2 * P, unten - y, s, S, 26 * s);
+}
+
+function zeichneLogos(x0, y, flW, flH, s, S, gap) {
+  const sans = "'Jost', 'Helvetica Neue', Arial, sans-serif";
   const n = state.sponsoren.length;
-  const flW = W - 2 * P, flH = unten - y;
   if (!n) {
     ctx.strokeStyle = S.line; ctx.setLineDash([10 * s, 10 * s]); ctx.lineWidth = 2 * s;
-    rundRect(P, y, flW, flH, 20 * s); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = S.muted; ctx.font = `400 ${28 * s}px ${sans}`;
-    ctx.fillText('Hier erscheinen die Sponsoren-Logos', W / 2, y + flH / 2);
+    rundRect(x0, y, flW, flH, 20 * s); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = S.muted; ctx.font = `400 ${28 * s}px ${sans}`; ctx.textAlign = 'center';
+    ctx.fillText('Hier erscheinen die Sponsoren-Logos', x0 + flW / 2, y + flH / 2);
     return;
   }
-  const gap = 26 * s;
   const R = besteRaster(n, flW, flH, gap, 1.55);
   const rasterH = R.rows * R.ch + (R.rows - 1) * gap;
   const y0 = y + (flH - rasterH) / 2;
-  const radius = 18 * s;
+  const radius = Math.min(18 * s, R.ch * 0.14);
   state.sponsoren.forEach((sp, i) => {
     const r = Math.floor(i / R.cols), c = i % R.cols;
     const inZeile = r === R.rows - 1 ? n - r * R.cols : R.cols;
     const zeilenB = inZeile * R.cw + (inZeile - 1) * gap;
-    const x = (W - zeilenB) / 2 + c * (R.cw + gap);
+    const x = x0 + (flW - zeilenB) / 2 + c * (R.cw + gap);
     const yy = y0 + r * (R.ch + gap);
 
     ctx.save();
-    ctx.shadowColor = S.shadow; ctx.shadowBlur = 24 * s; ctx.shadowOffsetY = 6 * s;
+    ctx.shadowColor = S.shadow; ctx.shadowBlur = Math.min(24 * s, R.ch * 0.15); ctx.shadowOffsetY = Math.min(6 * s, R.ch * 0.04);
     ctx.fillStyle = sp.info.bg || S.card;
     rundRect(x, yy, R.cw, R.ch, radius); ctx.fill();
     ctx.restore();
@@ -357,6 +388,93 @@ function zeichne() {
     ctx.drawImage(sp.info.quelle, cr.x, cr.y, cr.w, cr.h, x + (R.cw - dw) / 2, yy + (R.ch - dh) / 2, dw, dh);
     ctx.restore();
   });
+}
+
+// „09.11.2026“ → „Montag, 9. November 2026“; alles andere bleibt, wie es eingetippt wurde
+function datumLang(text) {
+  const m = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!m) return text;
+  const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  if (d.getMonth() !== +m[2] - 1) return text;
+  return d.toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function zeichneEinladung() {
+  const [W, H] = $('fFormat').value.split('x').map(Number);
+  cv.width = W; cv.height = H;
+  const S = STILE[state.stil];
+  const s = Math.min(W, H) / 1080;
+  const quer = W / H > 1.3;
+  const P = 72 * s;
+  const serif = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
+  const sans = "'Jost', 'Helvetica Neue', Arial, sans-serif";
+  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+
+  const v = id => $(id).value.trim();
+  const fuss = v('fFuss');
+  const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
+  const logosDa = state.sponsoren.length > 0;
+
+  // Platz unten: Fußzeile + Sponsorenband
+  let unten = H - P;
+  if (fuss) unten -= 44 * s;
+  const bandH = logosDa ? Math.round(H * (quer ? 0.24 : 0.22)) : 0;
+  const labelH = logosDa && v('fELabel') ? 46 * s : 0;
+  const textUnten = unten - bandH - labelH - (logosDa ? 40 * s : 0);
+
+  // Textblock einmal messen, dann so skalieren, dass er in den Platz passt
+  function block(k, zeichnen) {
+    let y = 0;
+    const breit = Math.min(W - 2 * P, 860 * s);
+    const zeile = (txt, font, farbe, groesse, lh, sperr) => {
+      ctx.font = font(groesse);
+      const zeilen = sperr ? [txt] : txt.split('\n').flatMap(z => umbrechen(z, breit));
+      for (const z of zeilen) {
+        y += groesse * lh;
+        if (zeichnen) { ctx.fillStyle = farbe; ctx.textAlign = 'center'; sperr ? gesperrt(z, W / 2, P + y, groesse * sperr) : ctx.fillText(z, W / 2, P + y); }
+        y += groesse * 0.2;
+      }
+    };
+    if (vlogo) {
+      const g = (quer ? 150 : 190) * s * k, f = g / Math.max(vlogo.width, vlogo.height);
+      if (zeichnen) ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, P + y, vlogo.width * f, vlogo.height * f);
+      y += vlogo.height * f + 30 * s * k;
+    }
+    if (v('fETitel')) { zeile(v('fETitel').toUpperCase(), g => `400 ${g}px ${sans}`, S.muted, 24 * s * k, 1, 0.32); y += 6 * s * k; }
+    if (v('fEvent')) { zeile(v('fEvent'), g => `italic 500 ${g}px ${serif}`, S.ink, 118 * s * k, 0.9, 0); y += 4 * s * k; }
+    // Trennlinie
+    y += 16 * s * k;
+    if (zeichnen) { ctx.strokeStyle = S.line; ctx.lineWidth = Math.max(1, 1.5 * s); ctx.beginPath(); ctx.moveTo(W / 2 - 60 * s, P + y); ctx.lineTo(W / 2 + 60 * s, P + y); ctx.stroke(); }
+    y += 18 * s * k;
+    if (v('fDatum')) zeile(datumLang(v('fDatum')), g => `500 ${g}px ${serif}`, S.ink, 46 * s * k, 1, 0);
+    if (v('fZeit')) { y += 12 * s * k; zeile(v('fZeit').toUpperCase(), g => `400 ${g}px ${sans}`, S.ink, 24 * s * k, 1, 0.24); }
+    if (v('fOrt')) { y += 10 * s * k; zeile(v('fOrt'), g => `400 ${g}px ${serif}`, S.muted, 32 * s * k, 1, 0); }
+    if (v('fEText')) { y += 22 * s * k; zeile(v('fEText'), g => `400 ${g}px ${serif}`, S.ink, 32 * s * k, 1.05, 0); }
+    if (v('fAnmeldung')) { y += 18 * s * k; zeile(v('fAnmeldung'), g => `400 ${g}px ${sans}`, S.muted, 23 * s * k, 1.1, 0); }
+    return y;
+  }
+  const platz = textUnten - P;
+  let k = 1;
+  const hoehe = block(1, false);
+  k = Math.max(0.55, Math.min(1.3, platz / hoehe));
+  // Text vertikal im freien Bereich etwas zentrieren
+  const verschub = Math.max(0, (platz - block(k, false)) * 0.4);
+  ctx.save(); ctx.translate(0, verschub); block(k, true); ctx.restore();
+
+  if (logosDa) {
+    let y = unten - bandH - labelH;
+    if (labelH) {
+      ctx.fillStyle = S.muted; ctx.font = `400 ${20 * s}px ${sans}`; ctx.textAlign = 'center';
+      gesperrt(v('fELabel').toUpperCase(), W / 2, y + 22 * s, 20 * s * 0.24);
+      y += labelH;
+    }
+    zeichneLogos(P, y, W - 2 * P, bandH, s, S, 18 * s);
+  }
+  if (fuss) {
+    ctx.fillStyle = S.muted; ctx.font = `400 ${22 * s}px ${sans}`; ctx.textAlign = 'center';
+    gesperrt(fuss, W / 2, H - P + 8 * s, 22 * s * 0.18);
+  }
 }
 
 // ---------- Liste ----------
@@ -393,8 +511,15 @@ async function ladeBeispiel() {
 }
 
 // ---------- Ereignisse ----------
-['fTitel', 'fEvent', 'fDatum', 'fText', 'fFuss'].forEach(id => $(id).addEventListener('input', zeichne));
+['fTitel', 'fEvent', 'fDatum', 'fText', 'fFuss', 'fETitel', 'fZeit', 'fOrt', 'fEText', 'fAnmeldung', 'fELabel'].forEach(id => $(id).addEventListener('input', zeichne));
 $('fFormat').addEventListener('change', aktualisiere);
+$('fModus').querySelectorAll('button').forEach(b => b.onclick = () => {
+  state.modus = b.dataset.v;
+  $('fModus').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.nur-dank').forEach(e => e.hidden = state.modus !== 'dank');
+  document.querySelectorAll('.nur-einladung').forEach(e => e.hidden = state.modus !== 'einladung');
+  zeichne();
+});
 $('fStil').querySelectorAll('button').forEach(b => b.onclick = () => {
   state.stil = b.dataset.v;
   $('fStil').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
@@ -415,7 +540,7 @@ $('btnLeeren').onclick = () => { if (confirm('Alle Sponsoren-Logos entfernen?'))
 $('btnBeispiel').onclick = ladeBeispiel;
 $('btnDownload').onclick = () => {
   zeichne();
-  const name = ['Sponsorenwand', $('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('_')
+  const name = [state.modus === 'einladung' ? 'Einladung' : 'Sponsorenwand', $('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('_')
     .replace(/[^\wäöüÄÖÜß.-]+/g, '-');
   cv.toBlob(blob => {
     const a = document.createElement('a');
