@@ -147,6 +147,35 @@
       <p class="hinweis">Die Logos lädst du unten bei „Sponsoren“ hoch. Alles, was du hier einträgst, wird pro Event und Sponsor auf diesem Gerät gemerkt.</p>
     </div>
 
+    <div class="panel nur-sponsor" hidden>
+      <h2>Texte</h2>
+      <p class="hinweis" style="margin:0 0 4px">Gelten für alle Events. [Sponsor] und [Event] werden automatisch ersetzt. Feld leer lassen = Text weglassen.</p>
+      <div class="nur-story" hidden>
+        <label for="tStoryKicker">Zeile über dem Logo</label>
+        <input type="text" id="tStoryKicker" data-ebene="text" data-standard="Danke an">
+        <label for="tStoryZeile">Zeile unter dem Logo</label>
+        <input type="text" id="tStoryZeile" data-ebene="text" data-standard="für eure Unterstützung">
+      </div>
+      <div class="nur-bericht" hidden>
+        <label for="tKicker">Kleine Zeile ganz oben</label>
+        <input type="text" id="tKicker" data-ebene="text" data-standard="Sponsoring-Bericht">
+        <label for="tTitel">Überschrift</label>
+        <input type="text" id="tTitel" data-ebene="text" data-standard="Danke, [Sponsor]!">
+        <label for="tLeistungen">Überschrift über den Leistungen</label>
+        <input type="text" id="tLeistungen" data-ebene="text" data-standard="Was ihr beim [Event] bekommen habt">
+        <label>Beschriftungen der Zahlen-Kacheln</label>
+        <div class="zahlen" style="gap:6px 8px">
+          <input type="text" id="lGaeste" data-ebene="text" data-standard="Gäste" aria-label="Beschriftung Gäste">
+          <input type="text" id="lSalons" data-ebene="text" data-standard="Salons vertreten" aria-label="Beschriftung Salons">
+          <input type="text" id="lErwaehnungen" data-ebene="text" data-standard="Storys & Beiträge mit euch" aria-label="Beschriftung Storys und Beiträge mit dem Sponsor">
+          <input type="text" id="lAufrufe" data-ebene="text" data-standard="Aufrufe dieser Storys & Beiträge" aria-label="Beschriftung Aufrufe">
+          <input type="text" id="lBeitraege" data-ebene="text" data-standard="Storys & Beiträge zum Event" aria-label="Beschriftung Storys und Beiträge zum Event">
+          <input type="text" id="lReichweite" data-ebene="text" data-standard="erreichte Konten auf Instagram" aria-label="Beschriftung erreichte Konten">
+        </div>
+      </div>
+      <button type="button" id="btnTexteZurueck" style="margin-top:12px">Standardtexte wiederherstellen</button>
+    </div>
+
     <div class="panel nur-bericht" hidden>
       <h2>Zahlen vom Abend</h2>
       <p class="hinweis" style="margin:0 0 4px">Gelten für alle Sponsoren dieses Events. Nur echte Zahlen eintragen, z. B. aus der Gästeliste oder der Instagram-Statistik. Leere Felder erscheinen nicht im Bericht.</p>
@@ -568,10 +597,22 @@ function zeichneEinladung() {
 const DANK_STANDARD = 'Danke, dass ihr unser Event möglich gemacht habt. Hier seht ihr, wen ihr mit eurer Unterstützung erreicht habt.';
 const LEISTUNG_VORSCHLAG = ['Logo auf der Einladung', 'Logo auf der Sponsorenwand', 'Erwähnung in unseren Instagram-Storys',
   'Eigener Beitrag auf Instagram', 'Produkt in der Goodie-Bag', 'Eigener Stand beim Event', 'Vorstellung vor den Gästen'];
-const ZAHLEN = [ // [Feld, Ebene, Beschriftung im Bericht]
-  ['bGaeste', 'event', 'Gäste'], ['bSalons', 'event', 'Salons vertreten'],
-  ['bErwaehnungen', 'sponsor', 'Storys & Beiträge mit euch'], ['bAufrufe', 'sponsor', 'Aufrufe dieser Storys & Beiträge'],
-  ['bBeitraege', 'event', 'Storys & Beiträge zum Event'], ['bReichweite', 'event', 'erreichte Konten auf Instagram']];
+const ZAHLEN = [ // [Feld, Ebene, Feld mit der Beschriftung im Bericht]
+  ['bGaeste', 'event', 'lGaeste'], ['bSalons', 'event', 'lSalons'],
+  ['bErwaehnungen', 'sponsor', 'lErwaehnungen'], ['bAufrufe', 'sponsor', 'lAufrufe'],
+  ['bBeitraege', 'event', 'lBeitraege'], ['bReichweite', 'event', 'lReichweite']];
+
+// Feste Texte: für alle Events gleich, in diesem Browser gemerkt.
+// Nicht gesetzt = Standardtext; leer = weglassen.
+let texte = {};
+try { texte = JSON.parse(localStorage.getItem('sponsorenwand-texte')) || {}; } catch {}
+const txt = id => texte[id] ?? $(id).dataset.standard;
+// [Sponsor] und [Event] einsetzen; ohne Event fällt „beim [Event]“ o. Ä. weg
+function ersetze(text, sponsor) {
+  const event = $('fEvent').value.trim();
+  return text.replace(/\[Sponsor\]/gi, sponsor)
+    .replace(event ? /\[Event\]/gi : /\s*(?:beim|bei|zum|zur|für|vom)?\s*\[Event\]/gi, event).trim();
+}
 
 const ablage = (() => {
   let db = null;
@@ -653,6 +694,7 @@ function sponsorAuswahl() {
 function formularFuellen() {
   if (!bericht.event.bText) bericht.event.bText = DANK_STANDARD;
   document.querySelectorAll('[data-ebene]').forEach(el => {
+    if (el.dataset.ebene === 'text') { el.value = txt(el.id); return; }
     const quelle = el.dataset.ebene === 'event' ? bericht.event : spDaten();
     el.value = quelle[el.id] || '';
   });
@@ -675,12 +717,23 @@ function fotosAnzeigen() {
 }
 
 document.querySelectorAll('[data-ebene]').forEach(el => el.addEventListener('input', () => {
+  if (el.dataset.ebene === 'text') {
+    texte[el.id] = el.value;
+    try { localStorage.setItem('sponsorenwand-texte', JSON.stringify(texte)); } catch {}
+    return zeichne();
+  }
   (el.dataset.ebene === 'event' ? bericht.event : spDaten())[el.id] = el.value;
   merken(); zeichne();
 }));
 $('fHandle').addEventListener('input', () => { spDaten().handle = $('fHandle').value.trim(); merken(); zeichne(); });
 $('fSponsor').addEventListener('change', () => { formularFuellen(); zeichne(); });
 $('fMuster').addEventListener('change', zeichne);
+$('btnTexteZurueck').onclick = () => {
+  if (!confirm('Alle Texte auf die Standardtexte zurücksetzen?')) return;
+  texte = {};
+  try { localStorage.removeItem('sponsorenwand-texte'); } catch {}
+  formularFuellen(); zeichne();
+};
 $('bLeistungen').addEventListener('input', e => {
   const i = e.target.dataset.i; if (i == null) return;
   spDaten().leistungen[Number(i)] = e.target.value; merken(); zeichne();
@@ -757,9 +810,10 @@ function zeichneStory() {
     ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
     y += vlogo.height * f + 70;
   }
-  ctx.fillStyle = S.muted; ctx.font = `400 30px ${SANS}`;
-  gesperrt('DANKE AN', W / 2, y + 30, 30 * 0.32);
-  y += 80;
+  const name = sp ? sp.name : 'Ihre Marke';
+  const oben = ersetze(txt('tStoryKicker'), name);
+  if (oben) { ctx.fillStyle = S.muted; ctx.font = `400 30px ${SANS}`; gesperrt(oben.toUpperCase(), W / 2, y + 30, 30 * 0.32); y += 80; }
+  else y += 20;
   if (sp) logoKarte(sp, 150, y, 780, 430, 28, s, S);
   else platzhalter(150, y, 780, 430, 'Ihr Logo', S, 40);
   y += 430;
@@ -767,7 +821,7 @@ function zeichneStory() {
   if (handle) { ctx.fillStyle = S.ink; ctx.font = `500 38px ${SANS}`; y += 80; ctx.fillText(handle, W / 2, y); }
   y += 120;
   ctx.fillStyle = S.ink; ctx.font = `italic 500 76px ${SERIF}`;
-  for (const z of umbrechen('für eure Unterstützung', W - 200)) { ctx.fillText(z, W / 2, y); y += 84; }
+  for (const z of umbrechen(ersetze(txt('tStoryZeile'), name), W - 200)) { ctx.fillText(z, W / 2, y); y += 84; }
   const zeile = [$('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('  ·  ').toUpperCase();
   if (zeile) { ctx.fillStyle = S.muted; ctx.font = `400 26px ${SANS}`; y += 20; gesperrt(zeile, W / 2, y, 26 * 0.22); }
   const fuss = $('fFuss').value.trim();
@@ -802,8 +856,10 @@ function zeichneBericht() {
     ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
     y += vlogo.height * f + 30;
   }
-  kicker('Sponsoring-Bericht', y + 14); y += 34;
-  y = absatz(`Danke, ${sp ? sp.name : 'Ihre Marke'}!`, `italic 500 58px ${SERIF}`, 58, 1, S.ink, W - 2 * P, y);
+  const name = sp ? sp.name : 'Ihre Marke';
+  const oben = ersetze(txt('tKicker'), name), titel = ersetze(txt('tTitel'), name);
+  if (oben) { kicker(oben, y + 14); y += 34; }
+  if (titel) y = absatz(titel, `italic 500 58px ${SERIF}`, 58, 1, S.ink, W - 2 * P, y);
   const zeile = [event, datum && datumLang(datum)].filter(Boolean).join('  ·  ');
   if (zeile) { y += 14; kicker(zeile, y + 18, 16); y += 26; }
   ctx.strokeStyle = S.line; ctx.lineWidth = 1.5;
@@ -819,7 +875,7 @@ function zeichneBericht() {
   y += 40;
 
   // Kennzahlen als Kacheln (nur ausgefüllte)
-  const zahlen = ZAHLEN.map(([id, ebene, label]) => [((ebene === 'event' ? e : d)[id] || '').trim() || (muster ? '–' : ''), label]).filter(([w]) => w);
+  const zahlen = ZAHLEN.map(([id, ebene, label]) => [((ebene === 'event' ? e : d)[id] || '').trim() || (muster ? '–' : ''), ersetze(txt(label), name)]).filter(([w]) => w);
   if (zahlen.length) {
     const cols = Math.min(3, zahlen.length), gap = 18, kw = (W - 2 * P - gap * (cols - 1)) / cols, kh = 128;
     zahlen.forEach(([wert, label], i) => {
@@ -839,7 +895,8 @@ function zeichneBericht() {
   let leistungen = d.leistungen.map(x => x.trim()).filter(Boolean);
   if (!leistungen.length && muster) leistungen = ['Leistung aus eurem Paket', 'Leistung aus eurem Paket', 'Leistung aus eurem Paket'];
   if (leistungen.length) {
-    kicker(event ? `Was ihr beim ${event} bekommen habt` : 'Was ihr bekommen habt', y + 14); y += 34;
+    const ueber = ersetze(txt('tLeistungen'), name);
+    if (ueber) { kicker(ueber, y + 14); y += 34; } else y += 6;
     const zwei = leistungen.length > 3, spaltenB = zwei ? (W - 2 * P) / 2 : W - 2 * P;
     const proSpalte = zwei ? Math.ceil(leistungen.length / 2) : leistungen.length;
     ctx.font = `400 21px ${SANS}`; ctx.textAlign = 'left';
