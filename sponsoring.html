@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FFFFFF">
+<!-- Solange MAPPE.entwurf = true: nicht in Suchmaschinen. Beim Freigeben diese Zeile löschen. -->
+<meta name="robots" content="noindex">
+<title>Kooperationspakete · Haarnetzwerk</title>
+<meta name="description" content="Kooperationspakete des Haarnetzwerks: Premium und Classic.">
+<style>
+  /* Schriften liegen hier im Repo (keine Verbindung zu Google beim Aufruf) */
+  @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-italic-500.woff2) format('woff2')}
+  @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-normal-500.woff2) format('woff2')}
+  @font-face{font-family:'Jost';font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/Jost-normal-400.woff2) format('woff2')}
+  :root {
+    --bg: #FFFFFF; --flaeche: #F5F5F4; --ink: #141414; --sub: #4A4A4A; --muted: #6B6B6B; --line: #E3E3E1;
+    --dunkel: #141414; --dunkel-2: #1F1F1F; --dunkel-line: #333333; --hell-auf-dunkel: #F5F5F4; --sub-auf-dunkel: #BDBDBD;
+    --serif: 'Cormorant Garamond', Georgia, serif; --sans: 'Jost', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--sans); }
+  a { color: inherit; }
+  .breite { max-width: 1040px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+  .eyebrow { font: 500 12px/1.4 var(--sans); letter-spacing: .32em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  h2 { font: italic 500 clamp(34px, 5vw, 48px)/1.1 var(--serif); margin: 12px 0 0; }
+  .linie { width: 64px; height: 1px; background: var(--ink); margin: 28px auto; border: 0; }
+  section { padding-top: 72px; padding-bottom: 72px; }
+  .entwurf { background: var(--dunkel); color: #fff; text-align: center; font-size: 13px; letter-spacing: .08em; padding: 8px 16px; }
+  .knopf { display: inline-flex; align-items: center; justify-content: center; font: 500 13px var(--sans); letter-spacing: .18em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer; border-radius: 0; padding: 15px 28px; border: 1px solid var(--ink); background: var(--ink); color: #fff; }
+  .knopf.hell { background: transparent; color: var(--ink); }
+  .knopf.umgekehrt { background: var(--hell-auf-dunkel); color: var(--ink); border-color: var(--hell-auf-dunkel); }
+
+  /* Einstieg */
+  .einstieg { text-align: center; padding-top: 64px; padding-bottom: 80px; }
+  .einstieg img { width: 128px; height: 128px; }
+  .einstieg .verein { margin: 14px 0 0; }
+  .einstieg h1 { font: italic 500 clamp(52px, 10vw, 104px)/1 var(--serif); margin: 40px 0 0; letter-spacing: -.005em; }
+  .einstieg .text { max-width: 560px; margin: 0 auto 36px; color: var(--sub); }
+  .einstieg .knoepfe { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* Zahlen */
+  .zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 56px; }
+  .zahl { padding: 26px 12px; text-align: center; }
+  .zahl + .zahl { border-left: 1px solid var(--line); }
+  .zahl b { display: block; font: 500 48px/1 var(--serif); }
+  .zahl span { display: block; margin-top: 8px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+
+  /* Pakete */
+  .pakete-bereich { background: var(--flaeche); }
+  .kopfzeile { text-align: center; margin-bottom: 48px; }
+  .pakete { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: stretch; }
+  .paket { display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); padding: 40px 32px 32px; }
+  .paket.premium { background: var(--dunkel); color: var(--hell-auf-dunkel); border-color: var(--dunkel); }
+  .paket-kopf { text-align: center; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+  .premium .paket-kopf { border-color: var(--dunkel-line); }
+  .paket-kopf .eyebrow { margin-bottom: 10px; }
+  .premium .eyebrow { color: var(--sub-auf-dunkel); }
+  .paket-kopf h3 { margin: 0; font: italic 500 46px/1 var(--serif); }
+  .paket-kopf .wert { margin: 18px 0 0; font: 500 36px/1 var(--serif); }
+  .paket-kopf .wert small { display: block; font: 500 11px/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .premium .paket-kopf .wert small { color: var(--sub-auf-dunkel); }
+  .paket-kopf .zeitraum { display: block; margin-top: 6px; font: italic 500 18px/1 var(--serif); color: var(--muted); }
+  .premium .paket-kopf .zeitraum { color: var(--sub-auf-dunkel); }
+  .paket ul { list-style: none; margin: 8px 0 28px; padding: 0; flex: 1; }
+  .paket li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .premium li { border-color: var(--dunkel-line); }
+  .paket li:last-child { border-bottom: none; }
+  .paket li.hervor b { display: block; font-weight: 500; }
+  .paket li.hervor span:last-child { color: var(--muted); }
+  .premium li.hervor span:last-child { color: var(--sub-auf-dunkel); }
+  .premium li.hervor b { color: var(--hell-auf-dunkel); }
+  .symbol { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; }
+  .premium .symbol { border-color: #4A4A4A; }
+  .symbol svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  .paket .knopf { width: 100%; }
+  .absprache { text-align: center; color: var(--sub); margin: 36px 0 0; font: italic 500 22px/1.4 var(--serif); }
+
+  /* Über uns, Termine */
+  .ueber { max-width: 680px; margin: 0 auto; text-align: center; }
+  .ueber p:not(.eyebrow) { color: var(--sub); margin-top: 20px; }
+  .termine { list-style: none; margin: 36px auto 0; padding: 0; max-width: 680px; border-top: 1px solid var(--line); }
+  .termine li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .termine b { font: italic 500 28px/1.2 var(--serif); }
+  .termine span { color: var(--muted); letter-spacing: .12em; white-space: nowrap; }
+  .zentriert { text-align: center; }
+
+  /* Anfrage */
+  .anfrage { background: var(--dunkel); color: var(--hell-auf-dunkel); }
+  .anfrage .eyebrow { color: var(--sub-auf-dunkel); }
+  .formular { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 48px; }
+  @media (max-width: 760px) { .formular { grid-template-columns: 1fr; } }
+  .wahl { display: grid; gap: 0; border-top: 1px solid var(--dunkel-line); }
+  .wahl label { display: flex; gap: 14px; align-items: center; border-bottom: 1px solid var(--dunkel-line); padding: 16px 2px; cursor: pointer; }
+  .wahl input { accent-color: var(--hell-auf-dunkel); width: 18px; height: 18px; }
+  .wahl span { font: italic 500 22px/1.2 var(--serif); }
+  .wahl small { color: var(--sub-auf-dunkel); margin-left: auto; white-space: nowrap; letter-spacing: .08em; }
+  .feldname { display: block; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--sub-auf-dunkel); margin: 26px 0 8px; }
+  input[type=text], textarea { width: 100%; font: inherit; font-size: 16px; color: var(--hell-auf-dunkel); background: transparent; border: 0; border-bottom: 1px solid #555; padding: 8px 0; border-radius: 0; }
+  input[type=text]:focus, textarea:focus { outline: none; border-bottom-color: var(--hell-auf-dunkel); }
+  input::placeholder, textarea::placeholder { color: #7A7A7A; }
+  textarea { min-height: 84px; resize: vertical; }
+  .vorschau { white-space: pre-wrap; background: var(--dunkel-2); border: 1px solid var(--dunkel-line); padding: 20px; font-size: 15px; color: #D6D6D6; min-height: 200px; }
+  .senden { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .anfrage .knopf.hell { color: var(--hell-auf-dunkel); border-color: #777; }
+  .hinweis { font-size: 13px; color: var(--sub-auf-dunkel); margin: 12px 0 0; }
+
+  footer { padding: 36px 0 48px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); text-align: center; }
+  footer p { margin: 6px 0; }
+  :focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+  @media (max-width: 600px) { section { padding-top: 56px; padding-bottom: 56px; } .paket { padding: 32px 22px 24px; } }
+</style>
+</head>
+<body>
+<div class="entwurf" id="entwurf" hidden>Entwurf – noch nicht freigegeben</div>
+
+<main>
+  <section class="breite einstieg">
+    <img src="bilder/haarnetzwerk-logo-schwarz.png" alt="Haarnetzwerk">
+    <p class="eyebrow verein" id="verein"></p>
+    <h1>Kooperationspakete</h1>
+    <hr class="linie">
+    <p class="text" id="einleitung"></p>
+    <div class="knoepfe">
+      <a class="knopf" href="#pakete">Pakete ansehen</a>
+      <a class="knopf hell" href="#anfrage">Anfrage stellen</a>
+    </div>
+    <div class="zahlen" id="zahlen" hidden></div>
+  </section>
+
+  <section class="pakete-bereich" id="pakete">
+    <div class="breite">
+      <div class="kopfzeile">
+        <p class="eyebrow">Werbekostenpakete · Kooperationsvereinbarungen</p>
+        <h2>Unsere Pakete</h2>
+      </div>
+      <div class="pakete" id="paketliste"></div>
+      <p class="absprache">Detailanfragen oder Abänderungen sind natürlich nach Absprache möglich.</p>
+    </div>
+  </section>
+
+  <section class="breite" id="ueber-bereich" hidden>
+    <div class="ueber">
+      <p class="eyebrow">Über uns</p>
+      <h2>Das Haarnetzwerk</h2>
+      <p id="ueber"></p>
+    </div>
+  </section>
+
+  <section class="breite zentriert" id="termine-bereich" hidden>
+    <p class="eyebrow">Nächste Veranstaltungen</p>
+    <h2>Hier seid ihr dabei</h2>
+    <ul class="termine" id="termine"></ul>
+  </section>
+
+  <section class="anfrage" id="anfrage">
+    <div class="breite">
+      <div class="zentriert">
+        <p class="eyebrow">Anfrage</p>
+        <h2>Paket wählen und anfragen</h2>
+      </div>
+      <div class="formular">
+        <div>
+          <div class="wahl" id="wahl" role="radiogroup" aria-label="Paket"></div>
+          <label class="feldname" for="firma">Firma *</label>
+          <input type="text" id="firma" autocomplete="organization">
+          <label class="feldname" for="person">Ansprechperson</label>
+          <input type="text" id="person" autocomplete="name">
+          <label class="feldname" for="wunsch">Wünsche oder Abänderungen</label>
+          <textarea id="wunsch" placeholder="z. B. Interesse an einer bestimmten Veranstaltung"></textarea>
+        </div>
+        <div>
+          <p class="feldname" style="margin-top:0">Eure Nachricht an uns</p>
+          <div class="vorschau" id="vorschau" aria-live="polite"></div>
+          <div class="senden">
+            <a class="knopf umgekehrt" id="per-mail" hidden>Per E-Mail senden</a>
+            <a class="knopf umgekehrt" id="per-whatsapp" hidden target="_blank" rel="noopener">Per WhatsApp senden</a>
+            <button type="button" class="knopf hell" id="kopieren">Text kopieren</button>
+          </div>
+          <p class="hinweis" id="kontakt-hinweis"></p>
+          <p class="hinweis">Diese Seite speichert nichts. Eure Nachricht geht direkt aus eurem E-Mail-Programm oder WhatsApp an uns.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p id="fuss-verein"></p>
+  <p id="impressum-zeile" hidden><a id="impressum" href="#">Impressum</a></p>
+</footer>
+
+<script>
+// ════════════════════════════════════════════
+// SPONSORING-MAPPE: Kooperationspakete des Haarnetzwerks
+// ════════════════════════════════════════════
+// Öffentliche Seite für mögliche Kooperationspartner. Alles, was sich ändert,
+// steht hier in MAPPE. Nichts wird gespeichert oder hochgeladen; die Anfrage
+// geht über das E-Mail-Programm oder WhatsApp der Firma.
+// Regel aus CLAUDE.md: keine privaten Adressen oder Nummern hier eintragen,
+// nur die offiziellen Kontakte des Vereins.
+
+const MAPPE = {
+  // auf false stellen, wenn Kontakt und Texte freigegeben sind (dann auch die robots-Zeile oben löschen)
+  entwurf: true,
+  verein: { name: 'Haarnetzwerk', zusatz: 'Landesorganisation Wien', zvr: '823433542' },
+  // offizielle Kontakte des Vereins; leer = Knopf wird nicht gezeigt
+  kontakt: {
+    email: '',     // z. B. office@…
+    whatsapp: ''   // nur Ziffern mit Ländervorwahl, z. B. 43660…
+  },
+  impressum: '',   // Link zum Impressum des Vereins
+  einleitung: 'Mit unseren Paketen machen wir den Werbekostenzuschuss unserer Kooperationspartner sichtbar.',
+  ueber: '',       // eigener Text über den Verein; leer = Abschnitt wird nicht gezeigt
+  // nur echte Zahlen; leere werden nicht gezeigt
+  zahlen: [
+    { wert: '', label: 'Salons im Netzwerk' },
+    { wert: '', label: 'Mitglieder' },
+    { wert: '', label: 'Follower auf Instagram' },
+    { wert: '', label: 'Gäste pro Veranstaltung' }
+  ],
+  termine: [
+    { name: 'Musical Maria Theresia', datum: '24.01.2027' }
+  ],
+  pakete: [
+    { id: 'premium', name: 'Premium', wert: '1.500 €', zeitraum: 'pro Jahr', leistungen: [
+      ['web', 'Logo auf unserer Homepage'],
+      ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
+      ['leute', 'Nennung bei Veranstaltungen als „Sponsor“'],
+      ['megafon', 'Logo auf digitalen Flyern unserer Veranstaltungen'],
+      ['rollup', 'Rollups bei Haarnetzwerk-Veranstaltungen'],
+      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
+      ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
+    ] },
+    { id: 'classic', name: 'Classic', wert: '650 €', zeitraum: 'pro Jahr', leistungen: [
+      ['web', 'Logo auf unserer Homepage'],
+      ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
+      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
+      ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
+    ] }
+  ]
+};
+
+// feine Linien-Symbole (Strichstärke über CSS)
+const SYMBOLE = {
+  web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+  seite: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 15h5M10 18h3"/>',
+  leute: '<circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19c.5-3 2.5-5 5-5s4.5 2 5 5M2.5 18c.3-2 1.5-3.5 3-3.8M21.5 18c-.3-2-1.5-3.5-3-3.8"/>',
+  megafon: '<path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M17 9.5a3.5 3.5 0 0 1 0 5M7 14l1.5 5h2.5L10 15"/>',
+  rollup: '<path d="M8 4h8v14H8z"/><path d="M6 4h12M12 18v3M9 21h6"/>',
+  brief: '<path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/>',
+  ticket: '<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/>'
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ── Inhalte aus MAPPE ──
+const v = MAPPE.verein;
+$('entwurf').hidden = !MAPPE.entwurf;
+$('verein').textContent = `${v.name} · ${v.zusatz}`;
+$('fuss-verein').textContent = `${v.name} · ${v.zusatz} · ZVR ${v.zvr}`;
+if (MAPPE.impressum) { $('impressum').href = MAPPE.impressum; $('impressum-zeile').hidden = false; }
+$('einleitung').textContent = MAPPE.einleitung;
+$('ueber').textContent = MAPPE.ueber;
+$('ueber-bereich').hidden = !MAPPE.ueber.trim();
+
+const zahlen = MAPPE.zahlen.filter(z => String(z.wert).trim());
+$('zahlen').innerHTML = zahlen.map(z => `<div class="zahl"><b>${esc(z.wert)}</b><span>${esc(z.label)}</span></div>`).join('');
+$('zahlen').hidden = !zahlen.length;
+
+$('termine').innerHTML = MAPPE.termine.map(t => `<li><b>${esc(t.name)}</b><span>${esc(t.datum)}</span></li>`).join('');
+$('termine-bereich').hidden = !MAPPE.termine.length;
+
+$('paketliste').innerHTML = MAPPE.pakete.map(p => `
+  <article class="paket ${esc(p.id)}" aria-label="${esc(p.name)} Paket">
+    <div class="paket-kopf"><p class="eyebrow">Paket</p><h3>${esc(p.name)}</h3><p class="wert"><small>Wert</small>${esc(p.wert)}${p.zeitraum ? `<span class="zeitraum">${esc(p.zeitraum)}</span>` : ''}</p></div>
+    <ul>${p.leistungen.map(([sym, text]) => {
+      const [titel, zusatz] = text.split('|');
+      return `<li${zusatz ? ' class="hervor"' : ''}><span class="symbol"><svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOLE[sym] || ''}</svg></span>
+        <span>${zusatz ? `<b>${esc(titel)}</b>${esc(zusatz)}` : esc(titel)}</span></li>`;
+    }).join('')}</ul>
+    <a class="knopf ${p.id === 'premium' ? 'umgekehrt' : ''}" href="#anfrage" data-paket="${esc(p.id)}">${esc(p.name)} anfragen</a>
+  </article>`).join('');
+
+// ── Anfrage ──
+const WAHL = [...MAPPE.pakete.map(p => ({ id: p.id, name: `${p.name} Paket`, wert: [p.wert, p.zeitraum].filter(Boolean).join(' ') })), { id: 'individuell', name: 'Individuell nach Absprache', wert: '' }];
+$('wahl').innerHTML = WAHL.map((w, i) => `<label><input type="radio" name="paket" value="${esc(w.id)}"${i === 0 ? ' checked' : ''}>
+  <span>${esc(w.name)}</span>${w.wert ? `<small>Wert ${esc(w.wert)}</small>` : ''}</label>`).join('');
+
+function nachricht() {
+  const w = WAHL.find(x => x.id === document.querySelector('input[name=paket]:checked').value);
+  const firma = $('firma').value.trim(), person = $('person').value.trim(), wunsch = $('wunsch').value.trim();
+  return ['Hallo Haarnetzwerk-Team,', '',
+    `wir interessieren uns für eine Kooperation: ${w.name}${w.wert ? ` (Wert ${w.wert})` : ''}.`,
+    wunsch ? `\n${wunsch}` : '', '',
+    `Firma: ${firma || '…'}`, person ? `Ansprechperson: ${person}` : '', '',
+    'Wir freuen uns auf eure Rückmeldung.', '', 'Viele Grüße', person || firma || ''
+  ].filter((z, i, a) => !(z === '' && a[i - 1] === '')).join('\n').trim();
+}
+const kontakt = MAPPE.kontakt;
+const nummer = String(kontakt.whatsapp || '').replace(/\D/g, '');
+$('per-mail').hidden = !kontakt.email;
+$('per-whatsapp').hidden = !nummer;
+$('kontakt-hinweis').textContent = kontakt.email || nummer ? '' : 'Kontakt folgt. Bis dahin: Text kopieren und uns schicken.';
+function aktualisieren() {
+  const text = nachricht();
+  $('vorschau').textContent = text;
+  const betreff = `Kooperation Haarnetzwerk – ${$('firma').value.trim() || 'Anfrage'}`;
+  if (kontakt.email) $('per-mail').href = `mailto:${kontakt.email}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`;
+  if (nummer) $('per-whatsapp').href = `https://wa.me/${nummer}?text=${encodeURIComponent(text)}`;
+}
+document.addEventListener('input', aktualisieren);
+document.addEventListener('change', aktualisieren);
+for (const id of ['per-mail', 'per-whatsapp']) $(id).addEventListener('click', e => {
+  if (!$('firma').value.trim()) { e.preventDefault(); $('firma').focus(); $('firma').placeholder = 'Bitte den Namen der Firma eintragen'; }
+});
+$('paketliste').addEventListener('click', e => {
+  const a = e.target.closest('[data-paket]'); if (!a) return;
+  document.querySelector(`input[name=paket][value="${a.dataset.paket}"]`).checked = true;
+  aktualisieren();
+});
+$('kopieren').addEventListener('click', async () => {
+  const text = nachricht();
+  try { await navigator.clipboard.writeText(text); $('kopieren').textContent = 'Kopiert ✓'; }
+  catch { prompt('Text zum Kopieren:', text); }
+  setTimeout(() => { $('kopieren').textContent = 'Text kopieren'; }, 2000);
+});
+aktualisieren();
+</script>
+</body>
+</html>
