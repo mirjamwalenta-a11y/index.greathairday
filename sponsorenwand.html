@@ -101,6 +101,8 @@
       </div>
       <p class="hinweis nur-story" hidden>Ein Story-Bild pro Sponsor zum Posten und Taggen, nach dem Event.</p>
       <p class="hinweis nur-bericht" hidden>Eine A4-Seite pro Sponsor nach dem Event: was ihr erreicht habt, was er bekommen hat, Fotos vom Abend. Zum Mailen als PDF oder Bild.</p>
+      <label class="nur-sponsor" hidden style="display:flex;gap:8px;align-items:flex-start;color:var(--ink)"><input type="checkbox" id="fMuster" style="margin-top:3px">
+        <span>Muster zum Herzeigen: leere Stellen als neutrale Kästchen zeigen (ohne Sponsor: „Ihr Logo“)</span></label>
     </div>
 
     <div class="panel">
@@ -114,8 +116,8 @@
         <input type="text" id="fETitel" value="Einladung zum">
       </div>
       <div class="row">
-        <div><label for="fEvent">Veranstaltung</label><input type="text" id="fEvent" value="Genussabend"></div>
-        <div><label for="fDatum">Datum</label><input type="text" id="fDatum" value="09.11.2026" placeholder="TT.MM.JJJJ"></div>
+        <div><label for="fEvent">Veranstaltung</label><input type="text" id="fEvent" value="Musical Maria Theresia"></div>
+        <div><label for="fDatum">Datum</label><input type="text" id="fDatum" placeholder="TT.MM.JJJJ"></div>
       </div>
       <div class="nur-dank">
         <label for="fText">Dankestext (optional)</label>
@@ -391,7 +393,7 @@ function zeichne() {
 
   // Kopfbereich
   let y = P;
-  const logoG = (quer ? 170 : 210) * s;
+  const logoG = (quer ? 240 : 300) * s;
   const titelG = (quer ? 64 : 76) * s;
   const zeileG = 24 * s, textG = 30 * s;
   const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
@@ -520,7 +522,7 @@ function zeichneEinladung() {
       }
     };
     if (vlogo) {
-      const g = (quer ? 150 : 190) * s * k, f = g / Math.max(vlogo.width, vlogo.height);
+      const g = (quer ? 210 : 270) * s * k, f = g / Math.max(vlogo.width, vlogo.height);
       if (zeichnen) ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, P + y, vlogo.width * f, vlogo.height * f);
       y += vlogo.height * f + 30 * s * k;
     }
@@ -561,7 +563,7 @@ function zeichneEinladung() {
 }
 
 // ---------- Danke-Story und Bericht pro Sponsor ----------
-// Daten pro Event (Name + Datum), darin pro Sponsor (nach Name). Gemerkt in
+// Daten pro Event (nach Name), darin pro Sponsor (nach Name). Gemerkt in
 // IndexedDB auf diesem Gerät; nichts wird hochgeladen.
 const DANK_STANDARD = 'Danke, dass ihr unser Event möglich gemacht habt. Hier seht ihr, wen ihr mit eurer Unterstützung erreicht habt.';
 const LEISTUNG_VORSCHLAG = ['Logo auf der Einladung', 'Logo auf der Sponsorenwand', 'Erwähnung in unseren Instagram-Storys',
@@ -589,7 +591,8 @@ const ablage = (() => {
 })();
 
 let bericht = { event: {}, sponsoren: {} }, berichtSchluessel = null, merkenTimer = null;
-const eventSchluessel = () => `${$('fEvent').value.trim()}|${$('fDatum').value.trim()}`;
+// pro Event-Name; das Datum steht im Eintrag (so geht nichts verloren, wenn es erst später feststeht)
+const eventSchluessel = () => 'event|' + $('fEvent').value.trim();
 const aktSponsor = () => state.sponsoren[Number($('fSponsor').value)] || null;
 function spDaten(sp = aktSponsor()) {
   if (!sp) return { leistungen: [], fotos: [] };
@@ -607,7 +610,21 @@ async function berichtLaden() {
   let d = null;
   try { d = await ablage.lesen(k); } catch {}
   bericht = d || { event: {}, sponsoren: {} };
+  if (d) $('fDatum').value = d.datum || '';
+  else bericht.datum = $('fDatum').value.trim();
+  try { localStorage.setItem('sponsorenwand-event', $('fEvent').value.trim()); } catch {}
+  // gemerkte Logos dieses Events; hat es noch keine, bleiben die aktuellen (z. B. nach einem Tippfehler im Namen)
+  if (bericht.logos?.length) {
+    try { state.sponsoren = await Promise.all(bericht.logos.map(l => sponsorAus(l.name, l.src))); } catch {}
+  }
   formularFuellen();
+  aktualisiere();
+}
+// Logos im Eintrag des Events mitmerken
+function logosMerken() {
+  if (!berichtSchluessel) return;
+  bericht.logos = state.sponsoren.map(sp => ({ name: sp.name, src: sp.src }));
+  merken();
 }
 
 const fotoBilder = new Map(); // Data-URL → geladenes Bild
@@ -663,6 +680,7 @@ document.querySelectorAll('[data-ebene]').forEach(el => el.addEventListener('inp
 }));
 $('fHandle').addEventListener('input', () => { spDaten().handle = $('fHandle').value.trim(); merken(); zeichne(); });
 $('fSponsor').addEventListener('change', () => { formularFuellen(); zeichne(); });
+$('fMuster').addEventListener('change', zeichne);
 $('bLeistungen').addEventListener('input', e => {
   const i = e.target.dataset.i; if (i == null) return;
   spDaten().leistungen[Number(i)] = e.target.value; merken(); zeichne();
@@ -690,14 +708,28 @@ $('bFotoListe').addEventListener('click', e => {
   const i = e.target.dataset.weg; if (i == null) return;
   spDaten().fotos.splice(Number(i), 1); merken(); fotosAnzeigen(); zeichne();
 });
-['fEvent', 'fDatum'].forEach(id => $(id).addEventListener('change', berichtLaden));
+$('fEvent').addEventListener('change', berichtLaden);
+$('fDatum').addEventListener('input', () => { bericht.datum = $('fDatum').value.trim(); merken(); });
 
 const SERIF = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
 const SANS = "'Jost', 'Helvetica Neue', Arial, sans-serif";
 function ohneSponsor(W, H, S, s) {
   ctx.fillStyle = S.muted; ctx.font = `400 ${30 * s}px ${SANS}`; ctx.textAlign = 'center';
   ctx.fillText('Lade unten zuerst die Sponsoren-Logos hoch', W / 2, H / 2);
+  ctx.font = `400 ${22 * s}px ${SANS}`;
+  ctx.fillText('oder schalte oben „Muster zum Herzeigen“ ein', W / 2, H / 2 + 44 * s);
 }
+// Neutrales Kästchen für die Muster-Ansicht: leicht getönt, gestrichelter Rand, Beschriftung in der Mitte
+function platzhalter(x, y, w, h, text, S, g = 20) {
+  ctx.save();
+  ctx.fillStyle = S === STILE.schwarz ? 'rgba(255,255,255,.06)' : 'rgba(110,103,94,.08)';
+  rundRect(x, y, w, h, 14); ctx.fill();
+  ctx.setLineDash([8, 7]); ctx.strokeStyle = S.line; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = S.muted; ctx.font = `400 ${g}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, x + w / 2, y + h / 2);
+  ctx.restore();
+}
+
 // Bild so zuschneiden, dass es die Fläche füllt
 function fotoFuellen(img, x, y, w, h, r) {
   if (!img.complete || !img.naturalWidth) return;
@@ -716,20 +748,22 @@ function zeichneStory() {
   ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  if (!sp) return ohneSponsor(W, H, S, s);
+  const muster = $('fMuster').checked;
+  if (!sp && !muster) return ohneSponsor(W, H, S, s);
   let y = 280;
   const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
   if (vlogo) {
-    const f = 150 / Math.max(vlogo.width, vlogo.height);
+    const f = 260 / Math.max(vlogo.width, vlogo.height);
     ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
     y += vlogo.height * f + 70;
   }
   ctx.fillStyle = S.muted; ctx.font = `400 30px ${SANS}`;
   gesperrt('DANKE AN', W / 2, y + 30, 30 * 0.32);
   y += 80;
-  logoKarte(sp, 150, y, 780, 430, 28, s, S);
+  if (sp) logoKarte(sp, 150, y, 780, 430, 28, s, S);
+  else platzhalter(150, y, 780, 430, 'Ihr Logo', S, 40);
   y += 430;
-  const handle = spDaten(sp).handle;
+  const handle = spDaten(sp).handle || (muster && !sp ? '@ihremarke' : '');
   if (handle) { ctx.fillStyle = S.ink; ctx.font = `500 38px ${SANS}`; y += 80; ctx.fillText(handle, W / 2, y); }
   y += 120;
   ctx.fillStyle = S.ink; ctx.font = `italic 500 76px ${SERIF}`;
@@ -749,7 +783,8 @@ function zeichneBericht() {
   ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  if (!sp) { ohneSponsor(W, H, S, s); ctx.setTransform(1, 0, 0, 1, 0, 0); return; }
+  const muster = $('fMuster').checked;
+  if (!sp && !muster) { ohneSponsor(W, H, S, s); ctx.setTransform(1, 0, 0, 1, 0, 0); return; }
   const d = spDaten(sp), e = bericht.event;
   const event = $('fEvent').value.trim(), datum = $('fDatum').value.trim();
   const kicker = (text, y, g = 15) => { ctx.fillStyle = S.muted; ctx.font = `400 ${g}px ${SANS}`; gesperrt(text.toUpperCase(), W / 2, y, g * 0.3); };
@@ -763,12 +798,12 @@ function zeichneBericht() {
   let y = P;
   const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
   if (vlogo) {
-    const f = 80 / Math.max(vlogo.width, vlogo.height);
+    const f = 140 / Math.max(vlogo.width, vlogo.height);
     ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
     y += vlogo.height * f + 30;
   }
   kicker('Sponsoring-Bericht', y + 14); y += 34;
-  y = absatz(`Danke, ${sp.name}!`, `italic 500 58px ${SERIF}`, 58, 1, S.ink, W - 2 * P, y);
+  y = absatz(`Danke, ${sp ? sp.name : 'Ihre Marke'}!`, `italic 500 58px ${SERIF}`, 58, 1, S.ink, W - 2 * P, y);
   const zeile = [event, datum && datumLang(datum)].filter(Boolean).join('  ·  ');
   if (zeile) { y += 14; kicker(zeile, y + 18, 16); y += 26; }
   ctx.strokeStyle = S.line; ctx.lineWidth = 1.5;
@@ -776,14 +811,15 @@ function zeichneBericht() {
   y += 44;
 
   // Logo und Dank
-  logoKarte(sp, W / 2 - 210, y, 420, 180, 16, s, S);
+  if (sp) logoKarte(sp, W / 2 - 210, y, 420, 180, 16, s, S);
+  else platzhalter(W / 2 - 210, y, 420, 180, 'Ihr Logo', S);
   y += 180;
   if (d.handle) { ctx.fillStyle = S.muted; ctx.font = `400 19px ${SANS}`; y += 34; ctx.fillText(d.handle, W / 2, y); }
   if (e.bText?.trim()) { y += 20; y = absatz(e.bText.trim(), `400 25px ${SERIF}`, 25, 1.3, S.ink, 880, y); }
   y += 40;
 
   // Kennzahlen als Kacheln (nur ausgefüllte)
-  const zahlen = ZAHLEN.map(([id, ebene, label]) => [((ebene === 'event' ? e : d)[id] || '').trim(), label]).filter(([w]) => w);
+  const zahlen = ZAHLEN.map(([id, ebene, label]) => [((ebene === 'event' ? e : d)[id] || '').trim() || (muster ? '–' : ''), label]).filter(([w]) => w);
   if (zahlen.length) {
     const cols = Math.min(3, zahlen.length), gap = 18, kw = (W - 2 * P - gap * (cols - 1)) / cols, kh = 128;
     zahlen.forEach(([wert, label], i) => {
@@ -800,7 +836,8 @@ function zeichneBericht() {
   }
 
   // Leistungen
-  const leistungen = d.leistungen.map(x => x.trim()).filter(Boolean);
+  let leistungen = d.leistungen.map(x => x.trim()).filter(Boolean);
+  if (!leistungen.length && muster) leistungen = ['Leistung aus eurem Paket', 'Leistung aus eurem Paket', 'Leistung aus eurem Paket'];
   if (leistungen.length) {
     kicker(event ? `Was ihr beim ${event} bekommen habt` : 'Was ihr bekommen habt', y + 14); y += 34;
     const zwei = leistungen.length > 3, spaltenB = zwei ? (W - 2 * P) / 2 : W - 2 * P;
@@ -817,7 +854,8 @@ function zeichneBericht() {
   }
 
   // unten: Zitat, Ausblick, Fußzeile (erst messen, dann bekommen die Fotos den Platz dazwischen)
-  const zitat = (d.bZitat || '').trim(), von = (d.bZitatVon || '').trim(), ausblick = (e.bAusblick || '').trim();
+  const zitat = (d.bZitat || '').trim() || (muster ? 'Stimme eines Gastes vom Abend' : ''), von = (d.bZitatVon || '').trim();
+  const ausblick = (e.bAusblick || '').trim() || (muster ? 'Ausblick auf unser nächstes Event' : '');
   const fuss = $('fFuss').value.trim();
   const zitatH = zitat ? absatz(`„${zitat}“`, `italic 400 25px ${SERIF}`, 25, 1.3, S.ink, 900, 0, false) + (von ? 30 : 0) + 30 : 0;
   const ausblickH = ausblick ? absatz(ausblick, `400 21px ${SERIF}`, 21, 1.3, S.muted, 900, 0, false) + 24 : 0;
@@ -825,13 +863,17 @@ function zeichneBericht() {
   let yUnten = unten - zitatH - ausblickH;
 
   // Fotos füllen den freien Platz
-  const fotos = d.fotos.map(fotoBild).filter(i => i.complete && i.naturalWidth);
+  let fotos = d.fotos.map(fotoBild).filter(i => i.complete && i.naturalWidth);
+  if (!fotos.length && muster) fotos = [null, null, null]; // neutrale Kästchen statt Fotos
   const fotoH = yUnten - y - 20;
   if (fotos.length && fotoH > 120) {
     const n = fotos.length, cols = n === 4 ? 2 : n, rows = n === 4 ? 2 : 1, gap = 14;
     const fw = (W - 2 * P - gap * (cols - 1)) / cols, fh = Math.min((fotoH - gap * (rows - 1)) / rows, fw * (n === 1 ? 0.62 : 1.25));
     const gesamtH = rows * fh + (rows - 1) * gap, y0 = y + (fotoH - gesamtH) / 2;
-    fotos.forEach((img, i) => fotoFuellen(img, P + (i % cols) * (fw + gap), y0 + Math.floor(i / cols) * (fh + gap), fw, fh, 12));
+    fotos.forEach((img, i) => {
+      const fx = P + (i % cols) * (fw + gap), fy = y0 + Math.floor(i / cols) * (fh + gap);
+      if (img) fotoFuellen(img, fx, fy, fw, fh, 12); else platzhalter(fx, fy, fw, fh, 'Foto vom Abend', S);
+    });
   } else {
     yUnten = y + Math.max(0, (yUnten - y - 0) / 2) - 10; // ohne Fotos: unteren Teil etwas nach oben holen
   }
@@ -887,7 +929,7 @@ function liste() {
       <button type="button" title="entfernen" data-a="weg" class="ghost-danger">✕</button></div>`;
     li.querySelector('img').src = sp.src;
     const inp = li.querySelector('input'); inp.value = sp.name;
-    inp.oninput = () => { sp.name = inp.value; sponsorAuswahl(); };
+    inp.oninput = () => { sp.name = inp.value; sponsorAuswahl(); logosMerken(); };
     inp.onchange = () => { formularFuellen(); zeichne(); };
     li.querySelectorAll('button').forEach(b => b.onclick = () => {
       const a = b.dataset.a, L = state.sponsoren;
@@ -903,12 +945,14 @@ function liste() {
     : state.modus === 'bericht' ? `A4 · ${aktSponsor()?.name || ''}` : $('fFormat').selectedOptions[0].text;
   $('hint').textContent = `${state.sponsoren.length} Logo${state.sponsoren.length === 1 ? '' : 's'} · ${art}`;
 }
-function aktualisiere() { liste(); zeichne(); }
+function aktualisiere() { liste(); zeichne(); logosMerken(); }
 
 async function ladeBeispiel() {
   if (!DEFAULTS) return;
+  $('fEvent').value = 'Genussabend';
+  await berichtLaden();
+  $('fDatum').value = '09.11.2026'; bericht.datum = '09.11.2026';
   state.sponsoren = await Promise.all(DEFAULTS.sponsoren.map(s => sponsorAus(s.name, s.src)));
-  $('fEvent').value = 'Genussabend'; $('fDatum').value = '09.11.2026';
   aktualisiere();
 }
 
@@ -939,7 +983,9 @@ $('fLogos').addEventListener('change', async e => {
 });
 $('fVeranstalter').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
-  state.veranstalter = await ladeBild(await dateiAlsDataURL(f)); e.target.value = ''; zeichne();
+  const src = await dateiAlsDataURL(f);
+  state.veranstalter = await ladeBild(src); e.target.value = ''; zeichne();
+  ablage.schreiben('veranstalter', src).catch(() => {}); // gilt für alle Events
 });
 $('btnLeeren').onclick = () => { if (confirm('Alle Sponsoren-Logos entfernen?')) { state.sponsoren = []; aktualisiere(); } };
 $('btnBeispiel').onclick = ladeBeispiel;
@@ -952,9 +998,11 @@ $('btnDownload').onclick = () => {
 
 (async () => {
   try { await document.fonts.load("italic 500 40px 'Cormorant Garamond'"); await document.fonts.load("400 20px 'Jost'"); await document.fonts.load("400 20px 'Cormorant Garamond'"); } catch {}
-  if (DEFAULTS) state.veranstalter = await ladeBild(DEFAULTS.veranstalter);
-  await ladeBeispiel();
-  if (!DEFAULTS) aktualisiere();
+  // zuletzt benutztes Event und eigenes Veranstalter-Logo wieder herstellen
+  try { const l = localStorage.getItem('sponsorenwand-event'); if (l) $('fEvent').value = l; } catch {}
+  let vsrc = null;
+  try { vsrc = await ablage.lesen('veranstalter'); } catch {}
+  if (vsrc || DEFAULTS) state.veranstalter = await ladeBild(vsrc || DEFAULTS.veranstalter);
   await berichtLaden();
   document.fonts.ready.then(zeichne);
 })();
