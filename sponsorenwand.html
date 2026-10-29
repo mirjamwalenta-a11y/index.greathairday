@@ -54,6 +54,27 @@
   .seg { display: flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
   .seg button { flex: 1; border: 0; border-radius: 0; }
   .seg button.on { background: var(--accent); color: var(--accent-ink); }
+  #fModus { flex-wrap: wrap; }
+  #fModus button { flex: 1 1 45%; }
+  .hinweis { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .zahlen { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+  .leistungen { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+  .leistungen li { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+  .leistungen input { padding: 6px 8px; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chips button { padding: 5px 10px; font-size: 13px; border-radius: 999px; }
+  .fotos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+  .fotos div { position: relative; }
+  .fotos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }
+  .fotos button { position: absolute; top: 3px; right: 3px; padding: 0 6px; font-size: 12px; background: rgba(255,255,255,.9); }
+  [hidden] { display: none !important; }
+  #druckbild { display: none; }
+  @media print {
+    @page { size: A4; margin: 0; }
+    body > * { display: none !important; }
+    body { background: #fff; }
+    #druckbild { display: block !important; width: 100%; }
+  }
   @media (max-width: 860px) {
     .wrap { grid-template-columns: 1fr; padding: 12px 16px 32px; }
     header { padding: 18px 16px 4px; }
@@ -75,7 +96,11 @@
       <div class="seg" id="fModus">
         <button type="button" data-v="dank" class="on">Dankeswand</button>
         <button type="button" data-v="einladung">Einladung</button>
+        <button type="button" data-v="story">Danke-Story</button>
+        <button type="button" data-v="bericht">Bericht</button>
       </div>
+      <p class="hinweis nur-story" hidden>Ein Story-Bild pro Sponsor zum Posten und Taggen, nach dem Event.</p>
+      <p class="hinweis nur-bericht" hidden>Eine A4-Seite pro Sponsor nach dem Event: was ihr erreicht habt, was er bekommen hat, Fotos vom Abend. Zum Mailen als PDF oder Bild.</p>
     </div>
 
     <div class="panel">
@@ -112,10 +137,53 @@
       <input type="text" id="fFuss" value="#Haarnetzwerk">
     </div>
 
+    <div class="panel nur-sponsor" hidden>
+      <h2>Für welchen Sponsor?</h2>
+      <select id="fSponsor" aria-label="Sponsor"></select>
+      <label for="fHandle">Instagram-Name (optional)</label>
+      <input type="text" id="fHandle" placeholder="z. B. @marke" autocomplete="off">
+      <p class="hinweis">Die Logos lädst du unten bei „Sponsoren“ hoch. Alles, was du hier einträgst, wird pro Event und Sponsor auf diesem Gerät gemerkt.</p>
+    </div>
+
+    <div class="panel nur-bericht" hidden>
+      <h2>Zahlen vom Abend</h2>
+      <p class="hinweis" style="margin:0 0 4px">Gelten für alle Sponsoren dieses Events. Nur echte Zahlen eintragen, z. B. aus der Gästeliste oder der Instagram-Statistik. Leere Felder erscheinen nicht im Bericht.</p>
+      <div class="zahlen">
+        <div><label for="bGaeste">Gäste</label><input type="text" id="bGaeste" data-ebene="event" inputmode="numeric"></div>
+        <div><label for="bSalons">Salons vertreten</label><input type="text" id="bSalons" data-ebene="event" inputmode="numeric"></div>
+        <div><label for="bBeitraege">Storys &amp; Beiträge zum Event</label><input type="text" id="bBeitraege" data-ebene="event" inputmode="numeric"></div>
+        <div><label for="bReichweite">Erreichte Konten (Instagram)</label><input type="text" id="bReichweite" data-ebene="event" inputmode="numeric"></div>
+      </div>
+      <label for="bText">Persönlicher Dank</label>
+      <textarea id="bText" data-ebene="event"></textarea>
+      <label for="bAusblick">Ausblick (optional)</label>
+      <textarea id="bAusblick" data-ebene="event" placeholder="z. B. Unser nächstes Event ist im März. Wir würden uns freuen, wenn ihr wieder dabei seid."></textarea>
+    </div>
+
+    <div class="panel nur-bericht" hidden>
+      <h2>Für diesen Sponsor</h2>
+      <div class="zahlen">
+        <div><label for="bErwaehnungen">Storys &amp; Beiträge mit ihm</label><input type="text" id="bErwaehnungen" data-ebene="sponsor" inputmode="numeric"></div>
+        <div><label for="bAufrufe">Aufrufe dieser Storys &amp; Beiträge</label><input type="text" id="bAufrufe" data-ebene="sponsor" inputmode="numeric"></div>
+      </div>
+      <label>Was er bekommen hat</label>
+      <ul class="leistungen" id="bLeistungen"></ul>
+      <div class="chips" id="bLeistungVorschlag"></div>
+      <label class="upload" style="margin:14px 0 0">
+        <input type="file" id="bFotos" accept="image/*" multiple>
+        <strong>+ Fotos vom Abend</strong><br><span style="font-size:13px">bis zu 4, am besten mit seinem Stand oder Produkt</span>
+      </label>
+      <div class="fotos" id="bFotoListe"></div>
+      <label for="bZitat">Stimme vom Abend (optional)</label>
+      <textarea id="bZitat" data-ebene="sponsor" placeholder="Nur echte Rückmeldungen, wörtlich"></textarea>
+      <label for="bZitatVon">Von (optional, nur mit Einverständnis)</label>
+      <input type="text" id="bZitatVon" data-ebene="sponsor" placeholder="z. B. Anna, Salon in Wien">
+    </div>
+
     <div class="panel">
       <h2>Format &amp; Stil</h2>
-      <label for="fFormat">Format</label>
-      <select id="fFormat">
+      <label for="fFormat" class="nur-wand">Format</label>
+      <select id="fFormat" class="nur-wand">
         <option value="1080x1350">Instagram-Beitrag · 1080 × 1350</option>
         <option value="1080x1080">Quadrat · 1080 × 1080</option>
         <option value="1080x1920">Story · 1080 × 1920</option>
@@ -150,6 +218,8 @@
 
     <div style="margin-top:16px">
       <button type="button" class="primary" id="btnDownload">⬇ Als Bild herunterladen (PNG)</button>
+      <button type="button" class="nur-bericht" id="btnPdf" style="width:100%;margin-top:8px" hidden>📄 Als PDF speichern (über Drucken)</button>
+      <button type="button" class="nur-story" id="btnAlleStorys" style="width:100%;margin-top:8px" hidden>⬇ Story für jeden Sponsor herunterladen</button>
     </div>
   </div>
 
@@ -158,6 +228,8 @@
     <div class="hint" id="hint"></div>
   </div>
 </div>
+
+<img id="druckbild" alt="">
 
 <script>
 const ZURUECK = { moment: '../moment.greathairday/index.html' };
@@ -297,6 +369,8 @@ function besteRaster(n, W, H, gap, ziel) {
 
 function zeichne() {
   if (state.modus === 'einladung') return zeichneEinladung();
+  if (state.modus === 'story') return zeichneStory();
+  if (state.modus === 'bericht') return zeichneBericht();
   const [W, H] = $('fFormat').value.split('x').map(Number);
   cv.width = W; cv.height = H;
   const S = STILE[state.stil];
@@ -376,23 +450,27 @@ function zeichneLogos(x0, y, flW, flH, s, S, gap) {
     const zeilenB = inZeile * R.cw + (inZeile - 1) * gap;
     const x = x0 + (flW - zeilenB) / 2 + c * (R.cw + gap);
     const yy = y0 + r * (R.ch + gap);
-
-    ctx.save();
-    ctx.shadowColor = S.shadow; ctx.shadowBlur = Math.min(24 * s, R.ch * 0.15); ctx.shadowOffsetY = Math.min(6 * s, R.ch * 0.04);
-    ctx.fillStyle = sp.info.bg || S.card;
-    rundRect(x, yy, R.cw, R.ch, radius); ctx.fill();
-    ctx.restore();
-    if (S.border && !sp.info.bg) { ctx.strokeStyle = S.border; ctx.lineWidth = Math.max(1, s); rundRect(x, yy, R.cw, R.ch, radius); ctx.stroke(); }
-
-    ctx.save(); rundRect(x, yy, R.cw, R.ch, radius); ctx.clip();
-    const pad = Math.min(R.cw, R.ch) * 0.16;
-    const bw = R.cw - 2 * pad, bh = R.ch - 2 * pad;
-    const cr = sp.info.crop;
-    const f = Math.min(bw / cr.w, bh / cr.h);
-    const dw = cr.w * f, dh = cr.h * f;
-    ctx.drawImage(sp.info.quelle, cr.x, cr.y, cr.w, cr.h, x + (R.cw - dw) / 2, yy + (R.ch - dh) / 2, dw, dh);
-    ctx.restore();
+    logoKarte(sp, x, yy, R.cw, R.ch, radius, s, S);
   });
+}
+
+// Ein Logo auf seiner Karte (weiß oder in der Hintergrundfarbe des Logos), mit Schatten
+function logoKarte(sp, x, yy, w, h, radius, s, S) {
+  ctx.save();
+  ctx.shadowColor = S.shadow; ctx.shadowBlur = Math.min(24 * s, h * 0.15); ctx.shadowOffsetY = Math.min(6 * s, h * 0.04);
+  ctx.fillStyle = sp.info.bg || S.card;
+  rundRect(x, yy, w, h, radius); ctx.fill();
+  ctx.restore();
+  if (S.border && !sp.info.bg) { ctx.strokeStyle = S.border; ctx.lineWidth = Math.max(1, s); rundRect(x, yy, w, h, radius); ctx.stroke(); }
+
+  ctx.save(); rundRect(x, yy, w, h, radius); ctx.clip();
+  const pad = Math.min(w, h) * 0.16;
+  const bw = w - 2 * pad, bh = h - 2 * pad;
+  const cr = sp.info.crop;
+  const f = Math.min(bw / cr.w, bh / cr.h);
+  const dw = cr.w * f, dh = cr.h * f;
+  ctx.drawImage(sp.info.quelle, cr.x, cr.y, cr.w, cr.h, x + (w - dw) / 2, yy + (h - dh) / 2, dw, dh);
+  ctx.restore();
 }
 
 // „09.11.2026“ → „Montag, 9. November 2026“; alles andere bleibt, wie es eingetippt wurde
@@ -482,6 +560,321 @@ function zeichneEinladung() {
   }
 }
 
+// ---------- Danke-Story und Bericht pro Sponsor ----------
+// Daten pro Event (Name + Datum), darin pro Sponsor (nach Name). Gemerkt in
+// IndexedDB auf diesem Gerät; nichts wird hochgeladen.
+const DANK_STANDARD = 'Danke, dass ihr unser Event möglich gemacht habt. Hier seht ihr, wen ihr mit eurer Unterstützung erreicht habt.';
+const LEISTUNG_VORSCHLAG = ['Logo auf der Einladung', 'Logo auf der Sponsorenwand', 'Erwähnung in unseren Instagram-Storys',
+  'Eigener Beitrag auf Instagram', 'Produkt in der Goodie-Bag', 'Eigener Stand beim Event', 'Vorstellung vor den Gästen'];
+const ZAHLEN = [ // [Feld, Ebene, Beschriftung im Bericht]
+  ['bGaeste', 'event', 'Gäste'], ['bSalons', 'event', 'Salons vertreten'],
+  ['bErwaehnungen', 'sponsor', 'Storys & Beiträge mit euch'], ['bAufrufe', 'sponsor', 'Aufrufe dieser Storys & Beiträge'],
+  ['bBeitraege', 'event', 'Storys & Beiträge zum Event'], ['bReichweite', 'event', 'erreichte Konten auf Instagram']];
+
+const ablage = (() => {
+  let db = null;
+  const oeffnen = () => db ??= new Promise((ok, nein) => {
+    const r = indexedDB.open('sponsorenwand', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('berichte');
+    r.onsuccess = () => ok(r.result); r.onerror = () => nein(r.error);
+  });
+  const tx = async (modus, arbeit) => {
+    const d = await oeffnen();
+    return new Promise((ok, nein) => {
+      const t = d.transaction('berichte', modus), req = arbeit(t.objectStore('berichte'));
+      t.oncomplete = () => ok(req.result); t.onerror = () => nein(t.error);
+    });
+  };
+  return { lesen: k => tx('readonly', st => st.get(k)), schreiben: (k, v) => tx('readwrite', st => st.put(v, k)) };
+})();
+
+let bericht = { event: {}, sponsoren: {} }, berichtSchluessel = null, merkenTimer = null;
+const eventSchluessel = () => `${$('fEvent').value.trim()}|${$('fDatum').value.trim()}`;
+const aktSponsor = () => state.sponsoren[Number($('fSponsor').value)] || null;
+function spDaten(sp = aktSponsor()) {
+  if (!sp) return { leistungen: [], fotos: [] };
+  return bericht.sponsoren[sp.name] ??= { leistungen: [], fotos: [] };
+}
+function merken() {
+  clearTimeout(merkenTimer);
+  merkenTimer = setTimeout(() => { ablage.schreiben(berichtSchluessel, bericht).catch(() => {}); }, 400);
+}
+// beim Öffnen und wenn Veranstaltung oder Datum geändert wurden: Daten dieses Events laden
+async function berichtLaden() {
+  const k = eventSchluessel();
+  if (k === berichtSchluessel) return;
+  berichtSchluessel = k;
+  let d = null;
+  try { d = await ablage.lesen(k); } catch {}
+  bericht = d || { event: {}, sponsoren: {} };
+  formularFuellen();
+}
+
+const fotoBilder = new Map(); // Data-URL → geladenes Bild
+function fotoBild(src) {
+  if (!fotoBilder.has(src)) { const i = new Image(); i.onload = () => zeichne(); i.src = src; fotoBilder.set(src, i); }
+  return fotoBilder.get(src);
+}
+// Fotos verkleinert merken (längste Seite 1600 px), damit der Speicher reicht
+async function fotoVerkleinert(f) {
+  const img = await ladeBild(await dateiAlsDataURL(f));
+  const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.85);
+}
+
+function sponsorAuswahl() {
+  const sel = $('fSponsor'), alt = aktSponsor()?.name;
+  sel.innerHTML = state.sponsoren.map((sp, i) => `<option value="${i}">${sp.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</option>`).join('')
+    || '<option value="">Noch keine Logos hochgeladen</option>';
+  const i = state.sponsoren.findIndex(sp => sp.name === alt);
+  sel.value = String(Math.max(0, i));
+}
+
+function formularFuellen() {
+  if (!bericht.event.bText) bericht.event.bText = DANK_STANDARD;
+  document.querySelectorAll('[data-ebene]').forEach(el => {
+    const quelle = el.dataset.ebene === 'event' ? bericht.event : spDaten();
+    el.value = quelle[el.id] || '';
+  });
+  $('fHandle').value = spDaten().handle || '';
+  leistungenAnzeigen();
+  fotosAnzeigen();
+}
+
+function leistungenAnzeigen() {
+  const d = spDaten();
+  $('bLeistungen').innerHTML = d.leistungen.map((x, i) =>
+    `<li><input type="text" data-i="${i}" aria-label="Leistung ${i + 1}"><button type="button" class="ghost-danger" data-weg="${i}" title="entfernen">✕</button></li>`).join('');
+  $('bLeistungen').querySelectorAll('input').forEach(inp => { inp.value = d.leistungen[Number(inp.dataset.i)]; });
+  $('bLeistungVorschlag').innerHTML = [...LEISTUNG_VORSCHLAG.filter(x => !d.leistungen.includes(x)), '+ eigene Zeile']
+    .map(x => `<button type="button">${x}</button>`).join('');
+}
+function fotosAnzeigen() {
+  $('bFotoListe').innerHTML = spDaten().fotos.map((f, i) =>
+    `<div><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-weg="${i}" title="Foto entfernen">✕</button></div>`).join('');
+}
+
+document.querySelectorAll('[data-ebene]').forEach(el => el.addEventListener('input', () => {
+  (el.dataset.ebene === 'event' ? bericht.event : spDaten())[el.id] = el.value;
+  merken(); zeichne();
+}));
+$('fHandle').addEventListener('input', () => { spDaten().handle = $('fHandle').value.trim(); merken(); zeichne(); });
+$('fSponsor').addEventListener('change', () => { formularFuellen(); zeichne(); });
+$('bLeistungen').addEventListener('input', e => {
+  const i = e.target.dataset.i; if (i == null) return;
+  spDaten().leistungen[Number(i)] = e.target.value; merken(); zeichne();
+});
+$('bLeistungen').addEventListener('click', e => {
+  const i = e.target.dataset.weg; if (i == null) return;
+  spDaten().leistungen.splice(Number(i), 1); merken(); leistungenAnzeigen(); zeichne();
+});
+$('bLeistungVorschlag').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || !aktSponsor()) return;
+  const eigene = b.textContent === '+ eigene Zeile';
+  spDaten().leistungen.push(eigene ? '' : b.textContent);
+  merken(); leistungenAnzeigen(); zeichne();
+  if (eigene) [...$('bLeistungen').querySelectorAll('input')].pop()?.focus();
+});
+$('bFotos').addEventListener('change', async e => {
+  const d = spDaten();
+  for (const f of e.target.files) {
+    if (!aktSponsor() || d.fotos.length >= 4) break;
+    try { d.fotos.push(await fotoVerkleinert(f)); } catch { alert(`„${f.name}“ konnte nicht gelesen werden.`); }
+  }
+  e.target.value = ''; merken(); fotosAnzeigen(); zeichne();
+});
+$('bFotoListe').addEventListener('click', e => {
+  const i = e.target.dataset.weg; if (i == null) return;
+  spDaten().fotos.splice(Number(i), 1); merken(); fotosAnzeigen(); zeichne();
+});
+['fEvent', 'fDatum'].forEach(id => $(id).addEventListener('change', berichtLaden));
+
+const SERIF = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
+const SANS = "'Jost', 'Helvetica Neue', Arial, sans-serif";
+function ohneSponsor(W, H, S, s) {
+  ctx.fillStyle = S.muted; ctx.font = `400 ${30 * s}px ${SANS}`; ctx.textAlign = 'center';
+  ctx.fillText('Lade unten zuerst die Sponsoren-Logos hoch', W / 2, H / 2);
+}
+// Bild so zuschneiden, dass es die Fläche füllt
+function fotoFuellen(img, x, y, w, h, r) {
+  if (!img.complete || !img.naturalWidth) return;
+  const f = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const sw = w / f, sh = h / f;
+  ctx.save(); rundRect(x, y, w, h, r); ctx.clip();
+  ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
+  ctx.restore();
+}
+
+// Story 1080 × 1920: Inhalt zwischen Instagrams Profilzeile oben und Antwortfeld unten
+function zeichneStory() {
+  const W = 1080, H = 1920, s = 1;
+  cv.width = W; cv.height = H;
+  const S = STILE[state.stil], sp = aktSponsor();
+  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  if (!sp) return ohneSponsor(W, H, S, s);
+  let y = 280;
+  const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
+  if (vlogo) {
+    const f = 150 / Math.max(vlogo.width, vlogo.height);
+    ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
+    y += vlogo.height * f + 70;
+  }
+  ctx.fillStyle = S.muted; ctx.font = `400 30px ${SANS}`;
+  gesperrt('DANKE AN', W / 2, y + 30, 30 * 0.32);
+  y += 80;
+  logoKarte(sp, 150, y, 780, 430, 28, s, S);
+  y += 430;
+  const handle = spDaten(sp).handle;
+  if (handle) { ctx.fillStyle = S.ink; ctx.font = `500 38px ${SANS}`; y += 80; ctx.fillText(handle, W / 2, y); }
+  y += 120;
+  ctx.fillStyle = S.ink; ctx.font = `italic 500 76px ${SERIF}`;
+  for (const z of umbrechen('für eure Unterstützung', W - 200)) { ctx.fillText(z, W / 2, y); y += 84; }
+  const zeile = [$('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('  ·  ').toUpperCase();
+  if (zeile) { ctx.fillStyle = S.muted; ctx.font = `400 26px ${SANS}`; y += 20; gesperrt(zeile, W / 2, y, 26 * 0.22); }
+  const fuss = $('fFuss').value.trim();
+  if (fuss) { ctx.fillStyle = S.muted; ctx.font = `400 26px ${SANS}`; gesperrt(fuss, W / 2, 1580, 26 * 0.18); }
+}
+
+// Bericht A4 (2480 × 3508): gezeichnet in halber Größe (1240 × 1754) und hochskaliert
+function zeichneBericht() {
+  const W = 1240, H = 1754, P = 90, s = 1;
+  cv.width = W * 2; cv.height = H * 2;
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  const S = STILE[state.stil], sp = aktSponsor();
+  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  if (!sp) { ohneSponsor(W, H, S, s); ctx.setTransform(1, 0, 0, 1, 0, 0); return; }
+  const d = spDaten(sp), e = bericht.event;
+  const event = $('fEvent').value.trim(), datum = $('fDatum').value.trim();
+  const kicker = (text, y, g = 15) => { ctx.fillStyle = S.muted; ctx.font = `400 ${g}px ${SANS}`; gesperrt(text.toUpperCase(), W / 2, y, g * 0.3); };
+  const absatz = (text, font, g, lh, farbe, breite, y, zeichnen = true) => {
+    ctx.font = font; ctx.fillStyle = farbe;
+    for (const z of text.split('\n').flatMap(t => umbrechen(t, breite))) { y += g * lh; if (zeichnen) ctx.fillText(z, W / 2, y); }
+    return y;
+  };
+
+  // Kopf
+  let y = P;
+  const vlogo = state.veranstalter ? silhouette(state.veranstalter, S.ink) : null;
+  if (vlogo) {
+    const f = 80 / Math.max(vlogo.width, vlogo.height);
+    ctx.drawImage(vlogo, W / 2 - vlogo.width * f / 2, y, vlogo.width * f, vlogo.height * f);
+    y += vlogo.height * f + 30;
+  }
+  kicker('Sponsoring-Bericht', y + 14); y += 34;
+  y = absatz(`Danke, ${sp.name}!`, `italic 500 58px ${SERIF}`, 58, 1, S.ink, W - 2 * P, y);
+  const zeile = [event, datum && datumLang(datum)].filter(Boolean).join('  ·  ');
+  if (zeile) { y += 14; kicker(zeile, y + 18, 16); y += 26; }
+  ctx.strokeStyle = S.line; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(W / 2 - 50, y + 20); ctx.lineTo(W / 2 + 50, y + 20); ctx.stroke();
+  y += 44;
+
+  // Logo und Dank
+  logoKarte(sp, W / 2 - 210, y, 420, 180, 16, s, S);
+  y += 180;
+  if (d.handle) { ctx.fillStyle = S.muted; ctx.font = `400 19px ${SANS}`; y += 34; ctx.fillText(d.handle, W / 2, y); }
+  if (e.bText?.trim()) { y += 20; y = absatz(e.bText.trim(), `400 25px ${SERIF}`, 25, 1.3, S.ink, 880, y); }
+  y += 40;
+
+  // Kennzahlen als Kacheln (nur ausgefüllte)
+  const zahlen = ZAHLEN.map(([id, ebene, label]) => [((ebene === 'event' ? e : d)[id] || '').trim(), label]).filter(([w]) => w);
+  if (zahlen.length) {
+    const cols = Math.min(3, zahlen.length), gap = 18, kw = (W - 2 * P - gap * (cols - 1)) / cols, kh = 128;
+    zahlen.forEach(([wert, label], i) => {
+      const r = Math.floor(i / cols), c = i % cols;
+      const inZeile = Math.min(cols, zahlen.length - r * cols);
+      const x = (W - (inZeile * kw + (inZeile - 1) * gap)) / 2 + c * (kw + gap), yy = y + r * (kh + gap);
+      ctx.fillStyle = S.card; rundRect(x, yy, kw, kh, 14); ctx.fill();
+      ctx.strokeStyle = S.line; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#1B1A18'; ctx.font = `500 50px ${SERIF}`; ctx.fillText(wert, x + kw / 2, yy + 62);
+      ctx.fillStyle = '#6E675E'; ctx.font = `400 15px ${SANS}`;
+      umbrechen(label, kw - 30).slice(0, 2).forEach((z, j) => ctx.fillText(z, x + kw / 2, yy + 92 + j * 19));
+    });
+    y += Math.ceil(zahlen.length / cols) * (kh + gap) + 22;
+  }
+
+  // Leistungen
+  const leistungen = d.leistungen.map(x => x.trim()).filter(Boolean);
+  if (leistungen.length) {
+    kicker(event ? `Was ihr beim ${event} bekommen habt` : 'Was ihr bekommen habt', y + 14); y += 34;
+    const zwei = leistungen.length > 3, spaltenB = zwei ? (W - 2 * P) / 2 : W - 2 * P;
+    const proSpalte = zwei ? Math.ceil(leistungen.length / 2) : leistungen.length;
+    ctx.font = `400 21px ${SANS}`; ctx.textAlign = 'left';
+    const breiteste = Math.min(spaltenB - 20, Math.max(...leistungen.map(x => ctx.measureText('✓  ' + x).width)));
+    leistungen.forEach((x, i) => {
+      const spalte = Math.floor(i / proSpalte), zeileNr = i % proSpalte;
+      const sx = P + spalte * spaltenB + (spaltenB - breiteste) / 2;
+      ctx.fillStyle = S.ink; ctx.fillText('✓  ' + umbrechen(x, spaltenB - 50)[0], sx, y + 26 + zeileNr * 34);
+    });
+    ctx.textAlign = 'center';
+    y += proSpalte * 34 + 30;
+  }
+
+  // unten: Zitat, Ausblick, Fußzeile (erst messen, dann bekommen die Fotos den Platz dazwischen)
+  const zitat = (d.bZitat || '').trim(), von = (d.bZitatVon || '').trim(), ausblick = (e.bAusblick || '').trim();
+  const fuss = $('fFuss').value.trim();
+  const zitatH = zitat ? absatz(`„${zitat}“`, `italic 400 25px ${SERIF}`, 25, 1.3, S.ink, 900, 0, false) + (von ? 30 : 0) + 30 : 0;
+  const ausblickH = ausblick ? absatz(ausblick, `400 21px ${SERIF}`, 21, 1.3, S.muted, 900, 0, false) + 24 : 0;
+  const unten = H - P - (fuss ? 30 : 0);
+  let yUnten = unten - zitatH - ausblickH;
+
+  // Fotos füllen den freien Platz
+  const fotos = d.fotos.map(fotoBild).filter(i => i.complete && i.naturalWidth);
+  const fotoH = yUnten - y - 20;
+  if (fotos.length && fotoH > 120) {
+    const n = fotos.length, cols = n === 4 ? 2 : n, rows = n === 4 ? 2 : 1, gap = 14;
+    const fw = (W - 2 * P - gap * (cols - 1)) / cols, fh = Math.min((fotoH - gap * (rows - 1)) / rows, fw * (n === 1 ? 0.62 : 1.25));
+    const gesamtH = rows * fh + (rows - 1) * gap, y0 = y + (fotoH - gesamtH) / 2;
+    fotos.forEach((img, i) => fotoFuellen(img, P + (i % cols) * (fw + gap), y0 + Math.floor(i / cols) * (fh + gap), fw, fh, 12));
+  } else {
+    yUnten = y + Math.max(0, (yUnten - y - 0) / 2) - 10; // ohne Fotos: unteren Teil etwas nach oben holen
+  }
+
+  if (zitat) {
+    let yz = absatz(`„${zitat}“`, `italic 400 25px ${SERIF}`, 25, 1.3, S.ink, 900, yUnten);
+    if (von) { ctx.fillStyle = S.muted; ctx.font = `400 16px ${SANS}`; yz += 28; ctx.fillText('– ' + von, W / 2, yz); }
+    yUnten = yz + 30;
+  }
+  if (ausblick) absatz(ausblick, `400 21px ${SERIF}`, 21, 1.3, S.muted, 900, yUnten);
+  if (fuss) { ctx.fillStyle = S.muted; ctx.font = `400 15px ${SANS}`; gesperrt(fuss, W / 2, H - P + 6, 15 * 0.18); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// Als PDF: das Bild in eine Druckansicht legen, dann druckt der Browser es auf A4
+// (am Handy beim Drucken „Als PDF speichern“ wählen)
+$('btnPdf').onclick = async () => {
+  zeichne();
+  const img = $('druckbild');
+  img.src = cv.toDataURL('image/jpeg', 0.92);
+  try { await img.decode(); } catch {}
+  window.print();
+};
+
+function bildHerunterladen(name) {
+  return new Promise(ok => cv.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name.replace(/[^\wäöüÄÖÜß.-]+/g, '-') + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    ok();
+  }, 'image/png'));
+}
+$('btnAlleStorys').onclick = async () => {
+  const vorher = $('fSponsor').value;
+  for (let i = 0; i < state.sponsoren.length; i++) {
+    $('fSponsor').value = String(i); zeichne();
+    await bildHerunterladen(['Danke-Story', state.sponsoren[i].name, $('fEvent').value.trim()].filter(Boolean).join('_'));
+    await new Promise(r => setTimeout(r, 600)); // sonst lässt der Browser nicht alle durch
+  }
+  $('fSponsor').value = vorher; formularFuellen(); zeichne();
+};
+
 // ---------- Liste ----------
 function liste() {
   const ul = $('logoListe'); ul.innerHTML = '';
@@ -494,7 +887,8 @@ function liste() {
       <button type="button" title="entfernen" data-a="weg" class="ghost-danger">✕</button></div>`;
     li.querySelector('img').src = sp.src;
     const inp = li.querySelector('input'); inp.value = sp.name;
-    inp.oninput = () => { sp.name = inp.value; };
+    inp.oninput = () => { sp.name = inp.value; sponsorAuswahl(); };
+    inp.onchange = () => { formularFuellen(); zeichne(); };
     li.querySelectorAll('button').forEach(b => b.onclick = () => {
       const a = b.dataset.a, L = state.sponsoren;
       if (a === 'weg') L.splice(i, 1);
@@ -504,7 +898,10 @@ function liste() {
     });
     ul.appendChild(li);
   });
-  $('hint').textContent = `${state.sponsoren.length} Logo${state.sponsoren.length === 1 ? '' : 's'} · ${$('fFormat').selectedOptions[0].text}`;
+  sponsorAuswahl();
+  const art = state.modus === 'story' ? `Story 1080 × 1920 · ${aktSponsor()?.name || ''}`
+    : state.modus === 'bericht' ? `A4 · ${aktSponsor()?.name || ''}` : $('fFormat').selectedOptions[0].text;
+  $('hint').textContent = `${state.sponsoren.length} Logo${state.sponsoren.length === 1 ? '' : 's'} · ${art}`;
 }
 function aktualisiere() { liste(); zeichne(); }
 
@@ -521,9 +918,12 @@ $('fFormat').addEventListener('change', aktualisiere);
 $('fModus').querySelectorAll('button').forEach(b => b.onclick = () => {
   state.modus = b.dataset.v;
   $('fModus').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-  document.querySelectorAll('.nur-dank').forEach(e => e.hidden = state.modus !== 'dank');
-  document.querySelectorAll('.nur-einladung').forEach(e => e.hidden = state.modus !== 'einladung');
-  zeichne();
+  const sichtbar = { 'nur-dank': ['dank'], 'nur-einladung': ['einladung'], 'nur-story': ['story'], 'nur-bericht': ['bericht'],
+    'nur-sponsor': ['story', 'bericht'], 'nur-wand': ['dank', 'einladung'] };
+  for (const [klasse, arten] of Object.entries(sichtbar))
+    document.querySelectorAll('.' + klasse).forEach(e => e.hidden = !arten.includes(state.modus));
+  if (state.modus === 'story' || state.modus === 'bericht') berichtLaden();
+  aktualisiere();
 });
 $('fStil').querySelectorAll('button').forEach(b => b.onclick = () => {
   state.stil = b.dataset.v;
@@ -545,14 +945,9 @@ $('btnLeeren').onclick = () => { if (confirm('Alle Sponsoren-Logos entfernen?'))
 $('btnBeispiel').onclick = ladeBeispiel;
 $('btnDownload').onclick = () => {
   zeichne();
-  const name = [state.modus === 'einladung' ? 'Einladung' : 'Sponsorenwand', $('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('_')
-    .replace(/[^\wäöüÄÖÜß.-]+/g, '-');
-  cv.toBlob(blob => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = name + '.png';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  }, 'image/png');
+  const art = { dank: 'Sponsorenwand', einladung: 'Einladung', story: 'Danke-Story', bericht: 'Bericht' }[state.modus];
+  const proSponsor = state.modus === 'story' || state.modus === 'bericht';
+  bildHerunterladen([art, proSponsor ? aktSponsor()?.name : '', $('fEvent').value.trim(), $('fDatum').value.trim()].filter(Boolean).join('_'));
 };
 
 (async () => {
@@ -560,6 +955,7 @@ $('btnDownload').onclick = () => {
   if (DEFAULTS) state.veranstalter = await ladeBild(DEFAULTS.veranstalter);
   await ladeBeispiel();
   if (!DEFAULTS) aktualisiere();
+  await berichtLaden();
   document.fonts.ready.then(zeichne);
 })();
 </script>
