@@ -181,7 +181,7 @@
             <button type="button" class="knopf hell" id="kopieren">Text kopieren</button>
           </div>
           <p class="hinweis" id="kontakt-hinweis"></p>
-          <p class="hinweis">Diese Seite speichert nichts. Eure Nachricht geht direkt aus eurem E-Mail-Programm oder WhatsApp an uns.</p>
+          <p class="hinweis" id="datenschutz-hinweis"></p>
         </div>
       </div>
     </div>
@@ -209,8 +209,8 @@ const MAPPE = {
   verein: { name: 'Haarnetzwerk', zusatz: 'Landesorganisation Wien', zvr: '823433542' },
   // offizielle Kontakte des Vereins; leer = Knopf wird nicht gezeigt
   kontakt: {
-    email: '',     // z. B. office@…
-    whatsapp: ''   // nur Ziffern mit Ländervorwahl, z. B. 43660…
+    email: 'office@haarnetzwerk.com',
+    whatsapp: ''   // bewusst leer: keine Telefonnummer auf der Seite
   },
   impressum: '',   // Link zum Impressum des Vereins
   einleitung: 'Mit unseren Paketen machen wir den Werbekostenzuschuss unserer Kooperationspartner sichtbar.',
@@ -232,13 +232,13 @@ const MAPPE = {
       ['leute', 'Nennung bei Veranstaltungen als „Sponsor“'],
       ['megafon', 'Logo auf digitalen Flyern unserer Veranstaltungen'],
       ['rollup', 'Rollups bei Haarnetzwerk-Veranstaltungen'],
-      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
+      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo in unserer WhatsApp-Gruppe'],
       ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
     ] },
     { id: 'classic', name: 'Classic', wert: '650 €', zeitraum: 'pro Jahr', leistungen: [
       ['web', 'Logo auf unserer Homepage'],
       ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
-      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
+      ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo in unserer WhatsApp-Gruppe'],
       ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
     ] }
   ]
@@ -305,7 +305,8 @@ const kontakt = MAPPE.kontakt;
 const nummer = String(kontakt.whatsapp || '').replace(/\D/g, '');
 $('per-mail').hidden = !kontakt.email;
 $('per-whatsapp').hidden = !nummer;
-$('kontakt-hinweis').textContent = kontakt.email || nummer ? '' : 'Kontakt folgt. Bis dahin: Text kopieren und uns schicken.';
+$('kontakt-hinweis').textContent = kontakt.email || nummer ? (kontakt.email ? `Oder direkt an ${kontakt.email}` : '') : 'Kontakt folgt. Bis dahin: Text kopieren und uns schicken.';
+$('datenschutz-hinweis').textContent = `Diese Seite speichert nichts. Eure Nachricht geht direkt aus eurem ${[kontakt.email && 'E-Mail-Programm', nummer && 'WhatsApp'].filter(Boolean).join(' oder ') || 'E-Mail-Programm'} an uns.`;
 function aktualisieren() {
   const text = nachricht();
   $('vorschau').textContent = text;
