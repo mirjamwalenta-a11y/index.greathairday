@@ -103,6 +103,7 @@
         <button type="button" data-v="story">Danke-Story</button>
         <button type="button" data-v="bericht">Bericht</button>
       </div>
+      <p class="hinweis nur-einladung" hidden>Auch als Flyer zum Posten: oben ein Format wählen (z. B. Story oder Instagram-Beitrag) und unten einen Event-Hintergrund.</p>
       <p class="hinweis nur-story" hidden>Ein Story-Bild pro Sponsor zum Posten und Taggen, nach dem Event.</p>
       <p class="hinweis nur-bericht" hidden>Eine A4-Seite pro Sponsor nach dem Event: was ihr erreicht habt, was er bekommen hat, Fotos vom Abend. Zum Mailen als PDF oder Bild.</p>
       <label class="nur-sponsor" hidden style="display:flex;gap:8px;align-items:flex-start;color:var(--ink)"><input type="checkbox" id="fMuster" style="margin-top:3px">
@@ -232,6 +233,29 @@
         <button type="button" data-v="schwarz">Schwarz</button>
         <button type="button" data-v="creme">Creme</button>
       </div>
+      <label>Event-Hintergrund <span style="font-size:12px">(wird pro Event gemerkt)</span></label>
+      <div class="seg" id="fHg">
+        <button type="button" data-v="keiner" class="on">Keiner</button>
+        <button type="button" data-v="farbe">Farbe</button>
+        <button type="button" data-v="bild">Bild</button>
+      </div>
+      <div id="hgFarbeOpt" hidden>
+        <label for="fHgFarbe">Farbe</label>
+        <input type="color" id="fHgFarbe" value="#5B1E2D" style="width:100%;height:42px;border:1px solid var(--line);border-radius:9px;background:#FCFCFB;padding:3px">
+      </div>
+      <div id="hgBildOpt" hidden>
+        <label class="upload" style="margin:12px 0 0"><input type="file" id="fHgBild" accept="image/*"><span id="hgBildText">Bild wählen, z. B. Plakat-Motiv oder Foto der Location</span></label>
+        <label for="fSchleier">Schleier über dem Bild, damit Text lesbar bleibt</label>
+        <input type="range" id="fSchleier" min="0" max="80" value="45" style="width:100%">
+        <div class="seg" id="fSchleierArt" style="margin-top:6px">
+          <button type="button" data-v="dunkel" class="on">Dunkel</button>
+          <button type="button" data-v="hell">Hell</button>
+        </div>
+        <label for="fHgPos">Bildausschnitt verschieben</label>
+        <input type="range" id="fHgPos" min="0" max="100" value="50" style="width:100%">
+      </div>
+      <label id="hgBerichtZeile" hidden style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="fHgBericht"> Auch im Bericht verwenden</label>
+      <p class="hinweis" id="hgHinweis" hidden>Mit Event-Hintergrund passt sich die Schrift von selbst an (hell oder dunkel). Die Logo-Karten bleiben weiß.</p>
       <label class="upload" style="margin:14px 0 0">
         <input type="file" id="fVeranstalter" accept="image/*">
         Veranstalter-Logo austauschen
@@ -253,6 +277,7 @@
 
     <div style="margin-top:16px">
       <button type="button" class="primary" id="btnDownload">⬇ Als Bild herunterladen (PNG)</button>
+      <button type="button" id="btnTeilen" style="width:100%;margin-top:8px" hidden>📲 Teilen, z. B. zu Instagram oder WhatsApp</button>
       <button type="button" class="nur-bericht" id="btnPdf" style="width:100%;margin-top:8px" hidden>📄 Als PDF speichern (über Drucken)</button>
       <button type="button" class="nur-story" id="btnAlleStorys" style="width:100%;margin-top:8px" hidden>⬇ Story für jeden Sponsor herunterladen</button>
     </div>
@@ -279,7 +304,7 @@ const DEFAULTS = {"sponsoren": [{"name": "Brendel und S\u00f6hne", "src": "data:
 const STILE = {
   creme:   { bg: '#F4EFE8', ink: '#1B1A18', muted: '#6E675E', line: '#CFC4B5', card: '#FFFFFF', shadow: 'rgba(60,45,30,.10)' },
   weiss:   { bg: '#FFFFFF', ink: '#111111', muted: '#6B6B6B', line: '#D6D6D6', card: '#FFFFFF', shadow: 'rgba(0,0,0,.09)', border: '#E7E7E7' },
-  schwarz: { bg: '#141312', ink: '#F4EFE8', muted: '#B3AA9E', line: '#4A4540', card: '#FFFFFF', shadow: 'rgba(0,0,0,.35)' },
+  schwarz: { dunkel: true, bg: '#141312', ink: '#F4EFE8', muted: '#B3AA9E', line: '#4A4540', card: '#FFFFFF', shadow: 'rgba(0,0,0,.35)' },
 };
 
 // Haarnetzwerk: Weiß oder Schwarz; die zuletzt gewählte Farbe wird gemerkt
@@ -413,14 +438,14 @@ function zeichne() {
   if (state.modus === 'bericht') return zeichneBericht();
   const [W, H] = $('fFormat').value.split('x').map(Number);
   cv.width = W; cv.height = H;
-  const S = STILE[state.stil];
+  const S = stilJetzt();
   const s = Math.min(W, H) / 1080;
   const quer = W / H > 1.3;
   const P = 72 * s;
   const serif = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
   const sans = "'Jost', 'Helvetica Neue', Arial, sans-serif";
 
-  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  hintergrundMalen(W, H, S);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
 
@@ -525,13 +550,13 @@ function datumLang(text) {
 function zeichneEinladung() {
   const [W, H] = $('fFormat').value.split('x').map(Number);
   cv.width = W; cv.height = H;
-  const S = STILE[state.stil];
+  const S = stilJetzt();
   const s = Math.min(W, H) / 1080;
   const quer = W / H > 1.3;
   const P = 72 * s;
   const serif = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
   const sans = "'Jost', 'Helvetica Neue', Arial, sans-serif";
-  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  hintergrundMalen(W, H, S);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
 
   const v = id => $(id).value.trim();
@@ -659,7 +684,11 @@ async function berichtLaden() {
   berichtSchluessel = k;
   let d = null;
   try { d = await ablage.lesen(k); } catch {}
+  const vorher = bericht;
   bericht = d || { event: {}, sponsoren: {} };
+  // neues Event ohne Eintrag: Hintergrund wie die Logos vom bisherigen übernehmen
+  if (!d && vorher?.hintergrund) bericht.hintergrund = vorher.hintergrund;
+  await hgLaden();
   if (d) $('fDatum').value = d.datum || '';
   else bericht.datum = $('fDatum').value.trim();
   try { localStorage.setItem('sponsorenwand-event', $('fEvent').value.trim()); } catch {}
@@ -670,6 +699,93 @@ async function berichtLaden() {
   formularFuellen();
   aktualisiere();
 }
+// ---------- Event-Hintergrund: eigene Farbe oder eigenes Bild, pro Event gemerkt ----------
+// bericht.hintergrund = { art: 'keiner' | 'farbe' | 'bild', farbe, bild (Data-URL), hell (Helligkeit des Bildes 0–1),
+//                         schleier (0–0.8), schleierArt: 'dunkel' | 'hell', position (0–100), bericht (auch im Bericht) }
+let hgBild = null; // das geladene Hintergrundbild
+const hg = () => bericht.hintergrund || { art: 'keiner' };
+function hgAktiv() {
+  const h = hg();
+  if (h.art === 'keiner' || (state.modus === 'bericht' && !h.bericht)) return false;
+  return h.art === 'farbe' || (h.art === 'bild' && !!hgBild);
+}
+const helligkeitVon = hex => { const [r, g, b] = hex.match(/\w\w/g).map(x => parseInt(x, 16) / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+function effektiveHelligkeit() {
+  const h = hg();
+  if (h.art === 'farbe') return helligkeitVon(h.farbe);
+  const l = h.hell ?? 0.5, a = h.schleier ?? 0.45;
+  return h.schleierArt === 'hell' ? l + (1 - l) * a : l * (1 - a);
+}
+const STIL_AUF_DUNKEL = { dunkel: true, ink: '#F5F5F4', muted: '#DADADA', line: 'rgba(255,255,255,.5)', card: '#FFFFFF', shadow: 'rgba(0,0,0,.35)' };
+const STIL_AUF_HELL = { ink: '#141414', muted: '#3F3F3F', line: 'rgba(0,0,0,.3)', card: '#FFFFFF', shadow: 'rgba(0,0,0,.14)', border: '#E7E7E7' };
+// Schrift- und Linienfarben passend zum Hintergrund
+function stilJetzt() {
+  if (!hgAktiv()) return STILE[state.stil];
+  const s = effektiveHelligkeit() < 0.5 ? STIL_AUF_DUNKEL : STIL_AUF_HELL;
+  return { ...s, bg: hg().art === 'farbe' ? hg().farbe : (s.dunkel ? '#141414' : '#FFFFFF') };
+}
+function hintergrundMalen(W, H, S) {
+  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  if (!hgAktiv() || hg().art !== 'bild') return;
+  const h = hg(), img = hgBild;
+  const f = Math.max(W / img.naturalWidth, H / img.naturalHeight), w = img.naturalWidth * f, hh = img.naturalHeight * f;
+  const p = (h.position ?? 50) / 100;
+  ctx.drawImage(img, (W - w) * (w > W + 1 ? p : 0.5), (H - hh) * (hh > H + 1 ? p : 0.5), w, hh);
+  const a = h.schleier ?? 0.45;
+  if (a > 0) { ctx.fillStyle = h.schleierArt === 'hell' ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`; ctx.fillRect(0, 0, W, H); }
+}
+async function hgLaden() {
+  hgBild = null;
+  const src = bericht.hintergrund?.bild;
+  if (src) { try { hgBild = await ladeBild(src); } catch {} }
+}
+function hgSetzen(aenderung) {
+  bericht.hintergrund = { art: 'keiner', farbe: $('fHgFarbe').value, schleier: 0.45, schleierArt: 'dunkel', position: 50, bericht: false, ...bericht.hintergrund, ...aenderung };
+  merken(); hgAnzeigen(); zeichne();
+}
+function hgAnzeigen() {
+  const h = hg();
+  $('fHg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === h.art));
+  $('hgFarbeOpt').hidden = h.art !== 'farbe';
+  $('hgBildOpt').hidden = h.art !== 'bild';
+  $('hgBerichtZeile').hidden = h.art === 'keiner';
+  $('hgHinweis').hidden = h.art === 'keiner';
+  if (h.farbe) $('fHgFarbe').value = h.farbe;
+  $('fSchleier').value = Math.round((h.schleier ?? 0.45) * 100);
+  $('fHgPos').value = h.position ?? 50;
+  $('fHgBericht').checked = !!h.bericht;
+  $('fSchleierArt').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === (h.schleierArt || 'dunkel')));
+  $('hgBildText').textContent = h.bild ? 'Anderes Bild wählen' : 'Bild wählen, z. B. Plakat-Motiv oder Foto der Location';
+}
+$('fHg').querySelectorAll('button').forEach(b => b.onclick = () => {
+  hgSetzen({ art: b.dataset.v });
+  if (b.dataset.v === 'bild' && !hg().bild) $('fHgBild').click();
+});
+$('fHgFarbe').addEventListener('input', () => hgSetzen({ farbe: $('fHgFarbe').value }));
+$('fSchleier').addEventListener('input', () => hgSetzen({ schleier: Number($('fSchleier').value) / 100 }));
+$('fHgPos').addEventListener('input', () => hgSetzen({ position: Number($('fHgPos').value) }));
+$('fHgBericht').addEventListener('change', () => hgSetzen({ bericht: $('fHgBericht').checked }));
+$('fSchleierArt').querySelectorAll('button').forEach(b => b.onclick = () => hgSetzen({ schleierArt: b.dataset.v }));
+// Bild verkleinert merken (längste Seite 2400 px) und seine Helligkeit messen
+$('fHgBild').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const roh = await ladeBild(await dateiAlsDataURL(f));
+    const k = Math.min(1, 2400 / Math.max(roh.naturalWidth, roh.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(roh.naturalWidth * k); c.height = Math.round(roh.naturalHeight * k);
+    c.getContext('2d').drawImage(roh, 0, 0, c.width, c.height);
+    const m = document.createElement('canvas'); m.width = m.height = 24;
+    const mx = m.getContext('2d'); mx.drawImage(c, 0, 0, 24, 24);
+    const d = mx.getImageData(0, 0, 24, 24).data; let hell = 0;
+    for (let i = 0; i < d.length; i += 4) hell += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    const bild = c.toDataURL('image/jpeg', 0.86);
+    hgBild = await ladeBild(bild);
+    hgSetzen({ art: 'bild', bild, hell: hell / (24 * 24 * 255) });
+  } catch { alert(`„${f.name}“ konnte nicht gelesen werden.`); }
+});
+
 // Logos im Eintrag des Events mitmerken
 function logosMerken() {
   if (!berichtSchluessel) return;
@@ -708,6 +824,7 @@ function formularFuellen() {
     el.value = quelle[el.id] || '';
   });
   $('fHandle').value = spDaten().handle || '';
+  hgAnzeigen();
   leistungenAnzeigen();
   fotosAnzeigen();
 }
@@ -793,7 +910,7 @@ function ohneSponsor(W, H, S, s) {
 // Neutrales Kästchen für die Muster-Ansicht: leicht getönt, gestrichelter Rand, Beschriftung in der Mitte
 function platzhalter(x, y, w, h, text, S, g = 20) {
   ctx.save();
-  ctx.fillStyle = S === STILE.schwarz ? 'rgba(255,255,255,.06)' : 'rgba(110,103,94,.08)';
+  ctx.fillStyle = S.dunkel ? 'rgba(255,255,255,.08)' : 'rgba(110,103,94,.08)';
   rundRect(x, y, w, h, 14); ctx.fill();
   ctx.setLineDash([8, 7]); ctx.strokeStyle = S.line; ctx.lineWidth = 1.5; ctx.stroke();
   ctx.fillStyle = S.muted; ctx.font = `400 ${g}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -815,8 +932,8 @@ function fotoFuellen(img, x, y, w, h, r) {
 function zeichneStory() {
   const W = 1080, H = 1920, s = 1;
   cv.width = W; cv.height = H;
-  const S = STILE[state.stil], sp = aktSponsor();
-  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  const S = stilJetzt(), sp = aktSponsor();
+  hintergrundMalen(W, H, S);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   const muster = $('fMuster').checked;
@@ -851,8 +968,8 @@ function zeichneBericht() {
   const W = 1240, H = 1754, P = 90, s = 1;
   cv.width = W * 2; cv.height = H * 2;
   ctx.setTransform(2, 0, 0, 2, 0, 0);
-  const S = STILE[state.stil], sp = aktSponsor();
-  ctx.fillStyle = S.bg; ctx.fillRect(0, 0, W, H);
+  const S = stilJetzt(), sp = aktSponsor();
+  hintergrundMalen(W, H, S);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   const muster = $('fMuster').checked;
@@ -1066,6 +1183,18 @@ $('fVeranstalter').addEventListener('change', async e => {
 });
 $('btnLeeren').onclick = () => { if (confirm('Alle Sponsoren-Logos entfernen?')) { state.sponsoren = []; aktualisiere(); } };
 $('btnBeispiel').onclick = ladeBeispiel;
+// Teilen: am Handy direkt an Instagram, WhatsApp usw. (wo der Browser das kann)
+const teilenGeht = (() => { try { return !!navigator.canShare?.({ files: [new File([''], 'x.png', { type: 'image/png' })] }); } catch { return false; } })();
+$('btnTeilen').hidden = !teilenGeht;
+$('btnTeilen').onclick = () => {
+  zeichne();
+  const art = { dank: 'Sponsorenwand', einladung: 'Flyer', story: 'Danke-Story', bericht: 'Bericht' }[state.modus];
+  const name = [art, $('fEvent').value.trim()].filter(Boolean).join('_').replace(/[^\wäöüÄÖÜß.-]+/g, '-') + '.png';
+  cv.toBlob(async blob => {
+    try { await navigator.share({ files: [new File([blob], name, { type: 'image/png' })] }); }
+    catch (e) { if (e?.name !== 'AbortError') alert('Teilen hat nicht geklappt. Bitte „Als Bild herunterladen“ verwenden.'); }
+  }, 'image/png');
+};
 $('btnDownload').onclick = () => {
   zeichne();
   const art = { dank: 'Sponsorenwand', einladung: 'Einladung', story: 'Danke-Story', bericht: 'Bericht' }[state.modus];
