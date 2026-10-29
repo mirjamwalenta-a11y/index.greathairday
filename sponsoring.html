@@ -63,6 +63,8 @@
   .paket-kopf .wert { margin: 18px 0 0; font: 500 36px/1 var(--serif); }
   .paket-kopf .wert small { display: block; font: 500 11px/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   .premium .paket-kopf .wert small { color: var(--sub-auf-dunkel); }
+  .paket-kopf .zeitraum { display: block; margin-top: 6px; font: italic 500 18px/1 var(--serif); color: var(--muted); }
+  .premium .paket-kopf .zeitraum { color: var(--sub-auf-dunkel); }
   .paket ul { list-style: none; margin: 8px 0 28px; padding: 0; flex: 1; }
   .paket li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
   .premium li { border-color: var(--dunkel-line); }
@@ -224,7 +226,7 @@ const MAPPE = {
     { name: 'Musical Maria Theresia', datum: '24.01.2027' }
   ],
   pakete: [
-    { id: 'premium', name: 'Premium', wert: '1.500 €', leistungen: [
+    { id: 'premium', name: 'Premium', wert: '1.500 €', zeitraum: 'pro Jahr', leistungen: [
       ['web', 'Logo auf unserer Homepage'],
       ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
       ['leute', 'Nennung bei Veranstaltungen als „Sponsor“'],
@@ -233,7 +235,7 @@ const MAPPE = {
       ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
       ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
     ] },
-    { id: 'classic', name: 'Classic', wert: '650 €', leistungen: [
+    { id: 'classic', name: 'Classic', wert: '650 €', zeitraum: 'pro Jahr', leistungen: [
       ['web', 'Logo auf unserer Homepage'],
       ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
       ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
@@ -275,7 +277,7 @@ $('termine-bereich').hidden = !MAPPE.termine.length;
 
 $('paketliste').innerHTML = MAPPE.pakete.map(p => `
   <article class="paket ${esc(p.id)}" aria-label="${esc(p.name)} Paket">
-    <div class="paket-kopf"><p class="eyebrow">Paket</p><h3>${esc(p.name)}</h3><p class="wert"><small>Wert</small>${esc(p.wert)}</p></div>
+    <div class="paket-kopf"><p class="eyebrow">Paket</p><h3>${esc(p.name)}</h3><p class="wert"><small>Wert</small>${esc(p.wert)}${p.zeitraum ? `<span class="zeitraum">${esc(p.zeitraum)}</span>` : ''}</p></div>
     <ul>${p.leistungen.map(([sym, text]) => {
       const [titel, zusatz] = text.split('|');
       return `<li${zusatz ? ' class="hervor"' : ''}><span class="symbol"><svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOLE[sym] || ''}</svg></span>
@@ -285,7 +287,7 @@ $('paketliste').innerHTML = MAPPE.pakete.map(p => `
   </article>`).join('');
 
 // ── Anfrage ──
-const WAHL = [...MAPPE.pakete.map(p => ({ id: p.id, name: `${p.name} Paket`, wert: p.wert })), { id: 'individuell', name: 'Individuell nach Absprache', wert: '' }];
+const WAHL = [...MAPPE.pakete.map(p => ({ id: p.id, name: `${p.name} Paket`, wert: [p.wert, p.zeitraum].filter(Boolean).join(' ') })), { id: 'individuell', name: 'Individuell nach Absprache', wert: '' }];
 $('wahl').innerHTML = WAHL.map((w, i) => `<label><input type="radio" name="paket" value="${esc(w.id)}"${i === 0 ? ' checked' : ''}>
   <span>${esc(w.name)}</span>${w.wert ? `<small>Wert ${esc(w.wert)}</small>` : ''}</label>`).join('');
 
