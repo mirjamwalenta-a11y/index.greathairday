@@ -224,9 +224,9 @@
       </select>
       <label>Hintergrund</label>
       <div class="seg" id="fStil">
-        <button type="button" data-v="creme" class="on">Creme</button>
-        <button type="button" data-v="weiss">Weiß</button>
+        <button type="button" data-v="weiss" class="on">Weiß</button>
         <button type="button" data-v="schwarz">Schwarz</button>
+        <button type="button" data-v="creme">Creme</button>
       </div>
       <label class="upload" style="margin:14px 0 0">
         <input type="file" id="fVeranstalter" accept="image/*">
@@ -276,7 +276,10 @@ const STILE = {
   schwarz: { bg: '#141312', ink: '#F4EFE8', muted: '#B3AA9E', line: '#4A4540', card: '#FFFFFF', shadow: 'rgba(0,0,0,.35)' },
 };
 
-const state = { sponsoren: [], veranstalter: null, stil: 'creme', modus: 'dank' };
+// Haarnetzwerk: Weiß oder Schwarz; die zuletzt gewählte Farbe wird gemerkt
+let gemerkterStil = null;
+try { gemerkterStil = localStorage.getItem('sponsorenwand-stil'); } catch {}
+const state = { sponsoren: [], veranstalter: null, stil: ['weiss', 'schwarz', 'creme'].includes(gemerkterStil) ? gemerkterStil : 'weiss', modus: 'dank' };
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
 
@@ -1026,8 +1029,10 @@ $('fModus').querySelectorAll('button').forEach(b => b.onclick = () => {
   if (state.modus === 'story' || state.modus === 'bericht') berichtLaden();
   aktualisiere();
 });
+$('fStil').querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.v === state.stil));
 $('fStil').querySelectorAll('button').forEach(b => b.onclick = () => {
   state.stil = b.dataset.v;
+  try { localStorage.setItem('sponsorenwand-stil', state.stil); } catch {}
   $('fStil').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
   zeichne();
 });
