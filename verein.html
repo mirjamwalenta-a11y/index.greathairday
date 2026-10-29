@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F5F5F4">
+<title>Verein · Haarnetzwerk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F5F4; --panel: #FFFFFF; --ink: #141414; --muted: #6B6B6B;
+    --line: #E2E2E2; --accent: #141414; --accent-ink: #FFFFFF; --danger: #9B3B2E;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 'Jost', system-ui, sans-serif; }
+  header { padding: 22px 24px 8px; max-width: 1040px; margin: 0 auto; }
+  .zurueck { display: inline-block; margin-bottom: 12px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--panel); color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none; }
+  .zurueck:hover { color: var(--ink); border-color: var(--muted); }
+  .bereiche { display: inline-flex; margin: 0 0 12px 6px; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--panel); vertical-align: top; }
+  .bereiche a { padding: 7px 16px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; }
+  .bereiche a.on { background: var(--ink); color: #fff; }
+  h1 { font: 500 30px/1.1 'Cormorant Garamond', Georgia, serif; margin: 0; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  .reiter { display: flex; gap: 6px; overflow-x: auto; padding: 14px 24px 4px; max-width: 1040px; margin: 0 auto; scrollbar-width: none; }
+  .reiter::-webkit-scrollbar { display: none; }
+  .reiter button { flex: none; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--line); background: var(--panel);
+    color: var(--ink); border-radius: 999px; padding: 7px 14px; }
+  .reiter button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  main { padding: 12px 24px 48px; max-width: 1040px; margin: 0 auto; }
+  .bereich { display: none; }
+  .bereich.on { display: block; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel + .panel { margin-top: 16px; }
+  .kopf { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .panel h2 { font: 500 13px/1 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .hinweis { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  button { font: inherit; cursor: pointer; border-radius: 9px; border: 1px solid var(--line); background: #FCFCFB; color: var(--ink); padding: 8px 12px; }
+  button:hover { border-color: var(--muted); }
+  .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 500; }
+  .primary:hover { opacity: .9; }
+  .klein { padding: 4px 9px; font-size: 13px; }
+  .ghost-danger { color: var(--danger); }
+  .knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* Kennzahlen */
+  .zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .zahl { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; text-align: center; }
+  .zahl b { display: block; font: 500 46px/1 'Cormorant Garamond', Georgia, serif; }
+  .zahl span { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+  /* Tabellen */
+  .tabelle { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 500; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .leer { text-align: center; padding: 28px 8px; color: var(--muted); }
+  .marke { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); white-space: nowrap; }
+  .marke.voll { background: var(--ink); color: #fff; }
+  .marke.grau { border-color: var(--line); color: var(--muted); }
+  .marke.warn { border-color: var(--danger); color: var(--danger); }
+  /* Formulare */
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; font: inherit; color: var(--ink); background: #FCFCFB; }
+  textarea { resize: vertical; min-height: 80px; }
+  .raster { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .raster .voll { grid-column: 1 / -1; }
+  @media (max-width: 600px) { .raster { grid-template-columns: 1fr; } header, .reiter, main { padding-left: 16px; padding-right: 16px; } }
+  .suche { margin-bottom: 12px; }
+  /* Handy: jede Zeile als Karte, Spaltenname davor */
+  @media (max-width: 600px) {
+    table, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tr { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; }
+    tr:has(.leer) { border: none; }
+    td { border: none; padding: 4px 0; display: flex; gap: 12px; align-items: baseline; }
+    td[data-l]::before { content: attr(data-l); flex: 0 0 92px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    td:last-child { justify-content: flex-end; }
+  }
+  /* Dialog */
+  .dialog-bg { display: none; position: fixed; inset: 0; background: rgba(20,20,20,.45); z-index: 20; align-items: center; justify-content: center; padding: 16px; }
+  .dialog-bg.offen { display: flex; }
+  .dialog { background: var(--panel); border-radius: 14px; padding: 22px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; }
+  .dialog h3 { font: 500 26px/1.1 'Cormorant Garamond', Georgia, serif; margin: 0 0 6px; }
+  .dialog .knoepfe { justify-content: flex-end; margin-top: 18px; }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 120px); background: var(--ink); color: #fff;
+    padding: 11px 20px; border-radius: 999px; font-size: 14px; z-index: 30; transition: transform .25s; max-width: calc(100% - 32px); text-align: center; }
+  #toast.sichtbar { transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<header>
+  <a class="zurueck" id="zurueck" href="index.html">← Zurück</a>
+  <nav class="bereiche" aria-label="Bereich"><a href="sponsorenwand.html" data-bereich>Sponsoren</a><a href="verein.html" class="on" aria-current="page" data-bereich>Verein</a></nav>
+  <h1>Verein</h1>
+  <p>Mitglieder, Events, Buchungen, Rechnungen und Rundmails. Alles bleibt in diesem Browser auf deinem Gerät.</p>
+</header>
+
+<nav class="reiter" id="reiter" aria-label="Verein">
+  <button type="button" data-ziel="uebersicht" class="on">Übersicht</button>
+  <button type="button" data-ziel="mitglieder">Mitglieder</button>
+  <button type="button" data-ziel="events">Events</button>
+  <button type="button" data-ziel="buchungen">Buchungen</button>
+  <button type="button" data-ziel="rechnungen">Rechnungen</button>
+  <button type="button" data-ziel="kommunikation">Rundmail</button>
+  <button type="button" data-ziel="sicherung">Sicherung</button>
+</nav>
+
+<main>
+  <section id="uebersicht" class="bereich on">
+    <div class="zahlen">
+      <div class="zahl"><b id="z-mitglieder">0</b><span>Mitglieder aktiv</span></div>
+      <div class="zahl"><b id="z-events">0</b><span>Events geplant</span></div>
+      <div class="zahl"><b id="z-buchungen">0</b><span>Buchungen</span></div>
+      <div class="zahl"><b id="z-offen">0</b><span>Rechnungen offen</span></div>
+    </div>
+    <div class="panel">
+      <div class="kopf"><h2>Schnell</h2></div>
+      <div class="knoepfe">
+        <button type="button" class="primary" data-neu="mitglied">+ Mitglied</button>
+        <button type="button" data-neu="event">+ Event</button>
+        <button type="button" data-neu="buchung">+ Buchung</button>
+        <button type="button" data-neu="rechnung">+ Rechnung</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="mitglieder" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Mitglieder</h2><button type="button" class="primary" data-neu="mitglied">+ Neu</button></div>
+      <input class="suche" type="search" id="mitglied-suche" placeholder="Suche nach Name oder E-Mail" aria-label="Mitglieder suchen">
+      <div class="tabelle"><table>
+        <thead><tr><th>Nr.</th><th>Name</th><th>E-Mail</th><th>Telefon</th><th>Beitritt</th><th>Art</th><th>Status</th><th></th></tr></thead>
+        <tbody id="t-mitglieder"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="events" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Events &amp; Seminare</h2><button type="button" class="primary" data-neu="event">+ Neu</button></div>
+      <div class="tabelle"><table>
+        <thead><tr><th>Name</th><th>Datum</th><th>Ort</th><th>Plätze</th><th>Preis</th><th>Status</th><th></th></tr></thead>
+        <tbody id="t-events"></tbody>
+      </table></div>
+      <p class="hinweis">Diese Events schlägt dir auch die Sponsorenwand vor.</p>
+    </div>
+  </section>
+
+  <section id="buchungen" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Buchungen</h2><button type="button" class="primary" data-neu="buchung">+ Neu</button></div>
+      <div class="tabelle"><table>
+        <thead><tr><th>Mitglied</th><th>Event</th><th>Gebucht am</th><th>Status</th><th>Notizen</th><th></th></tr></thead>
+        <tbody id="t-buchungen"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="rechnungen" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Rechnungen</h2><button type="button" class="primary" data-neu="rechnung">+ Neu</button></div>
+      <div class="tabelle"><table>
+        <thead><tr><th>Nummer</th><th>Mitglied</th><th>Betrag</th><th>Fällig</th><th>Status</th><th></th></tr></thead>
+        <tbody id="t-rechnungen"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="kommunikation" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Rundmail</h2></div>
+      <div class="raster">
+        <div><label for="mail-filter">Empfänger</label>
+          <select id="mail-filter">
+            <option value="alle">Alle aktiven Mitglieder</option>
+            <option value="vollmitglied">Nur Vollmitglieder</option>
+            <option value="foerder">Nur Fördermitglieder</option>
+          </select></div>
+        <div><label for="mail-betreff">Betreff</label><input type="text" id="mail-betreff"></div>
+        <div class="voll"><label for="mail-inhalt">Nachricht</label><textarea id="mail-inhalt" rows="6" placeholder="Deine Nachricht an die Mitglieder"></textarea></div>
+      </div>
+      <p class="hinweis" id="mail-info"></p>
+      <div class="knoepfe" style="margin-top:12px">
+        <button type="button" class="primary" id="mail-oeffnen">✉ Im E-Mail-Programm öffnen</button>
+        <button type="button" id="mail-kopieren">Adressen kopieren</button>
+      </div>
+      <p class="hinweis">Die Adressen kommen ins Feld „Bcc“, damit niemand die Adressen der anderen sieht. Bei sehr vielen Empfängern lieber „Adressen kopieren“ und im E-Mail-Programm einfügen.</p>
+    </div>
+    <div class="panel">
+      <div class="kopf"><h2>Verlauf</h2></div>
+      <div class="tabelle"><table>
+        <thead><tr><th>Datum</th><th>Betreff</th><th>Empfänger</th><th>An</th></tr></thead>
+        <tbody id="t-kommunikation"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="sicherung" class="bereich">
+    <div class="panel">
+      <div class="kopf"><h2>Sicherung</h2></div>
+      <p style="margin:0">Alle Vereinsdaten liegen nur in diesem Browser auf diesem Gerät. Lade regelmäßig eine Sicherung herunter, zum Beispiel vor einem Handywechsel.</p>
+      <div class="knoepfe" style="margin-top:14px">
+        <button type="button" class="primary" id="sicherung-laden">⬇ Sicherung herunterladen</button>
+        <label class="klein" style="margin:0;display:inline-block;border:1px solid var(--line);border-radius:9px;padding:8px 12px;color:var(--ink);cursor:pointer;background:#FCFCFB">
+          <input type="file" id="sicherung-datei" accept="application/json,.json" hidden>Sicherung einspielen</label>
+      </div>
+      <p class="hinweis" id="sicherung-info"></p>
+      <p class="hinweis">Die Datei enthält persönliche Daten der Mitglieder. Bitte nicht weiterschicken oder öffentlich ablegen.</p>
+    </div>
+  </section>
+</main>
+
+<!-- Dialoge -->
+<div class="dialog-bg" id="d-mitglied"><div class="dialog" role="dialog" aria-labelledby="d-mitglied-t">
+  <h3 id="d-mitglied-t">Mitglied</h3>
+  <div class="raster">
+    <div><label for="m-anrede">Anrede</label><select id="m-anrede"><option>Frau</option><option>Herr</option><option>Divers</option></select></div>
+    <div><label for="m-beitragsart">Beitragsart</label><select id="m-beitragsart">
+      <option value="vollmitglied">Vollmitglied</option><option value="foerder">Fördermitglied</option><option value="ehrenmitglied">Ehrenmitglied</option></select></div>
+    <div><label for="m-vorname">Vorname *</label><input type="text" id="m-vorname" autocomplete="off"></div>
+    <div><label for="m-nachname">Nachname *</label><input type="text" id="m-nachname" autocomplete="off"></div>
+    <div><label for="m-email">E-Mail *</label><input type="email" id="m-email" autocomplete="off"></div>
+    <div><label for="m-telefon">Telefon</label><input type="tel" id="m-telefon" autocomplete="off"></div>
+    <div class="voll"><label for="m-adresse">Adresse</label><input type="text" id="m-adresse" autocomplete="off"></div>
+    <div><label for="m-plz">PLZ</label><input type="text" id="m-plz" inputmode="numeric" autocomplete="off"></div>
+    <div><label for="m-ort">Ort</label><input type="text" id="m-ort" autocomplete="off"></div>
+    <div><label for="m-eintrittsdatum">Eintrittsdatum</label><input type="date" id="m-eintrittsdatum"></div>
+    <div><label for="m-status">Status</label><select id="m-status"><option value="aktiv">Aktiv</option><option value="pausiert">Pausiert</option><option value="ausgetreten">Ausgetreten</option></select></div>
+    <div class="voll"><label for="m-notizen">Notizen</label><textarea id="m-notizen"></textarea></div>
+  </div>
+  <div class="knoepfe"><button type="button" data-zu>Abbrechen</button><button type="button" class="primary" data-speichern="mitglied">Speichern</button></div>
+</div></div>
+
+<div class="dialog-bg" id="d-event"><div class="dialog" role="dialog" aria-labelledby="d-event-t">
+  <h3 id="d-event-t">Event</h3>
+  <div class="raster">
+    <div class="voll"><label for="e-name">Name *</label><input type="text" id="e-name" placeholder="z. B. Musical Maria Theresia"></div>
+    <div><label for="e-datum">Datum *</label><input type="date" id="e-datum"></div>
+    <div><label for="e-uhrzeit">Uhrzeit</label><input type="time" id="e-uhrzeit"></div>
+    <div><label for="e-ort">Ort</label><input type="text" id="e-ort"></div>
+    <div><label for="e-kapazitaet">Plätze</label><input type="number" id="e-kapazitaet" min="1"></div>
+    <div><label for="e-preis">Preis (€)</label><input type="number" id="e-preis" min="0" step="0.01"></div>
+    <div><label for="e-status">Status</label><select id="e-status"><option value="geplant">Geplant</option><option value="aktiv">Aktiv</option><option value="abgesagt">Abgesagt</option><option value="abgeschlossen">Abgeschlossen</option></select></div>
+    <div class="voll"><label for="e-beschreibung">Beschreibung</label><textarea id="e-beschreibung"></textarea></div>
+  </div>
+  <div class="knoepfe"><button type="button" data-zu>Abbrechen</button><button type="button" class="primary" data-speichern="event">Speichern</button></div>
+</div></div>
+
+<div class="dialog-bg" id="d-buchung"><div class="dialog" role="dialog" aria-labelledby="d-buchung-t">
+  <h3 id="d-buchung-t">Buchung</h3>
+  <label for="b-mitglied_id">Mitglied *</label><select id="b-mitglied_id"></select>
+  <label for="b-event_id">Event *</label><select id="b-event_id"></select>
+  <label for="b-status">Status</label><select id="b-status"><option value="gebucht">Gebucht</option><option value="warteliste">Warteliste</option><option value="storniert">Storniert</option></select>
+  <label for="b-notizen">Notizen</label><textarea id="b-notizen"></textarea>
+  <div class="knoepfe"><button type="button" data-zu>Abbrechen</button><button type="button" class="primary" data-speichern="buchung">Speichern</button></div>
+</div></div>
+
+<div class="dialog-bg" id="d-rechnung"><div class="dialog" role="dialog" aria-labelledby="d-rechnung-t">
+  <h3 id="d-rechnung-t">Rechnung</h3>
+  <label for="r-mitglied_id">Mitglied *</label><select id="r-mitglied_id"></select>
+  <div class="raster">
+    <div><label for="r-betrag">Betrag (€) *</label><input type="number" id="r-betrag" min="0" step="0.01"></div>
+    <div><label for="r-mwst_satz">USt. (%)</label><input type="number" id="r-mwst_satz" min="0" step="1"></div>
+    <div><label for="r-faelligkeitsdatum">Fällig am</label><input type="date" id="r-faelligkeitsdatum"></div>
+    <div><label for="r-status">Status</label><select id="r-status"><option value="offen">Offen</option><option value="gesendet">Gesendet</option><option value="bezahlt">Bezahlt</option><option value="storniert">Storniert</option></select></div>
+  </div>
+  <div class="knoepfe"><button type="button" data-zu>Abbrechen</button><button type="button" class="primary" data-speichern="rechnung">Speichern</button></div>
+</div></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ════════════════════════════════════════════
+// VEREIN: Mitglieder, Events, Buchungen, Rechnungen, Rundmail
+// ════════════════════════════════════════════
+// Früher die eigene App „haarnetzwerk“. Gleiche Speicher-Namen (hn_…) wie
+// dort, darum sind die bisherigen Daten auf demselben Gerät sofort da
+// (beide Seiten liegen unter derselben Adresse). Alles bleibt in diesem
+// Browser; keine Datenbank, kein Upload.
+
+const ZURUECK = { moment: '../moment.greathairday/index.html' };
+{
+  const von = new URLSearchParams(location.search).get('von');
+  if (Object.hasOwn(ZURUECK, von)) document.getElementById('zurueck').href = ZURUECK[von];
+  // beim Wechsel zwischen Sponsoren und Verein den Rückweg mitnehmen
+  document.querySelectorAll('[data-bereich]').forEach(a => { a.href = a.getAttribute('href') + location.search; });
+}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const SCHLUESSEL = { mitglieder: 'hn_mitglieder', events: 'hn_events', buchungen: 'hn_buchungen', rechnungen: 'hn_rechnungen', kommunikation: 'hn_kommunikation' };
+const DB = {};
+function laden() {
+  for (const [k, s] of Object.entries(SCHLUESSEL)) {
+    try { DB[k] = JSON.parse(localStorage.getItem(s)) || []; } catch { DB[k] = []; }
+  }
+}
+function speichern(k) {
+  try { localStorage.setItem(SCHLUESSEL[k], JSON.stringify(DB[k])); }
+  catch { toast('Konnte nicht speichern (privates Fenster oder voller Speicher).'); }
+}
+laden();
+
+const neueId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const heute = () => new Date().toISOString().slice(0, 10);
+const inTagen = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const datum = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); return m ? `${m[3]}.${m[2]}.${m[1]}` : (iso || '–'); };
+const euro = x => Number(x).toLocaleString('de-AT', { style: 'currency', currency: 'EUR' });
+function naechsteNummer(prefix, liste, feld) {
+  const max = Math.max(0, ...liste.map(x => parseInt(String(x[feld] || '').replace(prefix + '-', ''), 10) || 0));
+  return `${prefix}-${String(max + 1).padStart(4, '0')}`;
+}
+const mName = m => m ? `${m.vorname} ${m.nachname}` : '–';
+const marke = (text, art = '') => `<span class="marke ${art}">${esc(text)}</span>`;
+const leer = (n, text) => `<tr><td colspan="${n}"><div class="leer">${text}</div></td></tr>`;
+const weg = (art, id) => `<button type="button" class="klein ghost-danger" data-weg="${art}" data-id="${esc(id)}" aria-label="Löschen">✕</button>`;
+
+let toastTimer = null;
+function toast(text) {
+  const t = $('toast'); t.textContent = text; t.classList.add('sichtbar');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('sichtbar'), 3200);
+}
+
+// ── Reiter ──
+function zeige(ziel) {
+  document.querySelectorAll('.bereich').forEach(s => s.classList.toggle('on', s.id === ziel));
+  document.querySelectorAll('#reiter button').forEach(b => b.classList.toggle('on', b.dataset.ziel === ziel));
+  alleAnzeigen();
+}
+$('reiter').addEventListener('click', e => { const b = e.target.closest('button'); if (b) zeige(b.dataset.ziel); });
+
+// ── Anzeigen ──
+const MITGLIED_STATUS = { aktiv: ['Aktiv', 'voll'], pausiert: ['Pausiert', 'grau'], ausgetreten: ['Ausgetreten', 'grau'] };
+const BEITRAG = { vollmitglied: 'Voll', foerder: 'Förder', ehrenmitglied: 'Ehren' };
+const EVENT_STATUS = { geplant: ['Geplant', ''], aktiv: ['Aktiv', 'voll'], abgesagt: ['Abgesagt', 'warn'], abgeschlossen: ['Abgeschlossen', 'grau'] };
+const BUCHUNG_STATUS = { gebucht: ['Gebucht', 'voll'], warteliste: ['Warteliste', ''], storniert: ['Storniert', 'warn'] };
+const RECHNUNG_STATUS = { offen: ['Offen', ''], gesendet: ['Gesendet', ''], bezahlt: ['Bezahlt', 'voll'], storniert: ['Storniert', 'warn'] };
+const st = (tabelle, s) => marke(...(tabelle[s] || [s || '–', 'grau']));
+
+function uebersicht() {
+  $('z-mitglieder').textContent = DB.mitglieder.filter(m => m.status === 'aktiv').length;
+  $('z-events').textContent = DB.events.filter(e => e.status === 'geplant' || e.status === 'aktiv').length;
+  $('z-buchungen').textContent = DB.buchungen.filter(b => b.status !== 'storniert').length;
+  $('z-offen').textContent = DB.rechnungen.filter(r => r.status === 'offen' || r.status === 'gesendet').length;
+}
+function mitgliederAnzeigen() {
+  const q = $('mitglied-suche').value.trim().toLowerCase();
+  const liste = DB.mitglieder.filter(m => `${m.vorname} ${m.nachname} ${m.email}`.toLowerCase().includes(q));
+  $('t-mitglieder').innerHTML = liste.length ? liste.map(m => `<tr>
+    <td><b>${esc(m.mitgliedsnummer)}</b></td><td>${esc(`${m.anrede} ${m.vorname} ${m.nachname}`)}</td>
+    <td>${esc(m.email)}</td><td>${esc(m.telefon || '–')}</td><td>${esc(datum(m.eintrittsdatum))}</td>
+    <td>${esc(BEITRAG[m.beitragsart] || '–')}</td><td>${st(MITGLIED_STATUS, m.status)}</td><td>${weg('mitglieder', m.id)}</td></tr>`).join('')
+    : leer(8, DB.mitglieder.length ? 'Niemand gefunden.' : 'Noch keine Mitglieder eingetragen.');
+}
+function eventsAnzeigen() {
+  const liste = [...DB.events].sort((a, b) => (a.datum || '').localeCompare(b.datum || ''));
+  $('t-events').innerHTML = liste.length ? liste.map(e => {
+    const gebucht = DB.buchungen.filter(b => b.event_id === e.id && b.status === 'gebucht').length;
+    return `<tr><td><b>${esc(e.name)}</b></td><td>${esc(datum(e.datum))}${e.uhrzeit ? ' · ' + esc(e.uhrzeit) : ''}</td>
+    <td>${esc(e.ort || '–')}</td><td>${e.kapazitaet ? `${gebucht} / ${esc(e.kapazitaet)}` : gebucht || '–'}</td>
+    <td>${e.preis ? esc(euro(e.preis)) : 'kostenlos'}</td><td>${st(EVENT_STATUS, e.status)}</td><td>${weg('events', e.id)}</td></tr>`;
+  }).join('') : leer(7, 'Noch keine Events angelegt.');
+}
+function buchungenAnzeigen() {
+  $('t-buchungen').innerHTML = DB.buchungen.length ? DB.buchungen.map(b => {
+    const m = DB.mitglieder.find(x => x.id === b.mitglied_id), e = DB.events.find(x => x.id === b.event_id);
+    return `<tr><td>${esc(mName(m))}</td><td>${esc(e ? e.name : '–')}</td><td>${esc(datum(b.buchungsdatum))}</td>
+    <td>${st(BUCHUNG_STATUS, b.status)}</td><td>${esc(b.notizen || '–')}</td><td>${weg('buchungen', b.id)}</td></tr>`;
+  }).join('') : leer(6, 'Noch keine Buchungen.');
+}
+function rechnungenAnzeigen() {
+  $('t-rechnungen').innerHTML = DB.rechnungen.length ? DB.rechnungen.map(r => {
+    const m = DB.mitglieder.find(x => x.id === r.mitglied_id);
+    const bezahlen = r.status === 'bezahlt' || r.status === 'storniert' ? '' : `<button type="button" class="klein" data-bezahlt="${esc(r.id)}">✓ Bezahlt</button> `;
+    return `<tr><td><b>${esc(r.rechnungsnummer)}</b></td><td>${esc(mName(m))}</td><td>${esc(euro(r.betrag))}</td>
+    <td>${esc(datum(r.faelligkeitsdatum))}</td><td>${st(RECHNUNG_STATUS, r.status)}</td><td style="white-space:nowrap">${bezahlen}${weg('rechnungen', r.id)}</td></tr>`;
+  }).join('') : leer(6, 'Noch keine Rechnungen.');
+}
+const FILTER = { alle: 'Alle aktiven', vollmitglied: 'Vollmitglieder', foerder: 'Fördermitglieder' };
+function kommunikationAnzeigen() {
+  $('t-kommunikation').innerHTML = DB.kommunikation.length ? [...DB.kommunikation].reverse().map(k =>
+    `<tr><td>${esc(k.datum)}</td><td>${esc(k.betreff)}</td><td>${esc(k.empfaenger_anzahl)}</td><td>${esc(FILTER[k.filter] || k.filter)}</td></tr>`).join('')
+    : leer(4, 'Noch keine Rundmails.');
+  const n = empfaenger().length;
+  $('mail-info').textContent = `${n} Empfänger mit E-Mail-Adresse`;
+  beschriften();
+}
+// Spaltennamen an jede Zelle hängen (für die Karten-Ansicht am Handy)
+function beschriften() {
+  document.querySelectorAll('table').forEach(t => {
+    const namen = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => {
+      if (namen[i] && !td.hasAttribute('colspan')) td.dataset.l = namen[i];
+    }));
+  });
+}
+function alleAnzeigen() { uebersicht(); mitgliederAnzeigen(); eventsAnzeigen(); buchungenAnzeigen(); rechnungenAnzeigen(); kommunikationAnzeigen(); beschriften(); }
+$('mitglied-suche').addEventListener('input', () => { mitgliederAnzeigen(); beschriften(); });
+
+// ── Dialoge ──
+const FELDER = {
+  mitglied: ['anrede', 'beitragsart', 'vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort', 'eintrittsdatum', 'status', 'notizen'],
+  event: ['name', 'datum', 'uhrzeit', 'ort', 'kapazitaet', 'preis', 'status', 'beschreibung'],
+  buchung: ['mitglied_id', 'event_id', 'status', 'notizen'],
+  rechnung: ['mitglied_id', 'betrag', 'mwst_satz', 'faelligkeitsdatum', 'status']
+};
+const PRAEFIX = { mitglied: 'm', event: 'e', buchung: 'b', rechnung: 'r' };
+const feld = (art, f) => $(`${PRAEFIX[art]}-${f}`);
+function auswahl(sel, liste, text) {
+  sel.innerHTML = '<option value="">Bitte wählen</option>' + liste.map(x => `<option value="${esc(x.id)}">${esc(text(x))}</option>`).join('');
+}
+function oeffnen(art) {
+  for (const f of FELDER[art]) { const el = feld(art, f); el.value = el.tagName === 'SELECT' ? el.options[0]?.value ?? '' : ''; }
+  if (art === 'mitglied') feld(art, 'eintrittsdatum').value = heute();
+  if (art === 'buchung' || art === 'rechnung') auswahl(feld(art, 'mitglied_id'), DB.mitglieder.filter(m => m.status !== 'ausgetreten'), m => `${m.mitgliedsnummer} · ${mName(m)}`);
+  if (art === 'buchung') auswahl(feld(art, 'event_id'), DB.events.filter(e => e.status !== 'abgesagt' && e.status !== 'abgeschlossen'), e => `${datum(e.datum)} · ${e.name}`);
+  if (art === 'rechnung') { feld(art, 'mwst_satz').value = 20; feld(art, 'faelligkeitsdatum').value = inTagen(14); }
+  $('d-' + art).classList.add('offen');
+  $('d-' + art).querySelector('input, select')?.focus();
+}
+function schliessen(dialog) { dialog.classList.remove('offen'); }
+document.addEventListener('click', e => {
+  const neu = e.target.closest('[data-neu]');
+  if (neu) {
+    const art = neu.dataset.neu;
+    zeige({ mitglied: 'mitglieder', event: 'events', buchung: 'buchungen', rechnung: 'rechnungen' }[art]);
+    return oeffnen(art);
+  }
+  if (e.target.closest('[data-zu]')) return schliessen(e.target.closest('.dialog-bg'));
+  if (e.target.classList.contains('dialog-bg')) return schliessen(e.target);
+  const sp = e.target.closest('[data-speichern]');
+  if (sp) return speichereEintrag(sp.dataset.speichern);
+  const w = e.target.closest('[data-weg]');
+  if (w) {
+    const art = w.dataset.weg;
+    if (!confirm('Wirklich löschen? Das geht nicht rückgängig.')) return;
+    DB[art] = DB[art].filter(x => x.id !== w.dataset.id);
+    speichern(art); alleAnzeigen(); toast('Gelöscht.');
+    return;
+  }
+  const bz = e.target.closest('[data-bezahlt]');
+  if (bz) {
+    const r = DB.rechnungen.find(x => x.id === bz.dataset.bezahlt);
+    if (r) { r.status = 'bezahlt'; r.bezahlt_am = heute(); speichern('rechnungen'); alleAnzeigen(); toast('Als bezahlt markiert.'); }
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.dialog-bg.offen').forEach(schliessen); });
+
+function speichereEintrag(art) {
+  const w = Object.fromEntries(FELDER[art].map(f => [f, feld(art, f).value.trim()]));
+  const pflicht = { mitglied: ['vorname', 'nachname', 'email'], event: ['name', 'datum'], buchung: ['mitglied_id', 'event_id'], rechnung: ['mitglied_id', 'betrag'] }[art];
+  if (pflicht.some(f => !w[f])) return toast('Bitte alle Felder mit * ausfüllen.');
+  if (art === 'mitglied') {
+    DB.mitglieder.push({ id: neueId(), mitgliedsnummer: naechsteNummer('MG', DB.mitglieder, 'mitgliedsnummer'), ...w, eintrittsdatum: w.eintrittsdatum || heute() });
+    speichern('mitglieder'); toast(`Mitglied ${DB.mitglieder.at(-1).mitgliedsnummer} angelegt.`);
+  } else if (art === 'event') {
+    DB.events.push({ id: neueId(), ...w }); speichern('events'); toast('Event angelegt.');
+  } else if (art === 'buchung') {
+    if (DB.buchungen.some(b => b.mitglied_id === w.mitglied_id && b.event_id === w.event_id && b.status !== 'storniert')) return toast('Dieses Mitglied ist für das Event schon gebucht.');
+    DB.buchungen.push({ id: neueId(), buchungsdatum: heute(), ...w }); speichern('buchungen'); toast('Buchung gespeichert.');
+  } else {
+    DB.rechnungen.push({ id: neueId(), rechnungsnummer: naechsteNummer('RG', DB.rechnungen, 'rechnungsnummer'), ...w,
+      betrag: Number(w.betrag).toFixed(2), faelligkeitsdatum: w.faelligkeitsdatum || inTagen(14), erstellt_am: heute() });
+    speichern('rechnungen'); toast(`Rechnung ${DB.rechnungen.at(-1).rechnungsnummer} angelegt.`);
+  }
+  schliessen($('d-' + art));
+  alleAnzeigen();
+}
+
+// ── Rundmail ──
+function empfaenger() {
+  const f = $('mail-filter').value;
+  return DB.mitglieder.filter(m => m.status === 'aktiv' && m.email && (f === 'alle' || m.beitragsart === f)).map(m => m.email);
+}
+$('mail-filter').addEventListener('change', kommunikationAnzeigen);
+function rundmailMerken(anzahl) {
+  DB.kommunikation.push({ id: neueId(), datum: new Date().toLocaleDateString('de-AT'), betreff: $('mail-betreff').value.trim(),
+    inhalt: $('mail-inhalt').value.trim(), empfaenger_anzahl: anzahl, filter: $('mail-filter').value });
+  speichern('kommunikation'); kommunikationAnzeigen();
+}
+$('mail-oeffnen').addEventListener('click', () => {
+  const an = empfaenger(), betreff = $('mail-betreff').value.trim(), text = $('mail-inhalt').value.trim();
+  if (!betreff || !text) return toast('Bitte Betreff und Nachricht ausfüllen.');
+  if (!an.length) return toast('Keine Empfänger mit E-Mail-Adresse.');
+  const link = `mailto:?bcc=${encodeURIComponent(an.join(','))}&subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`;
+  if (link.length > 1900) return toast('Zu viele Empfänger für diesen Weg. Bitte „Adressen kopieren“ verwenden.');
+  rundmailMerken(an.length);
+  location.href = link;
+});
+$('mail-kopieren').addEventListener('click', async () => {
+  const an = empfaenger();
+  if (!an.length) return toast('Keine Empfänger mit E-Mail-Adresse.');
+  try { await navigator.clipboard.writeText(an.join(', ')); }
+  catch { return prompt('Adressen zum Kopieren:', an.join(', ')); }
+  if ($('mail-betreff').value.trim()) rundmailMerken(an.length);
+  toast(`${an.length} Adressen kopiert. Im E-Mail-Programm bei „Bcc“ einfügen.`);
+});
+
+// ── Sicherung ──
+$('sicherung-laden').addEventListener('click', () => {
+  const daten = { app: 'haarnetzwerk-verein', version: 1, erstellt: new Date().toISOString(), ...DB };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(daten, null, 2)], { type: 'application/json' }));
+  a.download = `Haarnetzwerk-Verein-Sicherung-${heute()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $('sicherung-info').textContent = `Sicherung vom ${new Date().toLocaleString('de-AT')} heruntergeladen.`;
+});
+$('sicherung-datei').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  let d;
+  try { d = JSON.parse(await f.text()); } catch { return toast('Diese Datei ist keine Sicherung.'); }
+  if (!Object.keys(SCHLUESSEL).every(k => Array.isArray(d[k]))) return toast('Diese Datei ist keine Vereins-Sicherung.');
+  const jetzt = Object.keys(SCHLUESSEL).map(k => `${DB[k].length} ${k}`).join(', ');
+  if (!confirm(`Die Sicherung ersetzt alle Vereinsdaten auf diesem Gerät (jetzt: ${jetzt}). Weiter?`)) return;
+  for (const k of Object.keys(SCHLUESSEL)) { DB[k] = d[k]; speichern(k); }
+  alleAnzeigen(); toast('Sicherung eingespielt.');
+});
+
+alleAnzeigen();
+</script>
+</body>
+</html>
