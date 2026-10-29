@@ -7,136 +7,120 @@
 <!-- Solange MAPPE.entwurf = true: nicht in Suchmaschinen. Beim Freigeben diese Zeile löschen. -->
 <meta name="robots" content="noindex">
 <title>Kooperationspakete · Haarnetzwerk</title>
-<meta name="description" content="Kooperationspakete des Haarnetzwerks: Premium und Classic. Gemeinsam mehr bewegen.">
+<meta name="description" content="Kooperationspakete des Haarnetzwerks: Premium und Classic.">
 <style>
   /* Schriften liegen hier im Repo (keine Verbindung zu Google beim Aufruf) */
   @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-italic-500.woff2) format('woff2')}
   @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-normal-500.woff2) format('woff2')}
   @font-face{font-family:'Jost';font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/Jost-normal-400.woff2) format('woff2')}
   :root {
-    --bg: #FFFFFF; --flaeche: #F7F6F3; --ink: #141414; --sub: #4A4A4A; --muted: #6B6B6B; --line: #E4E2DD;
-    --gold: #8B6A2F; --gold-hell: #C9A063; --gold-verlauf: linear-gradient(100deg, #7A5A26, #C9A063 45%, #8B6A2F 75%, #B88E4E);
-    --silber-verlauf: linear-gradient(100deg, #CFCFCF, #F2F2F2 45%, #D6D6D6);
+    --bg: #FFFFFF; --flaeche: #F5F5F4; --ink: #141414; --sub: #4A4A4A; --muted: #6B6B6B; --line: #E3E3E1;
+    --dunkel: #141414; --dunkel-2: #1F1F1F; --dunkel-line: #333333; --hell-auf-dunkel: #F5F5F4; --sub-auf-dunkel: #BDBDBD;
     --serif: 'Cormorant Garamond', Georgia, serif; --sans: 'Jost', system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--sans); }
-  .breite { max-width: 1040px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--sans); }
   a { color: inherit; }
-  .entwurf { background: #141414; color: #fff; text-align: center; font-size: 14px; padding: 8px 16px; }
-  .eyebrow { font: 500 13px/1.2 var(--sans); letter-spacing: .28em; text-transform: uppercase; color: var(--muted); margin: 0; }
-  .gold-text { background: var(--gold-verlauf); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  h2 { font: 500 clamp(30px, 5vw, 44px)/1.1 var(--serif); margin: 10px 0 0; letter-spacing: .02em; }
-  section { padding: 56px 0; }
-  section + section { border-top: 1px solid var(--line); }
-  .knopf { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 500 16px var(--sans); text-decoration: none; cursor: pointer;
-    border-radius: 999px; padding: 13px 24px; border: 1px solid var(--ink); background: var(--ink); color: #fff; }
+  .breite { max-width: 1040px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+  .eyebrow { font: 500 12px/1.4 var(--sans); letter-spacing: .32em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  h2 { font: italic 500 clamp(34px, 5vw, 48px)/1.1 var(--serif); margin: 12px 0 0; }
+  .linie { width: 64px; height: 1px; background: var(--ink); margin: 28px auto; border: 0; }
+  section { padding-top: 72px; padding-bottom: 72px; }
+  .entwurf { background: var(--dunkel); color: #fff; text-align: center; font-size: 13px; letter-spacing: .08em; padding: 8px 16px; }
+  .knopf { display: inline-flex; align-items: center; justify-content: center; font: 500 13px var(--sans); letter-spacing: .18em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer; border-radius: 0; padding: 15px 28px; border: 1px solid var(--ink); background: var(--ink); color: #fff; }
   .knopf.hell { background: transparent; color: var(--ink); }
-  .knopf.gold { background: var(--gold-verlauf); border-color: transparent; color: #fff; }
-  .knopf:disabled { opacity: .45; cursor: default; }
-
-  /* Kopf */
-  .kopf { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 28px; }
-  .kopf-logo { display: flex; align-items: center; gap: 16px; }
-  .kopf-logo img { width: 92px; height: 92px; }
-  .kopf-logo p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--sub); }
-  .kopf-logo b { font-weight: 500; color: var(--ink); }
-  .werte { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 1px solid var(--gold-hell); font-size: 12px; letter-spacing: .26em; color: var(--sub); line-height: 1.9; }
-  @media (max-width: 640px) { .werte { display: none; } }
+  .knopf.umgekehrt { background: var(--hell-auf-dunkel); color: var(--ink); border-color: var(--hell-auf-dunkel); }
 
   /* Einstieg */
-  .einstieg { padding: 48px 0 56px; }
-  .einstieg .motto { font: italic 500 clamp(34px, 6vw, 60px)/1 var(--serif); margin: 0 0 22px; }
-  .einstieg h1 { margin: 0; font: 500 clamp(44px, 9vw, 96px)/.95 var(--serif); letter-spacing: .03em; text-transform: uppercase; }
-  .einstieg h1 span { display: block; }
-  .einstieg h1 span + span { font-size: .62em; letter-spacing: .06em; color: var(--ink); margin-top: 6px; }
-  .einstieg .text { max-width: 640px; color: var(--sub); margin: 22px 0 28px; }
-  .einstieg .knoepfe { display: flex; gap: 12px; flex-wrap: wrap; }
+  .einstieg { text-align: center; padding-top: 64px; padding-bottom: 80px; }
+  .einstieg img { width: 128px; height: 128px; }
+  .einstieg .verein { margin: 14px 0 0; }
+  .einstieg h1 { font: italic 500 clamp(52px, 10vw, 104px)/1 var(--serif); margin: 40px 0 0; letter-spacing: -.005em; }
+  .einstieg .text { max-width: 560px; margin: 0 auto 36px; color: var(--sub); }
+  .einstieg .knoepfe { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
   /* Zahlen */
-  .zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 28px; }
-  .zahl { border: 1px solid var(--line); border-radius: 14px; padding: 20px; text-align: center; }
-  .zahl b { display: block; font: 500 46px/1 var(--serif); }
-  .zahl span { display: block; margin-top: 6px; font-size: 14px; color: var(--muted); }
+  .zahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 56px; }
+  .zahl { padding: 26px 12px; text-align: center; }
+  .zahl + .zahl { border-left: 1px solid var(--line); }
+  .zahl b { display: block; font: 500 48px/1 var(--serif); }
+  .zahl span { display: block; margin-top: 8px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
 
   /* Pakete */
-  .trenner { display: flex; align-items: center; gap: 16px; margin: 6px 0 28px; }
-  .trenner::before, .trenner::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-  .pakete { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start; }
-  .paket { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; }
-  .paket-kopf { padding: 22px 20px 18px; text-align: center; }
-  .paket.premium .paket-kopf { background: var(--gold-verlauf); color: #fff; }
-  .paket.classic .paket-kopf { background: var(--silber-verlauf); color: var(--ink); }
-  .paket-kopf h3 { margin: 0; font: 500 30px/1.1 var(--serif); letter-spacing: .06em; text-transform: uppercase; }
-  .paket-kopf p { margin: 6px 0 0; font: 500 26px/1.1 var(--serif); letter-spacing: .04em; }
-  .paket-kopf p small { font: 500 14px var(--sans); letter-spacing: .18em; text-transform: uppercase; margin-right: 6px; }
-  .paket ul { list-style: none; margin: 0; padding: 8px 20px; }
-  .paket li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .pakete-bereich { background: var(--flaeche); }
+  .kopfzeile { text-align: center; margin-bottom: 48px; }
+  .pakete { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: stretch; }
+  .paket { display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); padding: 40px 32px 32px; }
+  .paket.premium { background: var(--dunkel); color: var(--hell-auf-dunkel); border-color: var(--dunkel); }
+  .paket-kopf { text-align: center; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+  .premium .paket-kopf { border-color: var(--dunkel-line); }
+  .paket-kopf .eyebrow { margin-bottom: 10px; }
+  .premium .eyebrow { color: var(--sub-auf-dunkel); }
+  .paket-kopf h3 { margin: 0; font: italic 500 46px/1 var(--serif); }
+  .paket-kopf .wert { margin: 18px 0 0; font: 500 36px/1 var(--serif); }
+  .paket-kopf .wert small { display: block; font: 500 11px/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .premium .paket-kopf .wert small { color: var(--sub-auf-dunkel); }
+  .paket ul { list-style: none; margin: 8px 0 28px; padding: 0; flex: 1; }
+  .paket li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .premium li { border-color: var(--dunkel-line); }
   .paket li:last-child { border-bottom: none; }
-  .paket li.hervor { background: var(--flaeche); margin: 0 -20px; padding: 14px 20px; }
   .paket li.hervor b { display: block; font-weight: 500; }
-  .symbol { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
-  .premium .symbol { background: var(--gold-verlauf); }
-  .classic .symbol { background: #1F1F1F; }
-  .symbol svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  .paket-fuss { padding: 0 20px 22px; }
-  .paket-fuss .knopf { width: 100%; }
-  .absprache { text-align: center; color: var(--sub); margin: 22px 0 0; }
+  .paket li.hervor span:last-child { color: var(--muted); }
+  .premium li.hervor span:last-child { color: var(--sub-auf-dunkel); }
+  .premium li.hervor b { color: var(--hell-auf-dunkel); }
+  .symbol { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; }
+  .premium .symbol { border-color: #4A4A4A; }
+  .symbol svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  .paket .knopf { width: 100%; }
+  .absprache { text-align: center; color: var(--sub); margin: 36px 0 0; font: italic 500 22px/1.4 var(--serif); }
 
-  /* Über uns */
-  .ueber { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
-  @media (max-width: 760px) { .ueber { grid-template-columns: 1fr; } }
-  .ueber p { color: var(--sub); }
-  .saeulen { display: flex; gap: 18px; justify-content: space-around; margin-top: 18px; }
-  .saeule { text-align: center; }
-  .saeule .kreis { width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--gold-hell); display: grid; place-items: center; margin: 0 auto 10px; }
-  .saeule svg { width: 30px; height: 30px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-  .saeule span { font-size: 12px; letter-spacing: .24em; text-transform: uppercase; }
-  .claim { font: italic 500 clamp(32px, 5vw, 48px)/1.1 var(--serif); margin: 0; }
-
-  /* Termine */
-  .termine { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; }
-  .termine li { display: flex; justify-content: space-between; gap: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
-  .termine b { font: 500 22px/1.2 var(--serif); }
-  .termine span { color: var(--muted); white-space: nowrap; }
+  /* Über uns, Termine */
+  .ueber { max-width: 680px; margin: 0 auto; text-align: center; }
+  .ueber p:not(.eyebrow) { color: var(--sub); margin-top: 20px; }
+  .termine { list-style: none; margin: 36px auto 0; padding: 0; max-width: 680px; border-top: 1px solid var(--line); }
+  .termine li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .termine b { font: italic 500 28px/1.2 var(--serif); }
+  .termine span { color: var(--muted); letter-spacing: .12em; white-space: nowrap; }
+  .zentriert { text-align: center; }
 
   /* Anfrage */
-  .anfrage { background: var(--flaeche); }
-  .formular { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 24px; }
+  .anfrage { background: var(--dunkel); color: var(--hell-auf-dunkel); }
+  .anfrage .eyebrow { color: var(--sub-auf-dunkel); }
+  .formular { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 48px; }
   @media (max-width: 760px) { .formular { grid-template-columns: 1fr; } }
-  .wahl { display: grid; gap: 8px; }
-  .wahl label { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
-  .wahl input { accent-color: var(--gold); width: 18px; height: 18px; }
-  .wahl small { color: var(--muted); margin-left: auto; white-space: nowrap; }
-  label.feld { display: block; font-size: 14px; color: var(--muted); margin: 14px 0 4px; }
-  input[type=text], textarea { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; }
-  textarea { min-height: 96px; resize: vertical; }
-  .vorschau { white-space: pre-wrap; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 15px; color: var(--sub); min-height: 180px; }
-  .senden { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-  .hinweis { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+  .wahl { display: grid; gap: 0; border-top: 1px solid var(--dunkel-line); }
+  .wahl label { display: flex; gap: 14px; align-items: center; border-bottom: 1px solid var(--dunkel-line); padding: 16px 2px; cursor: pointer; }
+  .wahl input { accent-color: var(--hell-auf-dunkel); width: 18px; height: 18px; }
+  .wahl span { font: italic 500 22px/1.2 var(--serif); }
+  .wahl small { color: var(--sub-auf-dunkel); margin-left: auto; white-space: nowrap; letter-spacing: .08em; }
+  .feldname { display: block; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--sub-auf-dunkel); margin: 26px 0 8px; }
+  input[type=text], textarea { width: 100%; font: inherit; font-size: 16px; color: var(--hell-auf-dunkel); background: transparent; border: 0; border-bottom: 1px solid #555; padding: 8px 0; border-radius: 0; }
+  input[type=text]:focus, textarea:focus { outline: none; border-bottom-color: var(--hell-auf-dunkel); }
+  input::placeholder, textarea::placeholder { color: #7A7A7A; }
+  textarea { min-height: 84px; resize: vertical; }
+  .vorschau { white-space: pre-wrap; background: var(--dunkel-2); border: 1px solid var(--dunkel-line); padding: 20px; font-size: 15px; color: #D6D6D6; min-height: 200px; }
+  .senden { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .anfrage .knopf.hell { color: var(--hell-auf-dunkel); border-color: #777; }
+  .hinweis { font-size: 13px; color: var(--sub-auf-dunkel); margin: 12px 0 0; }
 
-  footer { padding: 32px 0 48px; font-size: 14px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); }
-  footer p { margin: 4px 0; }
-  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  footer { padding: 36px 0 48px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); text-align: center; }
+  footer p { margin: 6px 0; }
+  :focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+  @media (max-width: 600px) { section { padding-top: 56px; padding-bottom: 56px; } .paket { padding: 32px 22px 24px; } }
 </style>
 </head>
 <body>
 <div class="entwurf" id="entwurf" hidden>Entwurf – noch nicht freigegeben</div>
 
-<header class="breite kopf">
-  <div class="kopf-logo">
-    <img src="bilder/haarnetzwerk-logo-schwarz.png" alt="Haarnetzwerk">
-    <p id="verein"></p>
-  </div>
-  <ul class="werte" aria-label="Unsere Werte"><li>PEOPLE</li><li>BUSINESS</li><li>BEAUTY</li><li>NETWORKING</li><li>ZUKUNFT</li></ul>
-</header>
-
 <main>
   <section class="breite einstieg">
-    <p class="motto gold-text">Gemeinsam mehr bewegen.</p>
-    <h1><span class="gold-text">Haarnetzwerk</span><span>Kooperationspakete</span></h1>
+    <img src="bilder/haarnetzwerk-logo-schwarz.png" alt="Haarnetzwerk">
+    <p class="eyebrow verein" id="verein"></p>
+    <h1>Kooperationspakete</h1>
+    <hr class="linie">
     <p class="text" id="einleitung"></p>
     <div class="knoepfe">
       <a class="knopf" href="#pakete">Pakete ansehen</a>
@@ -145,29 +129,26 @@
     <div class="zahlen" id="zahlen" hidden></div>
   </section>
 
-  <section class="breite" id="pakete">
-    <div class="trenner"><p class="eyebrow">Werbekostenpakete / Kooperationsvereinbarungen</p></div>
-    <div class="pakete" id="paketliste"></div>
-    <p class="absprache">Detailanfragen oder Abänderungen sind natürlich nach Absprache möglich.</p>
-  </section>
-
-  <section class="breite">
-    <div class="ueber">
-      <div>
-        <p class="eyebrow">Über uns</p>
-        <h2>Friseure. Gemeinsam. Stärker.</h2>
-        <p id="ueber"></p>
-        <div class="saeulen">
-          <div class="saeule"><div class="kreis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l4-4 4 3 3-2 7 5"/><path d="M7 15l3 3 2-1 2 2 3-3"/></svg></div><span>Austauschen</span></div>
-          <div class="saeule"><div class="kreis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/></svg></div><span>Erleben</span></div>
-          <div class="saeule"><div class="kreis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V14M10 20V10M16 20V6M3 20h18"/></svg></div><span>Profitieren</span></div>
-        </div>
+  <section class="pakete-bereich" id="pakete">
+    <div class="breite">
+      <div class="kopfzeile">
+        <p class="eyebrow">Werbekostenpakete · Kooperationsvereinbarungen</p>
+        <h2>Unsere Pakete</h2>
       </div>
-      <p class="claim gold-text">Starke Partnerschaften für eine starke Branche.</p>
+      <div class="pakete" id="paketliste"></div>
+      <p class="absprache">Detailanfragen oder Abänderungen sind natürlich nach Absprache möglich.</p>
     </div>
   </section>
 
-  <section class="breite" id="termine-bereich" hidden>
+  <section class="breite" id="ueber-bereich" hidden>
+    <div class="ueber">
+      <p class="eyebrow">Über uns</p>
+      <h2>Das Haarnetzwerk</h2>
+      <p id="ueber"></p>
+    </div>
+  </section>
+
+  <section class="breite zentriert" id="termine-bereich" hidden>
     <p class="eyebrow">Nächste Veranstaltungen</p>
     <h2>Hier seid ihr dabei</h2>
     <ul class="termine" id="termine"></ul>
@@ -175,24 +156,26 @@
 
   <section class="anfrage" id="anfrage">
     <div class="breite">
-      <p class="eyebrow">Anfrage</p>
-      <h2>Paket wählen und anfragen</h2>
+      <div class="zentriert">
+        <p class="eyebrow">Anfrage</p>
+        <h2>Paket wählen und anfragen</h2>
+      </div>
       <div class="formular">
         <div>
           <div class="wahl" id="wahl" role="radiogroup" aria-label="Paket"></div>
-          <label class="feld" for="firma">Firma *</label>
+          <label class="feldname" for="firma">Firma *</label>
           <input type="text" id="firma" autocomplete="organization">
-          <label class="feld" for="person">Ansprechperson</label>
+          <label class="feldname" for="person">Ansprechperson</label>
           <input type="text" id="person" autocomplete="name">
-          <label class="feld" for="wunsch">Wünsche oder Abänderungen</label>
+          <label class="feldname" for="wunsch">Wünsche oder Abänderungen</label>
           <textarea id="wunsch" placeholder="z. B. Interesse an einer bestimmten Veranstaltung"></textarea>
         </div>
         <div>
-          <label class="feld" style="margin-top:0">Eure Nachricht an uns</label>
+          <p class="feldname" style="margin-top:0">Eure Nachricht an uns</p>
           <div class="vorschau" id="vorschau" aria-live="polite"></div>
           <div class="senden">
-            <a class="knopf gold" id="per-mail" hidden>Per E-Mail senden</a>
-            <a class="knopf" id="per-whatsapp" hidden target="_blank" rel="noopener">Per WhatsApp senden</a>
+            <a class="knopf umgekehrt" id="per-mail" hidden>Per E-Mail senden</a>
+            <a class="knopf umgekehrt" id="per-whatsapp" hidden target="_blank" rel="noopener">Per WhatsApp senden</a>
             <button type="button" class="knopf hell" id="kopieren">Text kopieren</button>
           </div>
           <p class="hinweis" id="kontakt-hinweis"></p>
@@ -228,8 +211,8 @@ const MAPPE = {
     whatsapp: ''   // nur Ziffern mit Ländervorwahl, z. B. 43660…
   },
   impressum: '',   // Link zum Impressum des Vereins
-  einleitung: 'Nachfolgende Pakete sollen unseren Kooperationspartnern eine Möglichkeit bieten, ihren eingebrachten Werbekostenzuschuss sichtbar zu machen.',
-  ueber: 'Das Haarnetzwerk wurde im Herbst 2025 gegründet und steht für miteinander statt gegeneinander. Wir wollen gemeinsam Dinge erleben, miteinander austauschen und voneinander profitieren. In der Friseurbranche ist kein Platz mehr für Spaltung und negative Energie.',
+  einleitung: 'Mit unseren Paketen machen wir den Werbekostenzuschuss unserer Kooperationspartner sichtbar.',
+  ueber: '',       // eigener Text über den Verein; leer = Abschnitt wird nicht gezeigt
   // nur echte Zahlen; leere werden nicht gezeigt
   zahlen: [
     { wert: '', label: 'Salons im Netzwerk' },
@@ -241,7 +224,7 @@ const MAPPE = {
     { name: 'Musical Maria Theresia', datum: '24.01.2027' }
   ],
   pakete: [
-    { id: 'premium', name: 'Premium Paket', wert: '1.500 €', stil: 'premium', leistungen: [
+    { id: 'premium', name: 'Premium', wert: '1.500 €', leistungen: [
       ['web', 'Logo auf unserer Homepage'],
       ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
       ['leute', 'Nennung bei Veranstaltungen als „Sponsor“'],
@@ -250,7 +233,7 @@ const MAPPE = {
       ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
       ['ticket', 'Mitgliederpreis|bei unseren Veranstaltungen']
     ] },
-    { id: 'classic', name: 'Classic Paket', wert: '650 €', stil: 'classic', leistungen: [
+    { id: 'classic', name: 'Classic', wert: '650 €', leistungen: [
       ['web', 'Logo auf unserer Homepage'],
       ['seite', 'Eigene Bewerbungsseite der Firma auf unserer Homepage und Verlinkung'],
       ['brief', '2× im Jahr Werbung oder Veranstaltungsinfo'],
@@ -259,6 +242,7 @@ const MAPPE = {
   ]
 };
 
+// feine Linien-Symbole (Strichstärke über CSS)
 const SYMBOLE = {
   web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
   seite: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 15h5M10 18h3"/>',
@@ -266,7 +250,7 @@ const SYMBOLE = {
   megafon: '<path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M17 9.5a3.5 3.5 0 0 1 0 5M7 14l1.5 5h2.5L10 15"/>',
   rollup: '<path d="M8 4h8v14H8z"/><path d="M6 4h12M12 18v3M9 21h6"/>',
   brief: '<path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/>',
-  ticket: '<path d="M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 1 0-4V4H4z" transform="translate(0 2)"/><path d="M14 6v12" stroke-dasharray="2 2"/>'
+  ticket: '<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/>'
 };
 
 const $ = id => document.getElementById(id);
@@ -275,11 +259,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 // ── Inhalte aus MAPPE ──
 const v = MAPPE.verein;
 $('entwurf').hidden = !MAPPE.entwurf;
-$('verein').innerHTML = `<b>${esc(v.zusatz)}</b><br>ZVR: ${esc(v.zvr)}`;
+$('verein').textContent = `${v.name} · ${v.zusatz}`;
 $('fuss-verein').textContent = `${v.name} · ${v.zusatz} · ZVR ${v.zvr}`;
 if (MAPPE.impressum) { $('impressum').href = MAPPE.impressum; $('impressum-zeile').hidden = false; }
 $('einleitung').textContent = MAPPE.einleitung;
 $('ueber').textContent = MAPPE.ueber;
+$('ueber-bereich').hidden = !MAPPE.ueber.trim();
 
 const zahlen = MAPPE.zahlen.filter(z => String(z.wert).trim());
 $('zahlen').innerHTML = zahlen.map(z => `<div class="zahl"><b>${esc(z.wert)}</b><span>${esc(z.label)}</span></div>`).join('');
@@ -289,18 +274,18 @@ $('termine').innerHTML = MAPPE.termine.map(t => `<li><b>${esc(t.name)}</b><span>
 $('termine-bereich').hidden = !MAPPE.termine.length;
 
 $('paketliste').innerHTML = MAPPE.pakete.map(p => `
-  <article class="paket ${esc(p.stil)}" aria-label="${esc(p.name)}">
-    <div class="paket-kopf"><h3>${esc(p.name)}</h3><p><small>Wert</small>${esc(p.wert)}</p></div>
+  <article class="paket ${esc(p.id)}" aria-label="${esc(p.name)} Paket">
+    <div class="paket-kopf"><p class="eyebrow">Paket</p><h3>${esc(p.name)}</h3><p class="wert"><small>Wert</small>${esc(p.wert)}</p></div>
     <ul>${p.leistungen.map(([sym, text]) => {
       const [titel, zusatz] = text.split('|');
       return `<li${zusatz ? ' class="hervor"' : ''}><span class="symbol"><svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOLE[sym] || ''}</svg></span>
         <span>${zusatz ? `<b>${esc(titel)}</b>${esc(zusatz)}` : esc(titel)}</span></li>`;
     }).join('')}</ul>
-    <div class="paket-fuss"><a class="knopf ${p.stil === 'premium' ? 'gold' : ''}" href="#anfrage" data-paket="${esc(p.id)}">${esc(p.name)} anfragen</a></div>
+    <a class="knopf ${p.id === 'premium' ? 'umgekehrt' : ''}" href="#anfrage" data-paket="${esc(p.id)}">${esc(p.name)} anfragen</a>
   </article>`).join('');
 
 // ── Anfrage ──
-const WAHL = [...MAPPE.pakete.map(p => ({ id: p.id, name: p.name, wert: p.wert })), { id: 'individuell', name: 'Individuell nach Absprache', wert: '' }];
+const WAHL = [...MAPPE.pakete.map(p => ({ id: p.id, name: `${p.name} Paket`, wert: p.wert })), { id: 'individuell', name: 'Individuell nach Absprache', wert: '' }];
 $('wahl').innerHTML = WAHL.map((w, i) => `<label><input type="radio" name="paket" value="${esc(w.id)}"${i === 0 ? ' checked' : ''}>
   <span>${esc(w.name)}</span>${w.wert ? `<small>Wert ${esc(w.wert)}</small>` : ''}</label>`).join('');
 
@@ -320,12 +305,11 @@ $('per-mail').hidden = !kontakt.email;
 $('per-whatsapp').hidden = !nummer;
 $('kontakt-hinweis').textContent = kontakt.email || nummer ? '' : 'Kontakt folgt. Bis dahin: Text kopieren und uns schicken.';
 function aktualisieren() {
-  const text = nachricht(), firmaDa = !!$('firma').value.trim();
+  const text = nachricht();
   $('vorschau').textContent = text;
   const betreff = `Kooperation Haarnetzwerk – ${$('firma').value.trim() || 'Anfrage'}`;
   if (kontakt.email) $('per-mail').href = `mailto:${kontakt.email}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`;
   if (nummer) $('per-whatsapp').href = `https://wa.me/${nummer}?text=${encodeURIComponent(text)}`;
-  for (const id of ['per-mail', 'per-whatsapp']) $(id).toggleAttribute('aria-disabled', !firmaDa);
 }
 document.addEventListener('input', aktualisieren);
 document.addEventListener('change', aktualisieren);
