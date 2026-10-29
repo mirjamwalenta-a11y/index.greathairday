@@ -4,8 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#FFFFFF">
-<!-- Solange MAPPE.entwurf = true: nicht in Suchmaschinen. Beim Freigeben diese Zeile löschen. -->
-<meta name="robots" content="noindex">
 <title>Kooperationspakete · Haarnetzwerk</title>
 <meta name="description" content="Kooperationspakete des Haarnetzwerks: Premium und Classic.">
 <style>
@@ -190,7 +188,7 @@
 
 <footer>
   <p id="fuss-verein"></p>
-  <p id="impressum-zeile" hidden><a id="impressum" href="#">Impressum</a></p>
+  <p id="impressum-zeile" hidden><a id="impressum" href="#">Impressum &amp; Datenschutz</a></p>
 </footer>
 
 <script>
@@ -204,15 +202,15 @@
 // nur die offiziellen Kontakte des Vereins.
 
 const MAPPE = {
-  // auf false stellen, wenn Kontakt und Texte freigegeben sind (dann auch die robots-Zeile oben löschen)
-  entwurf: true,
-  verein: { name: 'Haarnetzwerk', zusatz: 'Landesorganisation Wien', zvr: '823433542' },
+  // true = Hinweis „Entwurf“ oben (dann im <head> auch <meta name="robots" content="noindex"> ergänzen)
+  entwurf: false,
+  verein: { name: 'Haarnetzwerk', zusatz: 'Landesorganisation Wien', zvr: '1085033428' },
   // offizielle Kontakte des Vereins; leer = Knopf wird nicht gezeigt
   kontakt: {
     email: 'office@haarnetzwerk.com',
     whatsapp: ''   // bewusst leer: keine Telefonnummer auf der Seite
   },
-  impressum: '',   // Link zum Impressum des Vereins
+  impressum: 'impressum.html',
   einleitung: 'Mit unseren Paketen machen wir den Werbekostenzuschuss unserer Kooperationspartner sichtbar.',
   ueber: '',       // eigener Text über den Verein; leer = Abschnitt wird nicht gezeigt
   // nur echte Zahlen; leere werden nicht gezeigt

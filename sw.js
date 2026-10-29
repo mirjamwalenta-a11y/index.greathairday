@@ -6,7 +6,7 @@
 // Neue Seiten/Dateien dieser App hier bei `vorab` ergänzen.
 self.GHD_OFFLINE = {
   app: 'start',
-  version: '2026-10-29c',
+  version: '2026-10-29d',
   start: './index.html',
   vorab: [
     './',
@@ -18,6 +18,7 @@ self.GHD_OFFLINE = {
     './sponsorenwand.html',
     './verein.html',
     './sponsoring.html',
+    './impressum.html',
     './bilder/haarnetzwerk-logo-schwarz.png',
     './fonts/CormorantGaramond-normal-500.woff2',
     './fonts/CormorantGaramond-italic-500.woff2',
