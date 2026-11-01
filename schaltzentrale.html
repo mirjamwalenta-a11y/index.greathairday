@@ -361,6 +361,8 @@ function szZeigeApp() {
   if (fab) fab.style.display = 'flex';
   szChefBereichAktiv = true;
   szInaktivitaetsTimerZuruecksetzen();
+  // Erst JETZT (angemeldet) Daten laden – vorher lieferte der Server wegen RLS leere Listen
+  document.dispatchEvent(new Event('sz-angemeldet'));
 }
 
 // ── Inaktivitäts-Abmeldung (Chefbereich) ──────────────────────────────────
@@ -458,7 +460,10 @@ async function sb(path, opts = {}) {
   const timeout = setTimeout(() => controller.abort(), 8000);
   // Auth-Token aus aktiver Session holen (für RLS)
   const { data: sessionData } = await SZ_AUTH.auth.getSession();
-  const token = sessionData?.session?.access_token || SB_KEY;
+  const token = sessionData?.session?.access_token;
+  // Ohne Anmeldung NIE mit dem anon-Schlüssel abfragen: RLS liefert dann einfach
+  // leere Listen, und es sah aus, als wären alle Vorlagen/Aufgaben gelöscht.
+  if (!token) { clearTimeout(timeout); throw new Error('Nicht angemeldet'); }
   try {
     const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
       cache: "no-store",
@@ -1228,6 +1233,7 @@ function Woerni() {
   }
 
   async function laden_() {
+    if (!szChefBereichAktiv) return; // vor der Anmeldung nichts laden (siehe sz-angemeldet)
     // Älteren Cache einmalig als Sicherung übernehmen (falls es noch keine gibt)
     if (!vorlagenSicherungLaden()) {
       const alt = cacheLaden();
@@ -1329,8 +1335,10 @@ function Woerni() {
   }
 
   useEffect(() => {
-    // Erstmaliges Laden
+    // Erstmaliges Laden (falls schon angemeldet) und nach jeder Anmeldung erneut
     laden_();
+    const nachAnmeldung = () => laden_();
+    document.addEventListener('sz-angemeldet', nachAnmeldung);
 
     // Realtime: ghd_aufgaben + ghd_aufgaben_vorlagen → Aufgabenliste (und damit
     // auch die Tageslage, da laden_() beides gemeinsam neu holt) neu laden
@@ -1353,6 +1361,7 @@ function Woerni() {
       .subscribe();
 
     return () => {
+      document.removeEventListener('sz-angemeldet', nachAnmeldung);
       sbClient.removeChannel(aufgabenChannel);
       sbClient.removeChannel(ereignisseChannel);
       if (erkennungRef.current) erkennungRef.current.abort();
