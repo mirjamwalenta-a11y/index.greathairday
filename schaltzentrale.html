@@ -1111,6 +1111,8 @@ function Woerni() {
   const [neueVorlage, setNeueVorlage] = useState(false);
   const [bearbVorlage, setBearbVorlage] = useState(null);
   const [vorlagenAlleZeigen, setVorlagenAlleZeigen] = useState(false);
+  // Gesicherte Vorlagen, falls der Server plötzlich keine mehr liefert (siehe vorlagenSicherung*)
+  const [vorlagenVerlust, setVorlagenVerlust] = useState(null);
   const TAB_KEY = 'ghd_woerni_tab';
   const [tab, setTab] = useState(() => {
     try { return localStorage.getItem(TAB_KEY) || 'heute'; } catch(e) { return 'heute'; }
@@ -1174,7 +1176,63 @@ function Woerni() {
     } catch(e) { return null; }
   }
 
+  // ── Sicherung der Vorlagen auf diesem Gerät ──
+  // Getrennt vom normalen Cache: wird NUR mit einer nicht-leeren Liste
+  // überschrieben. Liefert der Server plötzlich 0 Vorlagen (gelöscht,
+  // Rechte-/RLS-Problem, abgelaufene Anmeldung …), bleibt hier der letzte
+  // gute Stand erhalten und kann mit einem Tipp zurückgespielt werden.
+  const VORLAGEN_SICHERUNG_KEY = 'ghd_woerni_vorlagen_sicherung';
+  function vorlagenSicherungLaden() {
+    try {
+      const s = JSON.parse(localStorage.getItem(VORLAGEN_SICHERUNG_KEY) || 'null');
+      return s && Array.isArray(s.vorlagen) && s.vorlagen.length ? s : null;
+    } catch(e) { return null; }
+  }
+  function vorlagenSicherungSchreiben(liste) {
+    if (!Array.isArray(liste) || liste.length === 0) return; // leer überschreibt nie
+    try {
+      localStorage.setItem(VORLAGEN_SICHERUNG_KEY, JSON.stringify({ vorlagen: liste, gespeichert: new Date().toISOString() }));
+    } catch(e) {}
+  }
+  function vorlagenSicherungEntfernen(id) {
+    const s = vorlagenSicherungLaden();
+    if (!s) return;
+    const rest = s.vorlagen.filter(v => v.id !== id);
+    try {
+      if (rest.length) localStorage.setItem(VORLAGEN_SICHERUNG_KEY, JSON.stringify({ vorlagen: rest, gespeichert: s.gespeichert }));
+      else localStorage.removeItem(VORLAGEN_SICHERUNG_KEY);
+    } catch(e) {}
+  }
+
+  async function vorlagenWiederherstellen() {
+    const s = vorlagenSicherungLaden();
+    if (!s) return;
+    try {
+      // Mit den ursprünglichen IDs einspielen; schon vorhandene bleiben unangetastet.
+      await sb("ghd_aufgaben_vorlagen?on_conflict=id", {
+        method: "POST", body: JSON.stringify(s.vorlagen),
+        prefer: "resolution=ignore-duplicates,return=minimal"
+      });
+      setVorlagenVerlust(null);
+      toast(`${s.vorlagen.length} Vorlagen wiederhergestellt`);
+      await laden_();
+    } catch(err) {
+      toast('Wiederherstellen fehlgeschlagen: ' + String(err.message || err).slice(0, 120));
+    }
+  }
+
+  function vorlagenSicherungVerwerfen() {
+    if (!confirm('Die gesicherten Vorlagen auf diesem Gerät endgültig verwerfen?')) return;
+    try { localStorage.removeItem(VORLAGEN_SICHERUNG_KEY); } catch(e) {}
+    setVorlagenVerlust(null);
+  }
+
   async function laden_() {
+    // Älteren Cache einmalig als Sicherung übernehmen (falls es noch keine gibt)
+    if (!vorlagenSicherungLaden()) {
+      const alt = cacheLaden();
+      if (alt && Array.isArray(alt.vorlagen)) vorlagenSicherungSchreiben(alt.vorlagen);
+    }
     // Cache sofort anzeigen während geladen wird
     if (aufgaben.length === 0) {
       const cache = cacheLaden();
@@ -1228,6 +1286,13 @@ function Woerni() {
       setAufgaben(finalA||[]);
       setErledigt(finalE||[]);
       setVorlagen(v||[]);
+      if ((v||[]).length > 0) {
+        vorlagenSicherungSchreiben(v);
+        setVorlagenVerlust(null);
+      } else {
+        // Server liefert keine Vorlagen, auf dem Gerät sind aber welche gesichert → warnen
+        setVorlagenVerlust(vorlagenSicherungLaden());
+      }
       setEreignisse(dedupliziereEreignisse(ev||[]));
       if (mitarbeiterAnziehenNeu) {
         setMitarbeiterAnziehen(mitarbeiterAnziehenNeu);
@@ -1365,6 +1430,7 @@ function Woerni() {
 
   async function deleteVorlage(id) {
     await api.deleteVorlage(id);
+    vorlagenSicherungEntfernen(id); // bewusst gelöscht → nicht wieder anbieten
     await laden_(); toast('Vorlage gelöscht');
   }
 
@@ -1734,6 +1800,29 @@ function Woerni() {
             <button onClick={laden_} style={{marginTop:8,fontSize:13,color:'rgba(33,29,23,0.5)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline',fontFamily:'inherit'}}>
               Erneut versuchen
             </button>
+          </div>
+        )}
+
+        {/* VORLAGEN-VERLUST: Server leer, Gerät hat noch eine Sicherung */}
+        {!laden && vorlagenVerlust && (
+          <div className="fehler-box">
+            <p style={{color:'var(--crit)',fontSize:14,fontWeight:600,margin:0}}>
+              Am Server sind keine Vorlagen mehr vorhanden.
+            </p>
+            <p style={{fontSize:13,margin:'6px 0 0'}}>
+              Auf diesem Gerät sind {vorlagenVerlust.vorlagen.length} Vorlagen gesichert
+              (Stand {new Date(vorlagenVerlust.gespeichert).toLocaleString('de-AT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}).
+            </p>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>
+              <button onClick={vorlagenWiederherstellen}
+                style={{background:'var(--accent-dark)',color:'#fff',border:'none',borderRadius:10,padding:'9px 14px',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+                ↺ Vorlagen wiederherstellen
+              </button>
+              <button onClick={vorlagenSicherungVerwerfen}
+                style={{background:'none',border:'none',fontSize:13,color:'rgba(33,29,23,0.5)',cursor:'pointer',textDecoration:'underline',fontFamily:'inherit'}}>
+                Sicherung verwerfen
+              </button>
+            </div>
           </div>
         )}
 
