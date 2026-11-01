@@ -397,6 +397,9 @@ function szInaktivZuLange() {
 
 async function szInaktivitaetsLogout() {
   szChefBereichAktiv = false;
+  // Gemeinsame Abmeldung (ghd-sitzung.js): legt die Anmeldung bei festgelegter
+  // Offline-PIN verschlüsselt ab, damit die Schaltzentrale offline entsperrbar bleibt.
+  if (window.ghdSitzung && window.ghdSitzung.sperren) { window.ghdSitzung.sperren(); return; }
   await SZ_AUTH.auth.signOut();
   document.getElementById('root').style.display = 'none';
   document.getElementById('sz-login').style.display = 'flex';
@@ -428,6 +431,7 @@ window.addEventListener('pageshow', szPruefeNachWiedersichtbarwerden);
   const { data } = await SZ_AUTH.auth.getSession();
   if (data && data.session) {
     if (szInaktivZuLange()) {
+      if (window.ghdSitzung && window.ghdSitzung.sperren) { window.ghdSitzung.sperren(); return; }
       await SZ_AUTH.auth.signOut();
       return; // sz-login bleibt sichtbar (Standard)
     }

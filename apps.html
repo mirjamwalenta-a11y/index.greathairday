@@ -1287,6 +1287,16 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     // Ohne Netz lässt sich die Sitzung nicht serverseitig prüfen → KEINE Anmeldung herstellen
     // (Rolle wird nie aus dem Gerät übernommen), aber den Token behalten, damit es mit Netz
     // ohne erneute PIN-Eingabe weitergeht.
+    // Offline mit PIN entsperrt (ghd-sitzung.js): zuletzt bekannte Person nur zur ANZEIGE
+    // übernehmen – nie als Chefin. Daten kommen ohnehin nur aus dem, was diese Person
+    // auf diesem Gerät schon geladen hatte; mit Netz prüft wieder der Server.
+    if(!frischePerson && keinNetz && window.ghdSitzung && window.ghdSitzung.offlineEntsperrt()
+       && savedSession && savedSession.rolle && savedSession.rolle!=='chefin'){
+      currentSession={name:savedSession.name,rolle:savedSession.rolle,id:savedSession.id};
+      showApp();
+      window.addEventListener('online',()=>location.reload(),{once:true});
+      return;
+    }
     if(!frischePerson && keinNetz){
       document.getElementById('loginScreen').style.display='block';
       const err=document.getElementById('pinError');
