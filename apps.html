@@ -1020,7 +1020,7 @@ async function heuteLaden(){
   // Wörni-Aufgaben laden (offen/in_arbeit)
   try{
     const r=await fetch(SUPA_URL+'/rest/v1/woerni_aufgaben?status=in.(offen,in_arbeit)&order=erstellt_am.desc&limit=5&select=id,typ,status,erstellt_am',{
-      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+(await supaToken()),'Accept':'application/json'}
     });
     const d=await r.json();
     if(Array.isArray(d)&&d.length>0){
@@ -1183,6 +1183,22 @@ async function supaToken(){
     const { data } = await AUTH_CLIENT.auth.getSession();
     return (data && data.session) ? data.session.access_token : SUPA_KEY;
   }catch(e){ return SUPA_KEY; }
+}
+// Wörni-Tabellen (woerni_vorlagen, woerni_aufgaben) sind per RLS nur für die
+// angemeldete Chefin lesbar. Mit dem anon-Schlüssel liefert der Server einfach
+// eine LEERE Liste – das sah aus wie „alle Vorlagen weg“. Deshalb dort immer
+// supaToken() verwenden und Fehler sichtbar machen statt „Noch keine Vorlagen“.
+function woerniJson(r){
+  if(r.ok) return r.json();
+  return r.text().then(t=>{ throw new Error('Server '+r.status+(t?': '+t.slice(0,120):'')); });
+}
+function woerniPruefen(r){
+  if(!r.ok) return r.text().then(t=>{ throw new Error('Server '+r.status+(t?': '+t.slice(0,120):'')); });
+  return r;
+}
+function woerniFehlerHtml(e){
+  const t=String((e&&e.message)||e).replace(/[<>&]/g,'');
+  return '<div class="dftext" style="padding:8px 0;color:#b91c1c">⚠️ Konnte nicht geladen werden ('+t+'). Deine Daten sind nicht weg – bitte ab- und wieder anmelden.</div>';
 }
 // Zweiter Auth-Client fürs belege-aicircle-Projekt — dasselbe Konto, mit dem man sich auch in belege.html anmeldet.
 // Läuft im selben Browser automatisch mit, wenn dort schon eingeloggt (gleicher Origin, eigener Storage-Key pro Projekt).
@@ -2266,7 +2282,7 @@ async function auftragBadgeLaden(){
   if(!istChefin()) return; // Wörni-Aufgabendaten sind exklusiver Chefin-Bereich
   try{
     const res=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?status=eq.offen&select=id`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}
     });
     if(!res.ok) return;
     const d=await res.json();
@@ -2623,7 +2639,8 @@ async function wzLadeVorlagen(appId){
   const el=document.getElementById('wzVorlagen_'+appId);
   if(!el)return;
   const alleAnlaesse=Object.values(VORLAGE_ANLAESSE).flat();
-  const rows=await fetch(SUPA_URL+'/rest/v1/woerni_vorlagen?select=*&app=eq.'+appId+'&order=erstellt_am.desc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}).then(r=>r.json()).catch(()=>[]);
+  const rows=await fetch(SUPA_URL+'/rest/v1/woerni_vorlagen?select=*&app=eq.'+appId+'&order=erstellt_am.desc',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+(await supaToken())}}).then(woerniJson).catch(e=>({fehler:e}));
+  if(rows&&rows.fehler){ el.innerHTML=woerniFehlerHtml(rows.fehler); return; }
   el.innerHTML='';
   if(!rows.length){
     const standards=VORLAGE_STANDARDS[appId]||[];
@@ -2679,8 +2696,8 @@ async function wzLadeVorlagen(appId){
 
 
 async function wzStandardUebernehmen(appId, anlass, text){
-  try{ await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass,text})}); }
-  catch(e){ alert('Fehler: '+e.message); return; }
+  try{ await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass,text})}).then(woerniPruefen); }
+  catch(e){ alert('Nicht gespeichert: '+e.message); return; }
   wzLadeVorlagen(appId);
 }
 
@@ -2698,7 +2715,7 @@ function wzVorlageLoeschenById(btn){
 }
 async function wzVorlageLoeschen(id, appId){
   if(!confirm('Vorlage wirklich löschen?'))return;
-  await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
+  try{ await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}}).then(woerniPruefen); }catch(e){ alert('Nicht gelöscht: '+e.message); return; }
   wzLadeVorlagen(appId);
 }
 
@@ -2908,7 +2925,7 @@ async function azSenden(){
       if(ft.includes('post')||ft.includes('story')||ft.includes('reichweite')||ft.includes('instagram')||ft.includes('ergebnis')||ft.includes('termin posten')||ft.includes('lernmoment')||ft.includes('mitarbeiter'))erkannteApp='reichweite';
       else if(ft.includes('beleg')||ft.includes('rechnung')||ft.includes('steuer')||ft.includes('monatsabschluss'))erkannteApp='belege';
       else if(ft.includes('urlaub')||ft.includes('krank')||ft.includes('abwesenheit')||ft.includes('antrag'))erkannteApp='abwesenheit';
-      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:erkannteApp,typ:'freitext',anlass:'freitext',notiz:freitext,status:'offen'})});
+      await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`,'Content-Type':'application/json'},body:JSON.stringify({app:erkannteApp,typ:'freitext',anlass:'freitext',notiz:freitext,status:'offen'})});
     }catch(e){alert('Fehler beim Speichern: '+e.message);}
   }
 
@@ -2980,7 +2997,7 @@ async function woerniVorlageSpeichern(){
   if(!text){alert('Bitte einen Text eingeben.');return;}
   const appId=vorlageNeuAppId||vorlageAktuelleApp||'reichweite';
   try{
-    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass:anlass,text:text})});
+    const res=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`,'Content-Type':'application/json'},body:JSON.stringify({app:appId,anlass:anlass,text:text})});
     if(!res.ok){alert('Speichern fehlgeschlagen: '+res.status);return;}
   }catch(e){alert('Da ist etwas schiefgegangen: '+e.message);return;}
   document.getElementById('vorlageTextInput').value='';
@@ -2988,8 +3005,9 @@ async function woerniVorlageSpeichern(){
   wzLadeVorlagen(appId);
 }
 async function woerniVorlagenLaden(){
-  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.${vorlageAktuelleApp}&order=erstellt_am.desc`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?select=*&app=eq.${vorlageAktuelleApp}&order=erstellt_am.desc`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}}).then(woerniJson).catch(e=>({fehler:e}));
   const c=document.getElementById('woerniVorlagenListe');
+  if(rows&&rows.fehler){ c.innerHTML=woerniFehlerHtml(rows.fehler); return; }
   const alleAnlaesse=[...(VORLAGE_ANLAESSE.reichweite||[]),...(VORLAGE_ANLAESSE.belege||[]),...(VORLAGE_ANLAESSE.abwesenheit||[])];
   if(!rows.length){
     // Standard-Vorlagen als Vorschlag anzeigen
@@ -3029,19 +3047,20 @@ async function woerniVorlagenLaden(){
 
 async function vorlageStandardUebernehmen(anlass, text){
   try{
-    await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({app:vorlageAktuelleApp,anlass,text})});
-  }catch(e){alert('Fehler: '+e.message);return;}
+    await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen`,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`,'Content-Type':'application/json'},body:JSON.stringify({app:vorlageAktuelleApp,anlass,text})}).then(woerniPruefen);
+  }catch(e){alert('Nicht gespeichert: '+e.message);return;}
   woerniVorlagenLaden();
 }
 async function woerniVorlageLoeschen(id){
   if(!confirm('Diese Vorlage wirklich löschen?'))return;
-  await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
+  try{ await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}}).then(woerniPruefen); }catch(e){ alert('Nicht gelöscht: '+e.message); return; }
   woerniVorlagenLaden();
 }
 function woerniStatusText(s){return {offen:'Offen',in_arbeit:'In Arbeit',erledigt:'Erledigt',fehlgeschlagen:'Fehlgeschlagen'}[s]||s;}
 async function woerniAufgabenLaden(){
-  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?select=*&order=erstellt_am.desc&limit=20`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}}).then(r=>r.json()).catch(()=>[]);
+  const rows=await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?select=*&order=erstellt_am.desc&limit=20`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}}).then(woerniJson).catch(e=>({fehler:e}));
   const c=document.getElementById('woerniAufgabenListe');
+  if(rows&&rows.fehler){ c.innerHTML=woerniFehlerHtml(rows.fehler); return; }
   if(!rows.length){c.innerHTML='<div class="dftext" style="padding:8px 0">Noch keine Aufgaben.</div>';return;}
   c.innerHTML=rows.map(a=>{
     // Titel: Freitext-Notiz oder Anlass-Text
@@ -3945,17 +3964,17 @@ async function vorlageEditSpeichern(){
   try{
     await fetch(`${SUPA_URL}/rest/v1/woerni_vorlagen?id=eq.${vorlageEditId}`,{
       method:'PATCH',
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json'},
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`,'Content-Type':'application/json'},
       body:JSON.stringify({text})
-    });
-  }catch(e){ alert('Fehler: '+e.message); return; }
+    }).then(woerniPruefen);
+  }catch(e){ alert('Nicht gespeichert: '+e.message); return; }
   vorlageEditSchliessen();
   woerniVorlagenLaden();
 }
 
 async function woerniLoeschen(id){
   if(!confirm('Diese Aufgabe wirklich löschen?'))return;
-  await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}});
+  await fetch(`${SUPA_URL}/rest/v1/woerni_aufgaben?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${await supaToken()}`}});
   woerniAufgabenLaden();
 }
 
