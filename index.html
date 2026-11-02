@@ -867,6 +867,19 @@ async function loginMitSupabase() {
   const { data, error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
   btn.textContent = 'Einloggen';
   btn.disabled = false;
+  if (error && (!navigator.onLine || error.name === 'AuthRetryableFetchError' || error.status === 0 || /fetch|network|load failed/i.test(String(error.message || '')))) {
+    // Kein Netz: nicht „falsches Passwort“ melden. Gibt es einen Offline-Tresor
+    // (ghd-sitzung.js), den PIN-Dialog öffnen.
+    const gs = window.ghdSitzung;
+    let tresor = false;
+    if (gs && gs.offlineEntsperren) tresor = gs.offlineEntsperren();
+    else if (gs && gs.tresorVorhanden && gs.tresorVorhanden()) { tresor = true; window.dispatchEvent(new Event('offline')); } // ältere ghd-sitzung.js
+    document.getElementById('loginFehler').textContent = tresor
+      ? 'Kein Internet – bitte mit deiner Offline-PIN entsperren.'
+      : 'Kein Internet – Anmelden geht erst wieder mit Netz.';
+    document.getElementById('loginFehler').style.display = 'block';
+    return;
+  }
   if (error) {
     document.getElementById('loginFehler').textContent = 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.';
     document.getElementById('loginFehler').style.display = 'block';
