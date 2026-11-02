@@ -1250,6 +1250,30 @@ function md5(str){
   return [a,b,c,d].map(v=>{let h='';for(let j=0;j<4;j++)h+=('0'+((v>>(j*8))&0xFF).toString(16)).slice(-2);return h;}).join('');
 }
 
+// ── Offline-PIN (ghd-sitzung.js) ──
+// Ohne Netz geht die Anmeldung mit Passwort nicht. Gibt es auf dem Gerät einen
+// verschlüsselten Tresor (beim Abmelden mit festgelegter Offline-PIN angelegt),
+// wird stattdessen der PIN-Dialog angeboten. ghd-sitzung.js öffnet ihn beim
+// 'offline'-Ereignis, sobald niemand mehr angemeldet ist. Die PIN prüft nur das
+// Gerät; Rechte prüft weiterhin der Server, sobald wieder Netz da ist.
+function istNetzfehler(error){
+  if(!navigator.onLine) return true;
+  if(!error) return false;
+  return error.name==='AuthRetryableFetchError' || error.status===0
+    || /fetch|network|load failed/i.test(String(error.message||error.name||''));
+}
+function offlinePinAnbieten(){
+  const gs=window.ghdSitzung;
+  if(!gs || !gs.tresorVorhanden || !gs.tresorVorhanden()) return false;
+  window.dispatchEvent(new Event('offline'));
+  return !!document.getElementById('ghd-entsperren');
+}
+function keinNetzBeimLogin(err){
+  err.textContent = offlinePinAnbieten()
+    ? 'Kein Internet – bitte mit deiner Offline-PIN entsperren.'
+    : 'Kein Internet – Anmelden geht erst wieder mit Netz.';
+}
+
 window.addEventListener('DOMContentLoaded', async ()=>{
   // Alte gespeicherte Session lesen — dient ab jetzt nur noch zur Identifikation (per id),
   // nicht mehr als Quelle der Rolle.
@@ -1320,6 +1344,9 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   document.getElementById('loginScreen').style.display='block';
   document.getElementById('teamPin').addEventListener('keydown',e=>{if(e.key==='Enter')doTeamLogin();});
   document.getElementById('chefinPw').addEventListener('keydown',e=>{if(e.key==='Enter')chefinLogin();});
+  // Eine alte Anmelde-Markierung (z. B. aus einer anderen App) hat ghd-sitzung.js beim Laden
+  // glauben lassen, es sei noch jemand angemeldet → PIN-Dialog jetzt nachholen.
+  if(!navigator.onLine) offlinePinAnbieten();
 });
 
 async function chefinLogin(){
@@ -1330,11 +1357,12 @@ async function chefinLogin(){
   if(!email||!pw){err.textContent='Bitte E-Mail und Passwort eingeben.';return;}
   try{
     const { error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+    if(error && istNetzfehler(error)){keinNetzBeimLogin(err);return;}
     if(error){err.textContent='E-Mail oder Passwort falsch.';return;}
     currentSession={name:'Mirjam',rolle:'chefin'};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
-  }catch(e){err.textContent='Verbindungsfehler.';}
+  }catch(e){ if(istNetzfehler(e)) keinNetzBeimLogin(err); else err.textContent='Verbindungsfehler.'; }
 }
 
 function showTeamLogin(){
@@ -1353,13 +1381,14 @@ async function doTeamLogin(){
   if(!kennung||!pin){document.getElementById('teamErr').textContent='Bitte alle Felder ausfüllen.';return;}
   try{
     const { data, error } = await AUTH_CLIENT.rpc('login_mit_pin', { p_kennung: kennung, p_pin: pin });
+    if(error && istNetzfehler(error)){keinNetzBeimLogin(document.getElementById('teamErr'));return;}
     if(error || !data || !data.length){document.getElementById('teamErr').textContent='Kennung oder PIN ungültig.';return;}
     const p=data[0];
     currentSession={name:p.name,rolle:p.rolle,id:p.id};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     localStorage.setItem('ghd_session_token',p.token);
     showApp();
-  }catch(e){document.getElementById('teamErr').textContent='Verbindungsfehler.';}
+  }catch(e){ if(istNetzfehler(e)) keinNetzBeimLogin(document.getElementById('teamErr')); else document.getElementById('teamErr').textContent='Verbindungsfehler.'; }
 }
 
 function showApp(){
@@ -2504,8 +2533,17 @@ async function belegeSubLaden(){
 }
 
 async function doLogout(){
-  try{ await AUTH_CLIENT.auth.signOut(); }catch(e){}
   const _tok = localStorage.getItem('ghd_session_token');
+  // Gemeinsame Abmeldung (ghd-sitzung.js): mit festgelegter Offline-PIN wird die Anmeldung
+  // verschlüsselt im Gerät abgelegt, damit sie sich ohne Netz mit der PIN wieder öffnen lässt.
+  // Ohne PIN wird einfach abgemeldet. Beendet auch die Supabase-Sitzung am Server und lädt neu.
+  // (Vorher: signOut() verwarf alles – nach dem Abmelden half die Offline-PIN dann nicht.)
+  if(window.ghdSitzung && window.ghdSitzung.sperren){
+    if(_tok && navigator.onLine){ try{ await AUTH_CLIENT.rpc('logout_session', { p_token: _tok }); }catch(e){} }
+    window.ghdSitzung.sperren();
+    return;
+  }
+  try{ await AUTH_CLIENT.auth.signOut(); }catch(e){}
   if(_tok){ try{ await AUTH_CLIENT.rpc('logout_session', { p_token: _tok }); }catch(e){} }
   currentSession=null;
   localStorage.removeItem('ghd_session');

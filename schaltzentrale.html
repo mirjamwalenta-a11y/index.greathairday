@@ -342,6 +342,17 @@ async function szLogin() {
   const { data, error } = await SZ_AUTH.auth.signInWithPassword({ email, password: pw });
   btn.textContent = 'Einloggen';
   btn.disabled = false;
+  if (error && (!navigator.onLine || error.name === 'AuthRetryableFetchError' || error.status === 0 || /fetch|network|load failed/i.test(String(error.message || '')))) {
+    // Kein Netz: nicht „falsches Passwort“ melden. Gibt es einen Offline-Tresor
+    // (ghd-sitzung.js), öffnet das 'offline'-Ereignis den PIN-Dialog.
+    const tresor = window.ghdSitzung && window.ghdSitzung.tresorVorhanden && window.ghdSitzung.tresorVorhanden();
+    if (tresor) window.dispatchEvent(new Event('offline'));
+    document.getElementById('sz-fehler').textContent = tresor
+      ? 'Kein Internet – bitte mit deiner Offline-PIN entsperren.'
+      : 'Kein Internet – Anmelden geht erst wieder mit Netz.';
+    document.getElementById('sz-fehler').style.display = 'block';
+    return;
+  }
   if (error) {
     document.getElementById('sz-fehler').textContent = 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.';
     document.getElementById('sz-fehler').style.display = 'block';
