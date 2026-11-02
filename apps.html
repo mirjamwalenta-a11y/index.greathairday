@@ -1253,8 +1253,7 @@ function md5(str){
 // ── Offline-PIN (ghd-sitzung.js) ──
 // Ohne Netz geht die Anmeldung mit Passwort nicht. Gibt es auf dem Gerät einen
 // verschlüsselten Tresor (beim Abmelden mit festgelegter Offline-PIN angelegt),
-// wird stattdessen der PIN-Dialog angeboten. ghd-sitzung.js öffnet ihn beim
-// 'offline'-Ereignis, sobald niemand mehr angemeldet ist. Die PIN prüft nur das
+// wird stattdessen der PIN-Dialog angeboten. Die PIN prüft nur das
 // Gerät; Rechte prüft weiterhin der Server, sobald wieder Netz da ist.
 function istNetzfehler(error){
   if(!navigator.onLine) return true;
@@ -1264,6 +1263,8 @@ function istNetzfehler(error){
 }
 function offlinePinAnbieten(){
   const gs=window.ghdSitzung;
+  if(gs && gs.offlineEntsperren) return gs.offlineEntsperren();
+  // Übergang: ältere, noch zwischengespeicherte ghd-sitzung.js ohne offlineEntsperren()
   if(!gs || !gs.tresorVorhanden || !gs.tresorVorhanden()) return false;
   window.dispatchEvent(new Event('offline'));
   return !!document.getElementById('ghd-entsperren');
