@@ -1282,9 +1282,12 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   let savedSession=null;
   if(saved){try{savedSession=JSON.parse(saved);}catch(e){localStorage.removeItem('ghd_session');}}
 
-  // Chefin-Zugang: nur mit echter, verifizierter Supabase-Auth-Session
+  // Chefin-Zugang: nur mit echter Supabase-Auth-Session, die laut Datenbank der Inhaberin
+  // gehört. Eine E-Mail-Sitzung allein reicht nicht – auch Mitarbeiter:innen haben eine,
+  // sobald sie in der Team-App angemeldet sind (dort auch über den Team-Login).
   const { data } = await AUTH_CLIENT.auth.getSession();
-  if(data && data.session){
+  const inhaberin = (data && data.session) ? await sitzungIstInhaberin(data.session) : false;
+  if(inhaberin===true || (inhaberin===null && savedSession && savedSession.rolle==='chefin')){
     currentSession={name:'Mirjam',rolle:'chefin'};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
@@ -1350,6 +1353,18 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   if(!navigator.onLine) offlinePinAnbieten();
 });
 
+// true = Inhaberin, false = jemand anderes, null = ließ sich gerade nicht prüfen (kein Netz).
+// Nur für die Anzeige; die Rechte prüft weiterhin die Datenbank (RLS) selbst.
+async function sitzungIstInhaberin(session){
+  try{
+    const email=String(session && session.user && session.user.email || '').toLowerCase();
+    if(!email) return false;
+    const { data, error } = await AUTH_CLIENT.from('teamapp_persons').select('rolle').eq('email', email).eq('aktiv', true).limit(1);
+    if(error) return istNetzfehler(error) ? null : false;
+    return !!(data && data[0] && data[0].rolle==='inhaberin');
+  }catch(e){ return istNetzfehler(e) ? null : false; }
+}
+
 async function chefinLogin(){
   const email=document.getElementById('chefinEmail').value.trim();
   const pw=document.getElementById('chefinPw').value;
@@ -1360,6 +1375,14 @@ async function chefinLogin(){
     const { error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
     if(error && istNetzfehler(error)){keinNetzBeimLogin(err);return;}
     if(error){err.textContent='E-Mail oder Passwort falsch.';return;}
+    const { data: neu } = await AUTH_CLIENT.auth.getSession();
+    const inhaberin = await sitzungIstInhaberin(neu && neu.session);
+    if(inhaberin!==true){
+      await AUTH_CLIENT.auth.signOut({ scope: 'local' });
+      err.textContent = inhaberin===null ? 'Verbindungsfehler.' : 'Das ist nicht der Chefin-Zugang – bitte „Team-Login“ verwenden.';
+      return;
+    }
+    localStorage.removeItem('ghd_session_token');
     currentSession={name:'Mirjam',rolle:'chefin'};
     localStorage.setItem('ghd_session',JSON.stringify(currentSession));
     showApp();
