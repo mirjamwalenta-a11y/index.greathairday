@@ -269,3 +269,15 @@ Spielregeln:
 Technik: Migration `20261104120000_ki_gespraechsleitfaden.sql` (dieses
 Repo), Edge Function `bewerbung-ki` (Repo `Team`, `supabase/functions/`).
 Nur die Inhaberin darf sie nutzen; das prüft die Datenbank selbst.
+
+## Wartezeit in der Übersicht (seit 2026-11-04)
+
+Bei rund 5 Bewerbungen im Monat zählt jede. Die Übersicht zeigt oben, wie
+viele Bewerbungen auf dich warten, und beim Eintrag seit wann (gerechnet ab
+dem letzten Schritt im Verlauf; KI-Einträge zählen nicht):
+
+- Matcher ausgefüllt, noch keine Entscheidung: ab 2 Tagen gelb, ab 4 Tagen rot
+- Absage vorbereitet, noch nicht verschickt: ab 2 Tagen
+- Zum Gespräch oder Probetag eingeladen: ab 3 Tagen „Termin schon fix?“
+
+Migration: `20261104150000_bewerbungen_wartezeit.sql`.

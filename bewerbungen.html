@@ -334,6 +334,9 @@
       else if (!b.matcher_erinnert_am && tageSeit(b.matcher_verschickt_am) >= 4) out.push(['y', 'Erinnerung fällig']);
       else out.push(['', 'Link gültig bis ' + datum(b.matcher_gueltig_bis)]);
     }
+    // Wartezeit: Bei ~5 Bewerbungen im Monat zählt jede, gute Leute sind schnell vergeben.
+    const w = wartet(b);
+    if (w) out.push(w);
     if (b.status === 'ausgewertet' && b.gesamt === 'y') out.push(['y', 'Gelb – Gespräch oder Absage entscheiden']);
     if (b.status === 'ausgewertet' && b.gesamt === 'r') out.push(['r', 'Rot – Absage vorbereiten']);
     if (b.frueher && b.frueher.length) {
@@ -341,6 +344,18 @@
       out.push(['y', `Frühere Bewerbung am ${datum(f.erstellt_am)}` + (f.gesamt ? ` – Ergebnis ${FARBTEXT[f.gesamt]}` : '')]);
     }
     return out;
+  }
+
+  // Liegt der nächste Schritt bei uns, und wie lange schon? „seit“ = letzter
+  // Schritt im Verlauf (aus bewerbungen_liste). Alte Datenbank ohne „seit“: nichts anzeigen.
+  function wartet(b) {
+    if (!b.seit) return null;
+    const t = tageSeit(b.seit), tage = t === 1 ? '1 Tag' : `${t} Tagen`;
+    if (b.status === 'ausgewertet' && t >= 2) return [t >= 4 ? 'r' : 'y', `Wartet seit ${tage} auf deine Antwort`];
+    if (b.status === 'absage_offen' && t >= 2) return ['y', `Absage seit ${tage} vorbereitet, noch nicht verschickt`];
+    if ((b.status === 'gespraech' || b.status === 'probearbeiten') && t >= 3)
+      return ['y', `Seit ${tage} eingeladen – Termin schon fix?`];
+    return null;
   }
 
   async function zeigeListe() {
@@ -357,7 +372,10 @@
         ...hinweise(b).map(([c, t]) => h('div', { cls: 'hinweis ' + c }, t)))));
       return karte;
     });
+    const offen = liste.filter(b => { const w = wartet(b); return w && w[0] !== ''; }).length;
     rahmen(neueBewerbungKarte(),
+      offen ? h('div', { cls: 'warnung', style: 'margin:0 0 14px' },
+        offen === 1 ? '1 Bewerbung wartet auf dich.' : `${offen} Bewerbungen warten auf dich.`) : null,
       h('p', { style: 'margin-bottom:14px' }, 'Sortiert nach dem nächsten Schritt. Bewerbungen werden 6 Monate nach Eingang automatisch gelöscht.'), ...karten);
   }
 
@@ -714,6 +732,12 @@
   }
 
   // ── Basisdaten ─────────────────────────────────────────────────────────
+  // Link der Bewerberin anklickbar machen – nur http(s), sonst als Text.
+  function linkOderText(w) {
+    if (!w) return null;
+    const url = /^https?:\/\//i.test(w) ? w : /^(www\.|instagram\.com|[\w-]+\.[a-z]{2,}\/)/i.test(w) ? 'https://' + w : null;
+    return url ? h('a', { href: url, target: '_blank', rel: 'noopener noreferrer' }, w) : w;
+  }
   function datenKarte(b) {
     const zeile = (t, w) => w ? [h('dt', {}, t), h('dd', {}, w)] : [];
     return h('div', { cls: 'card' }, h('h2', {}, 'Basisdaten'),
@@ -721,7 +745,7 @@
         ...zeile('Telefon', b.telefon), ...zeile('E-Mail', b.email),
         ...zeile('Stelle', STELLE[b.stelle]), ...zeile('Ausbildung', AUSBILDUNG[b.ausbildung]),
         ...zeile('Über sich', b.ueber_dich), ...zeile('Stunden', b.stunden), ...zeile('Start', b.start),
-        ...zeile('Portfolio', b.portfolio), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
+        ...zeile('Lebenslauf / Portfolio', linkOderText(b.portfolio)), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
         ...zeile('Löschung am', datum(b.loeschen_am))));
   }
 
