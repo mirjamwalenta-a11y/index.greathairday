@@ -409,7 +409,14 @@
       if (!a) return;
       zuletztMerken(a.getAttribute('data-app'));
       // Gleiche Seite, anderer Abschnitt (z. B. Handbuch-Kapitel): nur schließen
-      if (ohneHash(a.href) === ohneHash(location.href)) setTimeout(schliessen, 0);
+      if (ohneHash(a.href) === ohneHash(location.href)) { setTimeout(schliessen, 0); return; }
+      // Andere App: in eigenem Fenster öffnen (wie die frühere App-Liste).
+      // So bringt „Zurück“/Schließen wieder hierher, statt alles zu schließen.
+      e.preventDefault();
+      var w = null;
+      try { w = window.open(a.href, '_blank'); } catch (err) { w = null; }
+      if (w) { try { w.opener = null; } catch (err) { /* egal */ } schliessen(); }
+      else location.href = a.href; // Fenster blockiert: wie bisher im selben Fenster
     });
   }
 
