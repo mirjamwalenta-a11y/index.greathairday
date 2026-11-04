@@ -6,7 +6,9 @@
 //   <script src="https://mirjamwalenta-a11y.github.io/index.greathairday/ghd-verzeichnis.js" defer></script>
 //
 // Optionen als Attribute am <script>-Tag:
-//   data-unten="90"        Abstand des Knopfs vom unteren Rand in px (Standard 16)
+//   data-unten="90"        Mindestabstand des Knopfs vom unteren Rand in px (Standard 16).
+//                          Liegt unten links eine feste Leiste oder ein Knopf der App,
+//                          rückt der Verzeichnis-Knopf automatisch darüber.
 //   data-links-breit="296" Abstand von links in px auf breiten Bildschirmen,
 //   data-breit-ab="900"    ab dieser Breite (z. B. wenn die App links eine feste Seitenleiste hat)
 //   data-verstecken-bei="#loginScreen"  Knopf ausblenden, solange dieses Element sichtbar ist
@@ -232,7 +234,7 @@
     '.ghdv-root a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}' +
     '.ghdv-i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}' +
     '.ghdv-root :focus-visible{outline:2px solid var(--ghdv-brown);outline-offset:2px}' +
-    '.ghdv-root .ghdv-fab{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(' + unten + 'px + env(safe-area-inset-bottom,0px));z-index:390;' +
+    '.ghdv-root .ghdv-fab{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(var(--ghdv-unten,' + unten + 'px) + env(safe-area-inset-bottom,0px));z-index:390;' +
     'width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--ghdv-cream);color:var(--ghdv-brown-dark);' +
     'border:1px solid var(--ghdv-rule)!important;box-shadow:0 4px 14px rgba(33,28,23,.14)}' +
     '.ghdv-root .ghdv-fab:hover{background:var(--ghdv-chip)}.ghdv-fab[hidden]{display:none!important}' +
@@ -423,15 +425,49 @@
     if (fab.hidden !== weg) fab.hidden = weg;
     if (weg && root.classList.contains('ghdv-offen')) schliessen();
   }
+  // Feste Leiste/Knopf der App unten links? Dann den Knopf darüber setzen.
+  function abstandAnpassen() {
+    if (!root) return;
+    var fab = root.querySelector('.ghdv-fab');
+    if (fab.hidden) return;
+    var h = window.innerHeight, x = fab.getBoundingClientRect().left + 24;
+    var hoechst = 0, alt = fab.style.visibility;
+    fab.style.visibility = 'hidden';
+    try {
+      [6, 30, 60].forEach(function (dy) {
+        var el = document.elementFromPoint(x, h - dy);
+        while (el && el !== document.body && el !== document.documentElement) {
+          if (root.contains(el)) break;
+          var pos = getComputedStyle(el).position;
+          if (pos === 'fixed' || pos === 'sticky') {
+            var r = el.getBoundingClientRect();
+            // nur Leisten/Knöpfe am unteren Rand, keine Vollbild-Ebenen
+            if (r.top > h * 0.55 && r.bottom >= h - 80) hoechst = Math.max(hoechst, h - r.top);
+            break;
+          }
+          el = el.parentElement;
+        }
+      });
+    } catch (e) { /* egal */ }
+    fab.style.visibility = alt;
+    var neu = hoechst ? Math.max(unten, Math.round(hoechst + 12)) + 'px' : '';
+    if (fab.style.getPropertyValue('--ghdv-unten') !== neu) fab.style.setProperty('--ghdv-unten', neu);
+  }
   function beobachten() {
-    if (!versteckenBei) return;
     sichtbarkeitPruefen();
+    abstandAnpassen();
     var geplant = false;
-    new MutationObserver(function () {
+    function spaeter() {
       if (geplant) return;
       geplant = true;
-      requestAnimationFrame(function () { geplant = false; sichtbarkeitPruefen(); });
+      setTimeout(function () { geplant = false; sichtbarkeitPruefen(); abstandAnpassen(); }, 150);
+    }
+    new MutationObserver(function (liste) {
+      // eigene Änderungen (Knopf, Seitenleiste) ignorieren, sonst Endlosschleife
+      for (var i = 0; i < liste.length; i++) if (!root || !root.contains(liste[i].target)) { spaeter(); return; }
     }).observe(document.body, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], subtree: true, childList: true });
+    window.addEventListener('resize', spaeter);
+    window.addEventListener('load', spaeter);
   }
 
   function start() { aufbauen(); beobachten(); setTimeout(function () { rollePruefen(); }, 1500); }
