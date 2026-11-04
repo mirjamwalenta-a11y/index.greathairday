@@ -410,13 +410,9 @@
       zuletztMerken(a.getAttribute('data-app'));
       // Gleiche Seite, anderer Abschnitt (z. B. Handbuch-Kapitel): nur schließen
       if (ohneHash(a.href) === ohneHash(location.href)) { setTimeout(schliessen, 0); return; }
-      // Andere App: in eigenem Fenster öffnen (wie die frühere App-Liste).
-      // So bringt „Zurück“/Schließen wieder hierher, statt alles zu schließen.
-      e.preventDefault();
-      var w = null;
-      try { w = window.open(a.href, '_blank'); } catch (err) { w = null; }
-      if (w) { try { w.opener = null; } catch (err) { /* egal */ } schliessen(); }
-      else location.href = a.href; // Fenster blockiert: wie bisher im selben Fenster
+      // Andere App: im selben Fenster wechseln. Die Salon-App „GHD“ umfasst seit
+      // 2026-11-04 alle Apps (manifest.json: scope "/"), dadurch bleibt man in
+      // der App und „Zurück“ führt Schritt für Schritt zurück.
     });
   }
 
@@ -476,6 +472,9 @@
     window.addEventListener('resize', spaeter);
     window.addEventListener('load', spaeter);
   }
+
+  // Zurück zu einer Seite aus dem Verlauf: Verzeichnis geschlossen zeigen
+  window.addEventListener('pageshow', function (e) { if (e.persisted && root && root.classList.contains('ghdv-offen')) schliessen(); });
 
   function start() { aufbauen(); beobachten(); setTimeout(function () { rollePruefen(); }, 1500); }
   if (document.body) start();
