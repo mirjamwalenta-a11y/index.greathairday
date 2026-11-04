@@ -14,9 +14,13 @@
 //
 // Neue App oder neue Unterseite? Nur unten in KAPITEL eintragen.
 //
-// Sicherheit: Das Verzeichnis zeigt nur Links. Es liest und speichert keine
-// Daten aus Supabase. Jede App schützt sich weiterhin selbst (Login, RLS).
-// Lokal gemerkt wird nur „Zuletzt benutzt“ (Namen der Apps, im Browser).
+// Sicherheit: Das Verzeichnis zeigt nur Links. Jede App schützt sich weiterhin
+// selbst (Login, RLS). Kapitel mit `chefin: true` sieht nur die Inhaberin:
+// Das Verzeichnis fragt dazu die bestehende Server-Funktion
+// teamapp_ist_inhaberin() mit der Anmeldung der Person ab. Das blendet nur
+// Einträge aus – es ist KEIN Zugriffsschutz (der liegt in den Apps/RLS).
+// Lokal gemerkt werden nur „Zuletzt benutzt“ (Namen der Apps) und das
+// Ergebnis der Rollenprüfung (pro Konto, 12 Stunden, für offline).
 // ============================================================
 (function () {
   'use strict';
@@ -61,7 +65,7 @@
       { n: 'Lerntool', s: 'Lernkarten & Themen', i: 'cards', u: B + '/lernquiz.greathairday/lerntool.html', k: 'lernkarten lernen themen' },
       { n: 'Schnuppertag', s: 'Lehrlings-Auswahl & Probezeit', i: 'spark', u: B + '/lernquiz.greathairday/schnuppertag.html', k: 'lehrling schnuppern probezeit' }
     ] },
-    { t: 'Büro & Verwaltung', apps: [
+    { t: 'Büro & Verwaltung', chefin: true, apps: [
       { n: 'Bewerbungen', s: 'Bewerbungen, Matcher & Formular', i: 'person', u: B + '/index.greathairday/bewerbungen.html', k: 'bewerbung bewerber lebenslauf stelle job personal recruiting', kids: [
         { n: 'Salon-Matcher', u: B + '/index.greathairday/bewerber.html', k: 'matcher passend' },
         { n: 'Bewerbungsformular', u: B + '/index.greathairday/karriere.html', k: 'karriere bei uns arbeiten interesse melden' },
@@ -73,7 +77,7 @@
         { n: 'Cockpit', u: B + '/belege.greathairday/cockpit.html', k: 'übersicht zahlen' } ] },
       { n: 'Schrank', s: 'Dokumente & Tresor', i: 'cabinet', u: B + '/dokumentenschrank-ghd/dokumentenschrank.html', k: 'dokumente verträge dienstvertrag tresor ablage passwörter' }
     ] },
-    { t: 'Marketing & Assistent', apps: [
+    { t: 'Marketing & Assistent', chefin: true, apps: [
       { n: 'Reichweite', s: 'Posts, Storys & Hooks', i: 'mega', u: B + '/moment.greathairday/', k: 'instagram posts storys social media marketing', kids: [
         { n: 'Instagram-Mappe', u: B + '/moment.greathairday/instagram.html' },
         { n: 'Video + Text', u: B + '/moment.greathairday/video.html', k: 'reel' },
@@ -82,7 +86,7 @@
       { n: 'Wörni', s: 'KI-Assistent & Aufträge', i: 'bot', u: B + '/index.greathairday/schaltzentrale.html', k: 'ki assistent aufträge aufgaben schaltzentrale tagesübersicht', kids: [
         { n: 'Sprechen', u: B + '/index.greathairday/mikro.html', k: 'mikro diktieren sprache' } ] }
     ] },
-    { t: 'Website', apps: [
+    { t: 'Website', chefin: true, apps: [
       { n: 'Website', s: 'greathairday.at', i: 'globe', u: W + '/', k: 'homepage internetseite online', kids: [
         { n: 'Leistungen & Preise', u: W + '/leistungen.html', k: 'preisliste angebot behandlungen' },
         { n: 'Karriere – offene Stellen', u: W + '/karriere/', k: 'jobs stellen lehrling stylistin stellenanzeige' },
@@ -93,7 +97,7 @@
       { n: 'HaarKompass', s: 'Pflege-Guide für Kund:innen', i: 'compass', u: W + '/haarkompass/', k: 'haarkompass pflege empfehlung fragebogen kunden', kids: [
         { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' } ] }
     ] },
-    { t: 'Sonstiges', apps: [
+    { t: 'Sonstiges', chefin: true, apps: [
       { n: 'Innung', s: 'Seminare & Trainer:innen', i: 'pillars', u: B + '/innungsapp.greathairday/innungsapp.html', k: 'seminar trainer weiterbildung' },
       { n: 'Haarnetzwerk', s: 'Verein, Sponsoring & Sponsorenwand', i: 'network', k: 'verein sponsoren sponsoring kooperation', kids: [
         { n: 'Verein', u: B + '/index.greathairday/verein.html', k: 'mitglieder vereinsverwaltung' },
@@ -101,8 +105,55 @@
         { n: 'Sponsorenwand', u: B + '/index.greathairday/sponsorenwand.html', k: 'danke veranstaltung bild' } ] }
     ] }
   ];
-  var ALLE = [];
-  KAPITEL.forEach(function (c) { c.apps.forEach(function (a) { a.kids = a.kids || []; ALLE.push(a); }); });
+  var ALLE_GESAMT = [];
+  KAPITEL.forEach(function (c) { c.apps.forEach(function (a) { a.kids = a.kids || []; a.chefin = !!c.chefin; ALLE_GESAMT.push(a); }); });
+
+  // ---------- Rolle (nur zum Ein-/Ausblenden) ----------
+  var SB_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g'; // öffentlicher anon-Schlüssel
+  var TOKEN_KEY = 'sb-wrxlaltgtgkdomklgrlj-auth-token'; // gemeinsames Fach der E-Mail-Apps (siehe ghd-sitzung.js)
+  var ROLLE_KEY = 'ghd_verzeichnis_rolle';
+  var ROLLE_GILT_MS = 12 * 60 * 60 * 1000;
+  var istChefin = false, rolleGeprueft = false, pruefungLaeuft = false;
+
+  function anmeldung() {
+    try {
+      var t = JSON.parse(localStorage.getItem(TOKEN_KEY) || 'null');
+      if (t && t.currentSession) t = t.currentSession;
+      if (!t || !t.access_token || !t.user || !t.user.id) return null;
+      return { token: t.access_token, id: t.user.id };
+    } catch (e) { return null; }
+  }
+  function rolleAusSpeicher(id) {
+    try {
+      var r = JSON.parse(localStorage.getItem(ROLLE_KEY) || 'null');
+      if (r && r.id === id && Date.now() - r.zeit < ROLLE_GILT_MS) return !!r.chefin;
+    } catch (e) { /* egal */ }
+    return false;
+  }
+  function rolleMerken(id, chefin) {
+    try { localStorage.setItem(ROLLE_KEY, JSON.stringify({ id: id, chefin: !!chefin, zeit: Date.now() })); } catch (e) { /* egal */ }
+  }
+  function rollePruefen(fertig) {
+    var a = anmeldung();
+    if (!a) { istChefin = false; rolleGeprueft = true; if (fertig) fertig(); return; }
+    istChefin = rolleAusSpeicher(a.id); // sofort, auch offline
+    if (pruefungLaeuft) return;
+    pruefungLaeuft = true;
+    fetch(SB_URL + '/rest/v1/rpc/teamapp_ist_inhaberin', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + a.token, 'content-type': 'application/json' },
+      body: '{}'
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (ja) {
+        if (ja === true || ja === false) { istChefin = ja; rolleMerken(a.id, ja); rolleGeprueft = true; }
+      })
+      .catch(function () { /* offline: gemerktes Ergebnis bleibt */ })
+      .then(function () { pruefungLaeuft = false; if (fertig) fertig(); });
+  }
+  function sichtbareKapitel() { return KAPITEL.filter(function (c) { return !c.chefin || istChefin; }); }
+  function sichtbareApps() { return ALLE_GESAMT.filter(function (a) { return !a.chefin || istChefin; }); }
+  var ALLE = ALLE_GESAMT; // für die Erkennung der aktuellen Seite
 
   // ---------- Symbole (feine Linien) ----------
   var SYM = {
@@ -265,15 +316,16 @@
   function zeichnen() {
     var ws = woerter(q.value), h = '';
     if (!ws.length) {
-      var zl = zuletztLaden().map(function (n) { return ALLE.filter(function (a) { return a.n === n && a.u; })[0]; }).filter(Boolean);
+      var zl = zuletztLaden().map(function (n) { return sichtbareApps().filter(function (a) { return a.n === n && a.u; })[0]; }).filter(Boolean);
       if (zl.length) {
         h += '<div class="ghdv-lbl-sec">Zuletzt benutzt</div><div class="ghdv-recent">' +
           zl.map(function (a) { return '<a href="' + esc(a.u) + '" data-app="' + esc(a.n) + '">' + ic(a.i) + esc(a.n) + '</a>'; }).join('') + '</div>';
       }
-      KAPITEL.forEach(function (c) { h += '<div class="ghdv-lbl-sec">' + esc(c.t) + '</div>' + c.apps.map(appZeile).join(''); });
+      sichtbareKapitel().forEach(function (c) { h += '<div class="ghdv-lbl-sec">' + esc(c.t) + '</div>' + c.apps.map(appZeile).join(''); });
       nav.innerHTML = h;
       return;
     }
+    var ALLE = sichtbareApps();
     var appT = ALLE.filter(function (a) { return trifft(a.n + ' ' + a.s + ' ' + (a.k || ''), ws); });
     var kidT = [];
     ALLE.forEach(function (a) { a.kids.forEach(function (k) { if (trifft(k.n + ' ' + (k.k || ''), ws)) kidT.push([a, k]); }); });
@@ -295,6 +347,7 @@
 
   function oeffnen() {
     zeichnen();
+    rollePruefen(function () { if (root.classList.contains('ghdv-offen')) zeichnen(); });
     root.classList.add('ghdv-offen');
     root.querySelector('.ghdv-side').setAttribute('aria-hidden', 'false');
     var akt = nav.querySelector('[aria-current="page"]');
@@ -381,7 +434,7 @@
     }).observe(document.body, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], subtree: true, childList: true });
   }
 
-  function start() { aufbauen(); beobachten(); }
+  function start() { aufbauen(); beobachten(); setTimeout(function () { rollePruefen(); }, 1500); }
   if (document.body) start();
   else document.addEventListener('DOMContentLoaded', start);
 })();
