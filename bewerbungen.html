@@ -133,6 +133,11 @@
     .regel { font-size:13px; color:var(--r); font-weight:600; margin-top:8px; }
     .warnung { margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--y-tint); color:var(--y); font-size:13px; font-weight:600; }
 
+    /* KI-Gesprächsleitfaden */
+    .kl-frage { margin-top:12px; padding:10px 12px; border-radius:10px; background:var(--accent-tint); font-size:13.5px; line-height:1.55; }
+    .kl-frage .q { font-weight:600; color:var(--text); }
+    .kl-frage .m { color:var(--text-soft); font-size:12.5px; margin-top:4px; }
+
     /* Prüfzone Gelb */
     .pz { border:1.5px solid var(--y); border-radius:12px; padding:14px; margin-top:12px; }
     .pz h3 { margin-top:0; color:var(--y); }
@@ -329,6 +334,9 @@
       else if (!b.matcher_erinnert_am && tageSeit(b.matcher_verschickt_am) >= 4) out.push(['y', 'Erinnerung fällig']);
       else out.push(['', 'Link gültig bis ' + datum(b.matcher_gueltig_bis)]);
     }
+    // Wartezeit: Bei ~5 Bewerbungen im Monat zählt jede, gute Leute sind schnell vergeben.
+    const w = wartet(b);
+    if (w) out.push(w);
     if (b.status === 'ausgewertet' && b.gesamt === 'y') out.push(['y', 'Gelb – Gespräch oder Absage entscheiden']);
     if (b.status === 'ausgewertet' && b.gesamt === 'r') out.push(['r', 'Rot – Absage vorbereiten']);
     if (b.frueher && b.frueher.length) {
@@ -336,6 +344,18 @@
       out.push(['y', `Frühere Bewerbung am ${datum(f.erstellt_am)}` + (f.gesamt ? ` – Ergebnis ${FARBTEXT[f.gesamt]}` : '')]);
     }
     return out;
+  }
+
+  // Liegt der nächste Schritt bei uns, und wie lange schon? „seit“ = letzter
+  // Schritt im Verlauf (aus bewerbungen_liste). Alte Datenbank ohne „seit“: nichts anzeigen.
+  function wartet(b) {
+    if (!b.seit) return null;
+    const t = tageSeit(b.seit), tage = t === 1 ? '1 Tag' : `${t} Tagen`;
+    if (b.status === 'ausgewertet' && t >= 2) return [t >= 4 ? 'r' : 'y', `Wartet seit ${tage} auf deine Antwort`];
+    if (b.status === 'absage_offen' && t >= 2) return ['y', `Absage seit ${tage} vorbereitet, noch nicht verschickt`];
+    if ((b.status === 'gespraech' || b.status === 'probearbeiten') && t >= 3)
+      return ['y', `Seit ${tage} eingeladen – Termin schon fix?`];
+    return null;
   }
 
   async function zeigeListe() {
@@ -352,7 +372,10 @@
         ...hinweise(b).map(([c, t]) => h('div', { cls: 'hinweis ' + c }, t)))));
       return karte;
     });
+    const offen = liste.filter(b => { const w = wartet(b); return w && w[0] !== ''; }).length;
     rahmen(neueBewerbungKarte(),
+      offen ? h('div', { cls: 'warnung', style: 'margin:0 0 14px' },
+        offen === 1 ? '1 Bewerbung wartet auf dich.' : `${offen} Bewerbungen warten auf dich.`) : null,
       h('p', { style: 'margin-bottom:14px' }, 'Sortiert nach dem nächsten Schritt. Bewerbungen werden 6 Monate nach Eingang automatisch gelöscht.'), ...karten);
   }
 
@@ -404,6 +427,7 @@
         h('div', { style: 'display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap' },
           h('span', { cls: 'pill p-n' }, STATUS_TEXT[b.status]), pill(b.matcher_gesamt))),
       aktionenKarte(b, extra),
+      leitfadenKarte(b),
       b.antworten ? auswertungKarte(b) : null,
       datenKarte(b),
       h('div', { cls: 'card' }, h('h2', {}, 'Verlauf'),
@@ -522,6 +546,43 @@
         add(h('p', {}, 'Abgeschlossen.'));
     }
     if (extra && extra.nachricht) karte.insertBefore(nachricht(b, ...extra.nachricht), karte.children[1]);
+    return karte;
+  }
+
+  // ── KI-Gesprächsleitfaden ──────────────────────────────────────────────
+  // Die KI schlägt nur Fragen vor, sie bewertet niemanden. Die Edge Function
+  // bekommt nur die ID; welche Daten an die KI gehen (ohne Name und Kontakt)
+  // und wer das darf (nur die Chefin), legt die Datenbank fest
+  // (20261104120000_ki_gespraechsleitfaden.sql).
+  const KI_URL = SB_URL + '/functions/v1/bewerbung-ki';
+  function leitfadenKarte(b) {
+    if (!b.antworten || b.matcher_gesamt === 'r' || !['ausgewertet', 'gespraech', 'probearbeiten'].includes(b.status)) return null;
+    const lf = b.ki_leitfaden;
+    const karte = h('div', { cls: 'card' }, h('h2', {}, 'Gesprächsleitfaden (KI-Vorschlag)'),
+      h('p', { cls: 'muted' }, 'Fragen fürs Kennenlernen, passend zu den Eckdaten und den Matcher-Antworten. ' +
+        'Die KI bewertet niemanden und entscheidet nichts – sie bekommt weder Namen noch Kontaktdaten.'));
+    if (lf && lf.fragen) {
+      karte.append(h('p', { cls: 'muted', style: 'margin-top:6px' }, `Erstellt am ${datum(lf.erstellt_am)}`),
+        ...lf.fragen.map((f, i) => h('div', { cls: 'kl-frage' },
+          h('div', { cls: 'q' }, `${i + 1}. ${f.frage}`),
+          h('div', { cls: 'm' }, 'Warum: ' + f.warum),
+          h('div', { cls: 'm' }, 'Worauf achten: ' + f.achten))));
+    }
+    const status = h('p', { cls: 'muted', style: 'margin-top:8px' });
+    const btn = h('button', { cls: 'btn' + (lf ? ' ghost' : ''), on: async () => {
+      if (lf && !confirm('Den Leitfaden neu erstellen? Der bisherige wird ersetzt.')) return;
+      btn.disabled = true; status.textContent = 'Die KI bereitet die Fragen vor … (bis zu einer Minute)';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const r = await fetch(KI_URL, { method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + (session ? session.access_token : ''), 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: b.id }) });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || ('Fehler ' + r.status));
+        zeigeDetail(b.id, { scroll: true });
+      } catch (e) { status.textContent = 'Hat nicht geklappt: ' + e.message; btn.disabled = false; }
+    }}, lf ? 'Neu erstellen' : 'Leitfaden erstellen');
+    karte.append(h('div', { style: 'margin-top:12px' }, btn), status);
     return karte;
   }
 
@@ -671,6 +732,12 @@
   }
 
   // ── Basisdaten ─────────────────────────────────────────────────────────
+  // Link der Bewerberin anklickbar machen – nur http(s), sonst als Text.
+  function linkOderText(w) {
+    if (!w) return null;
+    const url = /^https?:\/\//i.test(w) ? w : /^(www\.|instagram\.com|[\w-]+\.[a-z]{2,}\/)/i.test(w) ? 'https://' + w : null;
+    return url ? h('a', { href: url, target: '_blank', rel: 'noopener noreferrer' }, w) : w;
+  }
   function datenKarte(b) {
     const zeile = (t, w) => w ? [h('dt', {}, t), h('dd', {}, w)] : [];
     return h('div', { cls: 'card' }, h('h2', {}, 'Basisdaten'),
@@ -678,7 +745,7 @@
         ...zeile('Telefon', b.telefon), ...zeile('E-Mail', b.email),
         ...zeile('Stelle', STELLE[b.stelle]), ...zeile('Ausbildung', AUSBILDUNG[b.ausbildung]),
         ...zeile('Über sich', b.ueber_dich), ...zeile('Stunden', b.stunden), ...zeile('Start', b.start),
-        ...zeile('Portfolio', b.portfolio), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
+        ...zeile('Lebenslauf / Portfolio', linkOderText(b.portfolio)), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
         ...zeile('Löschung am', datum(b.loeschen_am))));
   }
 

@@ -241,3 +241,43 @@ Zusage, Absage) – kopieren, per E-Mail oder per WhatsApp öffnen.
    (wie für die Schaltzentrale – ist schon so).
 3. Nach dem Merge: `karriere.html` von Homepage, Instagram und Inseraten
    verlinken. `bewerber.html` nirgends verlinken.
+
+---
+
+## KI-Gesprächsleitfaden (seit 2026-11-04)
+
+In `bewerbungen.html` gibt es bei Grün und Gelb (Status: Matcher ausgefüllt,
+Gespräch oder Probearbeiten) die Karte **„Gesprächsleitfaden
+(KI-Vorschlag)“**. Ein Klick lässt die KI 5–6 Fragen fürs Kennenlernen
+vorschlagen, je mit „Warum“ und „Worauf achten“.
+
+Spielregeln:
+
+- **Die KI bewertet niemanden.** Keine Farbe, keine Punkte, keine Empfehlung
+  zu Zu- oder Absage. Grün/Gelb/Rot rechnet weiter nur die Datenbank,
+  entscheiden tut die Chefin.
+- **Bei Rot gibt es keinen Leitfaden**, weil Rot nie zum Gespräch führt.
+- **Datensparsam:** An die KI gehen nur Stelle, Ausbildung, Stunden, Start,
+  „Über dich“ und die Matcher-Auswertung. Nie Name, Telefon, E-Mail,
+  Portfolio-Link oder die ID. Verbotene Themen (Alter, Herkunft, Religion,
+  Familienplanung, Gesundheit, Aussehen …) sind in der Anleitung der KI
+  ausgeschlossen.
+- Der Leitfaden steht bei der Bewerbung und wird mit ihr gelöscht
+  (spätestens nach 6 Monaten). Im Verlauf steht, wann er erstellt wurde.
+- Die Einwilligung auf der Karriere-Seite nennt die KI seit 2026-11-04.
+
+Technik: Migration `20261104120000_ki_gespraechsleitfaden.sql` (dieses
+Repo), Edge Function `bewerbung-ki` (Repo `Team`, `supabase/functions/`).
+Nur die Inhaberin darf sie nutzen; das prüft die Datenbank selbst.
+
+## Wartezeit in der Übersicht (seit 2026-11-04)
+
+Bei rund 5 Bewerbungen im Monat zählt jede. Die Übersicht zeigt oben, wie
+viele Bewerbungen auf dich warten, und beim Eintrag seit wann (gerechnet ab
+dem letzten Schritt im Verlauf; KI-Einträge zählen nicht):
+
+- Matcher ausgefüllt, noch keine Entscheidung: ab 2 Tagen gelb, ab 4 Tagen rot
+- Absage vorbereitet, noch nicht verschickt: ab 2 Tagen
+- Zum Gespräch oder Probetag eingeladen: ab 3 Tagen „Termin schon fix?“
+
+Migration: `20261104150000_bewerbungen_wartezeit.sql`.
