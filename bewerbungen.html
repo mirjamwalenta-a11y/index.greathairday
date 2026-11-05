@@ -156,6 +156,19 @@
       @page { margin:12mm; }
     }
     .kl-notiz { display:none; }
+    /* Notizen am Tablet: Eingabefeld am Schirm, beim Drucken der Text (oder Linien, wenn leer) */
+    textarea.kl-eingabe { min-height:64px; margin-top:6px; background:#fff; font-size:14px; }
+    .kl-notiz-text { display:none; }
+    .kl-zeile { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .kl-zeile label { flex:1 1 200px; font-size:12px; font-weight:600; color:var(--text-soft); }
+    .kl-zeile input { margin-top:4px; }
+    .kl-druckwert { display:none; }
+    @media print {
+      body.druck-kl textarea.kl-eingabe, body.druck-kl .kl-zeile input { display:none !important; }
+      body.druck-kl .kl-notizfeld.voll .kl-notiz-text { display:block; white-space:pre-wrap; margin-top:4px; font-size:12.5px; color:#000; }
+      body.druck-kl .kl-notizfeld.voll .kl-notiz { display:none; }
+      body.druck-kl .kl-druckwert { display:inline; color:#000; font-weight:400; }
+    }
 
     /* Prüfzone Gelb */
     .pz { border:1.5px solid var(--y); border-radius:12px; padding:14px; margin-top:12px; }
@@ -576,9 +589,41 @@
   // und wer das darf (nur die Chefin), legt die Datenbank fest
   // (20261104120000_ki_gespraechsleitfaden.sql).
   const KI_URL = SB_URL + '/functions/v1/bewerbung-ki';
+
+  // Notizfeld: am Schirm zum Tippen, beim Drucken der Text bzw. leere Linien.
+  function notizFeld(wert, beiAenderung, platzhalter) {
+    const ta = h('textarea', { cls: 'kl-eingabe', placeholder: platzhalter || 'Notiz oder Antwort …' });
+    ta.value = wert || '';
+    const druck = h('div', { cls: 'kl-notiz-text' });
+    const feld = h('div', { cls: 'kl-notizfeld' }, ta, druck, h('div', { cls: 'kl-notiz' }));
+    const zeigen = () => { druck.textContent = ta.value; feld.classList.toggle('voll', ta.value.trim() !== ''); };
+    zeigen();
+    ta.addEventListener('input', () => { zeigen(); beiAenderung(ta.value, false); });
+    ta.addEventListener('blur', () => beiAenderung(ta.value, true));
+    return feld;
+  }
+
+  // Speichern mit kurzer Verzögerung; sofort beim Verlassen des Feldes.
+  function speicherer(speichern, statusEl) {
+    let timer = null, laeuft = Promise.resolve();
+    const jetzt = () => {
+      clearTimeout(timer); timer = null;
+      laeuft = laeuft.then(async () => {
+        statusEl.textContent = 'Speichert …';
+        try { await speichern(); statusEl.textContent = 'Gespeichert ✓ ' + new Date().toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }); }
+        catch (e) { statusEl.textContent = 'Nicht gespeichert: ' + e.message; }
+      });
+    };
+    return (sofort) => { if (sofort) { if (timer) jetzt(); } else { clearTimeout(timer); timer = setTimeout(jetzt, 1000); } };
+  }
   function leitfadenKarte(b) {
-    if (!b.antworten || b.matcher_gesamt === 'r' || !['ausgewertet', 'gespraech', 'probearbeiten'].includes(b.status)) return null;
     const lf = b.ki_leitfaden;
+    const kannErstellen = b.antworten && b.matcher_gesamt !== 'r' && ['ausgewertet', 'gespraech', 'probearbeiten'].includes(b.status);
+    if (!kannErstellen && !(lf && lf.fragen)) return null;
+    const notizen = Object.assign({}, (b.gespraech_notizen && b.gespraech_notizen.notizen) || {});
+    const nStatus = h('span', { cls: 'muted kl-nicht-drucken' });
+    const merken = speicherer(() => rpc('bewerbung_gespraech_notizen', { p_id: b.id, p_notizen: notizen }), nStatus);
+    const feldFuer = (key, platz) => notizFeld(notizen[key], (v, sofort) => { notizen[key] = v; merken(sofort); }, platz);
     const karte = h('div', { cls: 'card kl-karte' },
       h('div', { cls: 'kl-druckkopf' }, h('div', { cls: 'brand' }, 'A Great Hair Day · Kennenlernen · nur für die Chefin'),
         h('h1', {}, `${vorname(b.name)} · ${STELLE[b.stelle]}`),
@@ -592,11 +637,19 @@
           h('div', { cls: 'q' }, `${i + 1}. ${f.frage}`),
           h('div', { cls: 'm' }, 'Warum: ' + f.warum),
           h('div', { cls: 'm' }, 'Worauf achten: ' + f.achten),
-          h('div', { cls: 'kl-notiz' }))));
+          feldFuer(f.frage))));
+      karte.append(h('h3', {}, 'Allgemeine Notizen'), feldFuer('_allgemein', 'Eindruck, Absprachen, nächste Schritte …'));
+      // Notizen zu Fragen eines früheren Leitfadens nicht verlieren
+      const aktuell = new Set(lf.fragen.map(f => f.frage));
+      const alt = Object.keys(notizen).filter(k => k !== '_allgemein' && !aktuell.has(k) && (notizen[k] || '').trim());
+      if (alt.length) karte.append(h('h3', {}, 'Notizen zu früheren Fragen'),
+        ...alt.map(k => h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, k), h('div', { cls: 'm', style: 'white-space:pre-wrap' }, notizen[k]))));
+      karte.append(h('p', { cls: 'muted kl-nicht-drucken', style: 'margin-top:8px' },
+        'Notizen werden automatisch bei der Bewerbung gespeichert (nur für dich sichtbar, gehen nicht an die KI). ', nStatus));
     }
     const status = h('p', { cls: 'muted kl-nicht-drucken', style: 'margin-top:8px' });
-    const btn = h('button', { cls: 'btn' + (lf ? ' ghost' : ''), on: async () => {
-      if (lf && !confirm('Den Leitfaden neu erstellen? Der bisherige wird ersetzt.')) return;
+    const btn = !kannErstellen ? null : h('button', { cls: 'btn' + (lf ? ' ghost' : ''), on: async () => {
+      if (lf && !confirm('Den Leitfaden neu erstellen? Der bisherige wird ersetzt. Deine Notizen bleiben erhalten.')) return;
       btn.disabled = true; status.textContent = 'Die KI bereitet die Fragen vor … (bis zu einer Minute)';
       try {
         const { data: { session } } = await sb.auth.getSession();
@@ -837,22 +890,39 @@
       try { felder = (await rpc('matcher_katalog')).felder || {}; } catch (e) { return rahmen(fehlerKarte(e)); }
     }
     const b = BLATT[art];
+    // Notizen nur auf diesem Gerät (localStorage), je Fassung getrennt.
+    const LS = 'ghd_gespraechsblatt_' + art;
+    let ls = {};
+    try { ls = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { ls = {}; }
+    ls.notizen = ls.notizen || {};
+    const lsStatus = h('span', { cls: 'muted' });
+    const lsMerken = speicherer(async () => {
+      try { localStorage.setItem(LS, JSON.stringify(ls)); } catch (e) { throw new Error('Speicher auf diesem Gerät nicht verfügbar'); }
+    }, lsStatus);
+    const feldFuer = (key, platz) => notizFeld(ls.notizen[key], (v, sofort) => { ls.notizen[key] = v; lsMerken(sofort); }, platz);
+    const kopfFeld = (key, titel, typ) => {
+      const inp = h('input', { type: typ || 'text' }); inp.value = ls[key] || '';
+      const wert = h('span', { cls: 'kl-druckwert' }, ls[key] || '______________________');
+      inp.addEventListener('input', () => { ls[key] = inp.value; wert.textContent = inp.value || '______________________'; lsMerken(false); });
+      inp.addEventListener('blur', () => lsMerken(true));
+      return h('label', {}, titel + ': ', wert, inp);
+    };
     const wahl = h('div', { cls: 'kl-nicht-drucken', style: 'margin:4px 0 12px' },
       ...Object.entries(BLATT).map(([k, v]) => h('button', { cls: 'btn' + (k === art ? '' : ' ghost'), on: () => zeigeGespraechsblatt(k) }, v.titel)));
     let nr = 0;
     const karte = h('div', { cls: 'card kl-karte' },
       h('div', { cls: 'kl-druckkopf' }, h('div', { cls: 'brand' }, 'A Great Hair Day · Kennenlernen'),
-        h('h1', {}, 'Gespräch · ' + b.titel),
-        h('p', {}, 'Name: ______________________________   Datum: ______________')),
+        h('h1', {}, 'Gespräch · ' + b.titel)),
       h('h2', { cls: 'kl-nicht-drucken' }, 'Gesprächsblatt · ' + b.titel),
       wahl,
+      h('div', { cls: 'kl-zeile' }, kopfFeld('name', 'Name'), kopfFeld('datum', 'Datum')),
       ...b.blocks.map(([titel, fragen]) => h('div', {},
         h('h3', {}, titel),
         ...fragen.map(f => {
           const text = f || (felder[FELD_VON[titel]] || {}).gespraech;
           if (!text) return null;
           nr++;
-          return h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, `${nr}. ${text}`), h('div', { cls: 'kl-notiz' }));
+          return h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, `${nr}. ${text}`), feldFuer(text));
         }))),
       h('h3', {}, 'Worauf achten'),
       ...b.achten.map(([t, x]) => h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, t), h('div', { cls: 'm' }, x))),
@@ -861,9 +931,16 @@
       h('h3', {}, 'Zum Schluss'),
       h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, 'Nächste Schritte erklären'),
         h('div', { cls: 'm' }, 'Link zur Kurzbewerbung mitgeben (dann kommt der Salon Matcher), Rückmeldung bis ____________, eventuell Probetag.'),
-        h('div', { cls: 'kl-notiz' })),
+        feldFuer('_schluss', 'Absprachen, Rückmeldung bis …')),
+      h('h3', {}, 'Allgemeine Notizen'), feldFuer('_allgemein', 'Eindruck …'),
       h('div', { cls: 'kl-nicht-drucken', style: 'margin-top:14px' },
-        h('button', { cls: 'btn', on: () => { document.body.classList.add('druck-kl'); window.print(); } }, 'Drucken')));
+        h('p', { cls: 'muted' }, 'Notizen bleiben nur auf diesem Gerät. Nach dem Gespräch drucken oder als PDF sichern, dann löschen. ', lsStatus),
+        h('button', { cls: 'btn', on: () => { document.body.classList.add('druck-kl'); window.print(); } }, 'Drucken / PDF'),
+        h('button', { cls: 'btn ghost', on: () => {
+          if (!confirm('Alle Notizen und Name/Datum auf diesem Blatt löschen?')) return;
+          try { localStorage.removeItem(LS); } catch (e) {}
+          zeigeGespraechsblatt(art);
+        }}, 'Notizen löschen')));
     rahmen(h('div', { cls: 'card' }, h('h2', {}, 'Allgemeines Gesprächsblatt'),
       h('p', {}, 'Für ein Kennenlernen, wenn noch keine Bewerbung im System ist – zum Beispiel nach einem Anruf. Ohne KI, für alle gleich. Die Situationen aus dem Salon Matcher stehen bewusst nicht darauf, damit die Person den Matcher danach noch unbefangen machen kann.'),
       h('p', { style: 'margin-top:8px' }, 'Tipp: Schick vorher den Link zur Kurzbewerbung (Übersicht → „Neue Bewerbung“). Kommt sie vor dem Termin, gibt es einen persönlichen Leitfaden.')),

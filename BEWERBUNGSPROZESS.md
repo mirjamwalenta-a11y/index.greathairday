@@ -281,3 +281,16 @@ dem letzten Schritt im Verlauf; KI-Einträge zählen nicht):
 - Zum Gespräch oder Probetag eingeladen: ab 3 Tagen „Termin schon fix?“
 
 Migration: `20261104150000_bewerbungen_wartezeit.sql`.
+
+## Gesprächsnotizen am Tablet (seit 2026-11-05)
+
+- **Persönlicher Leitfaden einer Bewerbung:** Unter jeder Frage und in
+  „Allgemeine Notizen“ kann die Chefin tippen. Gespeichert wird automatisch
+  bei der Bewerbung (`gespraech_notizen`, Migration
+  `20261105100000_gespraech_notizen.sql`), nur für die Inhaberin lesbar,
+  gelöscht mit der Bewerbung. Die Notizen gehen nie an die KI und zählen
+  nicht als Schritt im Verlauf. Wird der Leitfaden neu erstellt, bleiben
+  Notizen zu alten Fragen unter „Notizen zu früheren Fragen“ erhalten.
+- **Allgemeines Gesprächsblatt:** Notizen, Name und Datum bleiben nur auf
+  dem Gerät (Browser-Speicher). Nach dem Gespräch drucken oder als PDF
+  sichern, dann „Notizen löschen“.
