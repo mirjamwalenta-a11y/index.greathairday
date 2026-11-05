@@ -149,7 +149,11 @@
       body.druck-kl .kl-druckkopf { display:block; margin-bottom:10px; }
       body.druck-kl .kl-frage { background:none; border:1px solid #999; break-inside:avoid; color:#000; }
       body.druck-kl .kl-frage .m, body.druck-kl .kl-karte p { color:#333; }
-      body.druck-kl .kl-notiz { display:block; height:60px; border-bottom:1px dotted #999; margin-top:6px; }
+      body.druck-kl .kl-notiz { display:block; height:40px; border-bottom:1px dotted #999; margin-top:2px; }
+      body.druck-kl .kl-frage { margin-top:6px; padding:6px 10px; font-size:12.5px; }
+      body.druck-kl .kl-karte h3 { margin:10px 0 2px; font-size:13px; break-after:avoid; }
+      body.druck-kl .kl-karte h1 { font-size:18px; }
+      @page { margin:12mm; }
     }
     .kl-notiz { display:none; }
 
@@ -327,10 +331,12 @@
     document.getElementById('login').classList.add('hidden');
     app.classList.remove('hidden');
     app.innerHTML = '';
+    document.body.classList.remove('druck-kl');   // Druckansicht gilt nur für die Seite, auf der gedruckt wurde
     app.append(h('div', { cls: 'top' },
       h('div', {}, h('div', { cls: 'brand' }, 'A Great Hair Day · nur für die Chefin'), h('h1', {}, 'Bewerbungen')),
       h('div', { cls: 'links' },
         h('button', { cls: 'link', on: zeigeListe }, 'Übersicht'),
+        h('button', { cls: 'link', on: () => zeigeGespraechsblatt() }, 'Gesprächsblatt'),
         h('button', { cls: 'link', on: zeigeKatalog }, 'Fragenkatalog'),
         h('button', { cls: 'link', on: () => { location.href = 'schaltzentrale.html'; } }, '← Schaltzentrale'),
         h('button', { cls: 'link', on: abmelden }, 'Abmelden'))), ...kids.filter(Boolean));
@@ -604,7 +610,6 @@
     }}, lf ? 'Neu erstellen' : 'Leitfaden erstellen');
     const drucken = lf && lf.fragen ? h('button', { cls: 'btn ghost', on: () => {
       document.body.classList.add('druck-kl');
-      window.addEventListener('afterprint', () => document.body.classList.remove('druck-kl'), { once: true });
       window.print();
     }}, 'Drucken') : null;
     karte.append(h('div', { cls: 'kl-nicht-drucken', style: 'margin-top:12px' }, drucken, btn), status);
@@ -772,6 +777,97 @@
         ...zeile('Über sich', b.ueber_dich), ...zeile('Stunden', b.stunden), ...zeile('Start', b.start),
         ...zeile('Lebenslauf / Portfolio', linkOderText(b.portfolio)), ...zeile('Basis-Check', b.basis_grund ? 'passt nicht – ' + b.basis_grund : null),
         ...zeile('Löschung am', datum(b.loeschen_am))));
+  }
+
+  // ── Allgemeines Gesprächsblatt (ohne KI, zum Ausdrucken) ───────────────
+  // Für Kennenlernen ohne Bewerbung im System, z. B. wenn jemand telefonisch
+  // einen Termin ausgemacht hat. Verrät die Matcher-Situationen nicht, damit
+  // die Person den Matcher danach noch unbefangen machen kann.
+  const BLATT = {
+    lehrstelle: {
+      titel: 'Lehrstelle',
+      blocks: [
+        ['Ankommen', [
+          'Erzähl mal: Wie bist du auf den Friseurberuf gekommen – und wie auf uns?',
+          'Was hast du schon ausprobiert – Schnuppern, Praktikum, Haare bei Freundinnen oder in der Familie? Was hat dir daran gefallen?']],
+        ['Lernen und Offenheit', [
+          'Wie lernst du am liebsten – zuschauen, selber probieren oder erklärt bekommen?',
+          'Erzähl von etwas, das du am Anfang blöd gefunden hast und heute anders siehst.']],
+        ['Zuwendung', [
+          'Woran merkst du, dass es jemandem nicht gut geht, auch wenn er nichts sagt?']],
+        ['Respekt', [
+          'Wann hast du dich zuletzt bei jemandem entschuldigt – und wofür?',
+          'Wie zeigst du jemandem Respekt, wenn du anderer Meinung bist als er?']],
+        ['Wertschätzung', [
+          'In einer Gruppe wird über jemanden gelästert. Wie reagierst du?']],
+        ['Rahmen', [
+          'Ab wann könntest du anfangen? Wie ist es mit Schule oder Abschluss gerade?',
+          'Wie kommst du zu uns in den Salon? Ist Arbeiten am Samstag für dich in Ordnung?']],
+        ['Deine Fragen', [
+          'Was ist dir bei einem Lehrbetrieb wichtig? Was möchtest du von uns wissen?']]],
+      achten: [
+        ['Gutes Zeichen', 'neugierig, fragt nach, ehrlich auch bei Unsicherheit, spricht freundlich über andere'],
+        ['Genauer hinschauen', 'abwertend über Kundinnen, Lehrer:innen oder frühere Kolleg:innen; an allem sind immer andere schuld; kein Interesse am Lernen'],
+        ['Normal, kein Minuspunkt', 'Nervosität, kurze Antworten, wenig Erfahrung – es ist eine Lehrstelle']]
+    },
+    geselle: {
+      titel: 'Stylist:in / Wiedereinstieg',
+      blocks: [
+        ['Ankommen', [
+          'Erzähl mir von deinem Weg: Wo hast du gelernt, wo gearbeitet, was machst du am liebsten?',
+          'Was hat dich am letzten Salon gestört, was hat dir gefehlt – und was hat gut gepasst?']],
+        ['Zuwendung', [null]], ['Offenheit', [null]], ['Respekt', [null]], ['Wertschätzung', [null]],
+        ['Fachlich', [
+          'Was sind deine Stärken – Farbe, Schnitt, Herren, Hochstecken? Wo willst du noch besser werden?']],
+        ['Rahmen', [
+          'Wie viele Stunden möchtest du arbeiten, und ab wann? Welche Tage passen dir?']],
+        ['Deine Fragen', [
+          'Was ist dir bei einem Arbeitsplatz wichtig? Was möchtest du von uns wissen?']]],
+      achten: [
+        ['Gutes Zeichen', 'erzählt konkret mit Beispielen, die Kundin steht im Mittelpunkt, spricht fair über frühere Salons'],
+        ['Genauer hinschauen', 'erzählt fast nur von eigener Technik und Erfolgen; Konflikte waren immer die Schuld der anderen; „das gehört in dem Beruf halt dazu“']]
+    }
+  };
+  const FELD_VON = { Zuwendung: 'Z', Offenheit: 'O', Respekt: 'R', Wertschätzung: 'W' };
+
+  async function zeigeGespraechsblatt(art = 'lehrstelle') {
+    rahmen(h('p', {}, 'Lädt …'));
+    let felder = {};
+    if (art === 'geselle') {
+      try { felder = (await rpc('matcher_katalog')).felder || {}; } catch (e) { return rahmen(fehlerKarte(e)); }
+    }
+    const b = BLATT[art];
+    const wahl = h('div', { cls: 'kl-nicht-drucken', style: 'margin:4px 0 12px' },
+      ...Object.entries(BLATT).map(([k, v]) => h('button', { cls: 'btn' + (k === art ? '' : ' ghost'), on: () => zeigeGespraechsblatt(k) }, v.titel)));
+    let nr = 0;
+    const karte = h('div', { cls: 'card kl-karte' },
+      h('div', { cls: 'kl-druckkopf' }, h('div', { cls: 'brand' }, 'A Great Hair Day · Kennenlernen'),
+        h('h1', {}, 'Gespräch · ' + b.titel),
+        h('p', {}, 'Name: ______________________________   Datum: ______________')),
+      h('h2', { cls: 'kl-nicht-drucken' }, 'Gesprächsblatt · ' + b.titel),
+      wahl,
+      ...b.blocks.map(([titel, fragen]) => h('div', {},
+        h('h3', {}, titel),
+        ...fragen.map(f => {
+          const text = f || (felder[FELD_VON[titel]] || {}).gespraech;
+          if (!text) return null;
+          nr++;
+          return h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, `${nr}. ${text}`), h('div', { cls: 'kl-notiz' }));
+        }))),
+      h('h3', {}, 'Worauf achten'),
+      ...b.achten.map(([t, x]) => h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, t), h('div', { cls: 'm' }, x))),
+      h('h3', {}, 'Nicht fragen'),
+      h('p', {}, 'Herkunft, Religion, Familienplanung, Schwangerschaft, Kinder, Gesundheit, Aussehen, Beziehung. Das Alter nur, wenn es für die Arbeitszeit-Regeln (unter 18) wichtig ist.'),
+      h('h3', {}, 'Zum Schluss'),
+      h('div', { cls: 'kl-frage' }, h('div', { cls: 'q' }, 'Nächste Schritte erklären'),
+        h('div', { cls: 'm' }, 'Link zur Kurzbewerbung mitgeben (dann kommt der Salon Matcher), Rückmeldung bis ____________, eventuell Probetag.'),
+        h('div', { cls: 'kl-notiz' })),
+      h('div', { cls: 'kl-nicht-drucken', style: 'margin-top:14px' },
+        h('button', { cls: 'btn', on: () => { document.body.classList.add('druck-kl'); window.print(); } }, 'Drucken')));
+    rahmen(h('div', { cls: 'card' }, h('h2', {}, 'Allgemeines Gesprächsblatt'),
+      h('p', {}, 'Für ein Kennenlernen, wenn noch keine Bewerbung im System ist – zum Beispiel nach einem Anruf. Ohne KI, für alle gleich. Die Situationen aus dem Salon Matcher stehen bewusst nicht darauf, damit die Person den Matcher danach noch unbefangen machen kann.'),
+      h('p', { style: 'margin-top:8px' }, 'Tipp: Schick vorher den Link zur Kurzbewerbung (Übersicht → „Neue Bewerbung“). Kommt sie vor dem Termin, gibt es einen persönlichen Leitfaden.')),
+      karte);
   }
 
   // ── Fragenkatalog ──────────────────────────────────────────────────────
