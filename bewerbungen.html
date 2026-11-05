@@ -137,6 +137,21 @@
     .kl-frage { margin-top:12px; padding:10px 12px; border-radius:10px; background:var(--accent-tint); font-size:13.5px; line-height:1.55; }
     .kl-frage .q { font-weight:600; color:var(--text); }
     .kl-frage .m { color:var(--text-soft); font-size:12.5px; margin-top:4px; }
+    .kl-druckkopf { display:none; }
+    /* Drucken: nur die Leitfaden-Karte, schwarz auf weiß, ohne Knöpfe */
+    @media print {
+      body.druck-kl { background:#fff !important; }
+      body.druck-kl * { visibility:hidden; }
+      body.druck-kl .kl-karte, body.druck-kl .kl-karte * { visibility:visible; }
+      body.druck-kl #app > :not(.kl-karte) { display:none !important; }
+      body.druck-kl .kl-karte { border:none; box-shadow:none; padding:0; margin:0; }
+      body.druck-kl .kl-karte .kl-nicht-drucken { display:none !important; }
+      body.druck-kl .kl-druckkopf { display:block; margin-bottom:10px; }
+      body.druck-kl .kl-frage { background:none; border:1px solid #999; break-inside:avoid; color:#000; }
+      body.druck-kl .kl-frage .m, body.druck-kl .kl-karte p { color:#333; }
+      body.druck-kl .kl-notiz { display:block; height:60px; border-bottom:1px dotted #999; margin-top:6px; }
+    }
+    .kl-notiz { display:none; }
 
     /* Prüfzone Gelb */
     .pz { border:1.5px solid var(--y); border-radius:12px; padding:14px; margin-top:12px; }
@@ -558,7 +573,11 @@
   function leitfadenKarte(b) {
     if (!b.antworten || b.matcher_gesamt === 'r' || !['ausgewertet', 'gespraech', 'probearbeiten'].includes(b.status)) return null;
     const lf = b.ki_leitfaden;
-    const karte = h('div', { cls: 'card' }, h('h2', {}, 'Gesprächsleitfaden (KI-Vorschlag)'),
+    const karte = h('div', { cls: 'card kl-karte' },
+      h('div', { cls: 'kl-druckkopf' }, h('div', { cls: 'brand' }, 'A Great Hair Day · Kennenlernen · nur für die Chefin'),
+        h('h1', {}, `${vorname(b.name)} · ${STELLE[b.stelle]}`),
+        h('p', { cls: 'muted' }, `Gespräch am ____________   ·   Nach dem Gespräch vernichten (enthält Bewerbungsdaten)`)),
+      h('h2', {}, 'Gesprächsleitfaden (KI-Vorschlag)'),
       h('p', { cls: 'muted' }, 'Fragen fürs Kennenlernen, passend zu den Eckdaten und den Matcher-Antworten. ' +
         'Die KI bewertet niemanden und entscheidet nichts – sie bekommt weder Namen noch Kontaktdaten.'));
     if (lf && lf.fragen) {
@@ -566,9 +585,10 @@
         ...lf.fragen.map((f, i) => h('div', { cls: 'kl-frage' },
           h('div', { cls: 'q' }, `${i + 1}. ${f.frage}`),
           h('div', { cls: 'm' }, 'Warum: ' + f.warum),
-          h('div', { cls: 'm' }, 'Worauf achten: ' + f.achten))));
+          h('div', { cls: 'm' }, 'Worauf achten: ' + f.achten),
+          h('div', { cls: 'kl-notiz' }))));
     }
-    const status = h('p', { cls: 'muted', style: 'margin-top:8px' });
+    const status = h('p', { cls: 'muted kl-nicht-drucken', style: 'margin-top:8px' });
     const btn = h('button', { cls: 'btn' + (lf ? ' ghost' : ''), on: async () => {
       if (lf && !confirm('Den Leitfaden neu erstellen? Der bisherige wird ersetzt.')) return;
       btn.disabled = true; status.textContent = 'Die KI bereitet die Fragen vor … (bis zu einer Minute)';
@@ -582,7 +602,12 @@
         zeigeDetail(b.id, { scroll: true });
       } catch (e) { status.textContent = 'Hat nicht geklappt: ' + e.message; btn.disabled = false; }
     }}, lf ? 'Neu erstellen' : 'Leitfaden erstellen');
-    karte.append(h('div', { style: 'margin-top:12px' }, btn), status);
+    const drucken = lf && lf.fragen ? h('button', { cls: 'btn ghost', on: () => {
+      document.body.classList.add('druck-kl');
+      window.addEventListener('afterprint', () => document.body.classList.remove('druck-kl'), { once: true });
+      window.print();
+    }}, 'Drucken') : null;
+    karte.append(h('div', { cls: 'kl-nicht-drucken', style: 'margin-top:12px' }, drucken, btn), status);
     return karte;
   }
 
