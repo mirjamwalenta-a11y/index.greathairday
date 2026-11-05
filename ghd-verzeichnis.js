@@ -198,6 +198,18 @@
   function trifft(text, ws) { var h = norm(text); return ws.every(function (w) { return h.indexOf(w) >= 0; }); }
   function ohneHash(u) { return String(u).split('#')[0].split('?')[0].replace(/index\.html$/, ''); }
 
+  var RAHMEN = B + '/index.greathairday/rahmen.html';
+  function imRahmen() {
+    try { return window.top !== window && !!window.top.__ghdRahmen; } catch (e) { return false; }
+  }
+  function alsAppInstalliert() {
+    try {
+      return (window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: minimal-ui)').matches)) ||
+        window.navigator.standalone === true;
+    } catch (e) { return false; }
+  }
+
   var ZULETZT_KEY = 'ghd_verzeichnis_zuletzt';
   function zuletztLaden() { try { var v = JSON.parse(localStorage.getItem(ZULETZT_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
   function zuletztMerken(name) {
@@ -410,9 +422,24 @@
       zuletztMerken(a.getAttribute('data-app'));
       // Gleiche Seite, anderer Abschnitt (z. B. Handbuch-Kapitel): nur schließen
       if (ohneHash(a.href) === ohneHash(location.href)) { setTimeout(schliessen, 0); return; }
-      // Andere App: im selben Fenster wechseln. Die Salon-App „GHD“ umfasst seit
-      // 2026-11-04 alle Apps (manifest.json: scope "/"), dadurch bleibt man in
-      // der App und „Zurück“ führt Schritt für Schritt zurück.
+      var ziel;
+      try { ziel = new URL(a.href); } catch (err) { return; }
+      // Website & Co. (andere Adresse): eigenes Fenster, gehört nicht zur Salon-App
+      if (ziel.origin !== location.origin) {
+        e.preventDefault();
+        try { window.open(ziel.href, '_blank', 'noopener'); } catch (err) { location.href = ziel.href; }
+        schliessen();
+        return;
+      }
+      // Schon im App-Rahmen: der Link wechselt einfach die App im Rahmen.
+      if (imRahmen()) return;
+      // Installierte Salon-App: im App-Rahmen öffnen. Sonst öffnet Android eine
+      // einzeln installierte App (Checkliste, Team …) als eigenes Programm und
+      // „Zurück“ schließt sie ganz. Im Browser: normal im selben Fenster.
+      if (alsAppInstalliert()) {
+        e.preventDefault();
+        location.href = RAHMEN + '#' + encodeURIComponent(ziel.href);
+      }
     });
   }
 
