@@ -97,7 +97,8 @@
       { n: 'Preise & Texte', s: 'Website-Inhalte bearbeiten', i: 'pen', u: W + '/Preise-und-Texte-bearbeiten.html', k: 'preise ändern texte bearbeiten preisliste aktualisieren' },
       { n: 'Bewertung', s: 'Kund:innen um Bewertung bitten', i: 'star', u: W + '/bewertung/', k: 'bewertung rezension google sterne feedback review qr' },
       { n: 'HaarKompass', s: 'Pflege-Guide für Kund:innen', i: 'compass', u: W + '/haarkompass/', k: 'haarkompass pflege empfehlung fragebogen kunden', kids: [
-        { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' } ] }
+        { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' },
+        { n: 'HaarKompass-Beratung im Salon', u: B + '/Mitarbeiterhandbuch/haarkompass-beratung.html', k: 'beratung salonprodukte produktempfehlung englisch english team' } ] }
     ] },
     { t: 'Sonstiges', chefin: true, apps: [
       { n: 'Innung', s: 'Seminare & Trainer:innen', i: 'pillars', u: B + '/innungsapp.greathairday/innungsapp.html', k: 'seminar trainer weiterbildung' },
