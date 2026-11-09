@@ -125,27 +125,27 @@ const FRAGEN = [
     optionen: [
       { t: 'Frischer',      s: 'mehr Lebendigkeit im Gesicht',          punkte: ['FL','LH'], satz: 'mehr Frische' },
       { t: 'Weicher',       s: 'weniger Härte in der Ausstrahlung',     punkte: ['WW'],      satz: 'mehr Weichheit' },
-      { t: 'Natürlicher',   s: 'weniger gemacht, mehr harmonisch',      punkte: ['RN'],      satz: 'eine natürlichere Ausstrahlung' },
-      { t: 'Mehr Ausdruck', s: 'mehr Präsenz und Kontur',               punkte: ['AK'],      satz: 'mehr Ausdruck' },
+      { t: 'Natürlicher',   s: 'weniger gemacht, mehr harmonisch',      punkte: ['RN','WW'], satz: 'eine natürlichere Ausstrahlung' },
+      { t: 'Mehr Ausdruck', s: 'mehr Präsenz und Kontur',               punkte: ['AK','TR'], satz: 'mehr Ausdruck' },
       { t: 'Ruhiger',       s: 'weniger Unruhe, mehr Ausgeglichenheit', punkte: ['TR','RN'], satz: 'mehr Ruhe' },
-      { t: 'Strahlender',   s: 'mehr Licht und Offenheit',              punkte: ['FL'],      satz: 'mehr Strahlkraft' }
+      { t: 'Strahlender',   s: 'mehr Licht und Offenheit',              punkte: ['FL','AK'], satz: 'mehr Strahlkraft' }
     ] },
   { titel: 'Was möchtest du mit deiner Haarfarbe eher vermeiden?',
     hinweis: 'Wähle das, was auf keinen Fall passieren soll.',
     optionen: [
-      { t: 'Zu hart',           s: 'mein Gesicht soll nicht strenger wirken',   punkte: ['WW','FL'], satz: 'Härte vermeiden' },
+      { t: 'Zu hart',           s: 'mein Gesicht soll nicht strenger wirken',   punkte: ['WW','RN'], satz: 'Härte vermeiden' },
       { t: 'Zu dunkel',         s: 'mein Gesicht soll nicht schwerer wirken',   punkte: ['FL','LH'], satz: 'vermeiden, dass dein Gesicht schwerer wirkt,' },
       { t: 'Zu gelb',           s: 'die Farbe soll nicht gelblich wirken',      punkte: ['RN','TR'], satz: 'einen gelblichen Schimmer vermeiden' },
-      { t: 'Zu künstlich',      s: 'ich möchte nicht gemacht wirken',           punkte: ['RN'],      satz: 'nicht gemacht wirken' },
+      { t: 'Zu künstlich',      s: 'ich möchte nicht gemacht wirken',           punkte: ['RN','WW'], satz: 'nicht gemacht wirken' },
       { t: 'Zu pflegeintensiv', s: 'es soll im Alltag gut für mich passen',     punkte: ['RN','TR'], satz: 'eine Farbe tragen, die gut in deinen Alltag passt,' },
-      { t: 'Zu unruhig',        s: 'ich möchte eine harmonische Gesamtwirkung', punkte: ['TR','WW'], satz: 'Unruhe vermeiden' }
+      { t: 'Zu unruhig',        s: 'ich möchte eine harmonische Gesamtwirkung', punkte: ['TR','RN'], satz: 'Unruhe vermeiden' }
     ] },
   { titel: 'Was ist dir dabei besonders wichtig?',
     hinweis: 'Wähle das, was für deine Entscheidung am meisten zählt.',
     optionen: [
       { t: 'Wenig Ansatzstress',          s: 'die Farbe soll im Alltag unkompliziert sein',            punkte: ['RN','TR'], satz: 'möglichst wenig Ansatzstress haben' },
-      { t: 'Meine Augen betonen',         s: 'meine Augen sollen stärker zur Geltung kommen',          punkte: ['AK'],      satz: 'deine Augen stärker zur Geltung bringen' },
-      { t: 'Mehr Leichtigkeit im Gesicht',s: 'mein Gesicht soll offener und frischer wirken',          punkte: ['FL'],      satz: 'mehr Leichtigkeit in dein Gesicht bringen' },
+      { t: 'Meine Augen betonen',         s: 'meine Augen sollen stärker zur Geltung kommen',          punkte: ['AK','FL'], satz: 'deine Augen stärker zur Geltung bringen' },
+      { t: 'Mehr Leichtigkeit im Gesicht',s: 'mein Gesicht soll offener und frischer wirken',          punkte: ['FL','LH'], satz: 'mehr Leichtigkeit in dein Gesicht bringen' },
       { t: 'Mehr Kontur im Gesicht',      s: 'mein Gesicht soll mehr Ausdruck bekommen',               punkte: ['AK','TR'], satz: 'deinem Gesicht mehr Kontur geben' },
       { t: 'Mehr Fülle am Oberkopf',      s: 'die Farbe soll optisch mehr Höhe und Volumen unterstützen', punkte: ['LH'],   satz: 'optisch mehr Höhe und Fülle am Oberkopf gewinnen' },
       { t: 'Natürlich bleiben',           s: 'die Farbe soll zu mir passen und nicht zu gemacht wirken', punkte: ['RN','WW'], satz: 'ganz natürlich du selbst bleiben' }
@@ -157,7 +157,11 @@ const ABSCHLUSS = 'Diese Richtung ist keine starre Vorgabe, sondern eine klare O
 // ── Ergebnislogik ──────────────────────────────────────────────
 // Punkte zählen. Bei Gleichstand entscheidet zuerst der Wirkungswunsch
 // (Frage 1), dann was besonders wichtig ist (Frage 3), dann die feste Reihenfolge.
-// Alternative nur, wenn das erlaubte Paar höchstens 1 Punkt dahinter liegt.
+// Alternative nur, wenn
+//   1. sie das erlaubte Paar der Hauptrichtung ist,
+//   2. sie höchstens 1 Punkt hinter der Hauptrichtung liegt und
+//   3. die Hauptrichtung nicht zugleich von Frage 1 UND Frage 3 gestützt ist
+//      (dann ist das Ergebnis eindeutig, auch wenn die Punkte knapp sind).
 function auswerten(antworten){
   const punkte = {}; Object.keys(RICHTUNGEN).forEach(k => punkte[k] = 0);
   antworten.forEach((a, i) => FRAGEN[i].optionen[a].punkte.forEach(k => punkte[k]++));
@@ -168,7 +172,8 @@ function auswerten(antworten){
   const haupt = reihe.slice().sort((a, b) => rang(b) - rang(a) || reihe.indexOf(a) - reihe.indexOf(b))[0];
   const alt = ALTERNATIVE[haupt];
   const knapp = punkte[alt.zu] > 0 && punkte[haupt] - punkte[alt.zu] <= 1;
-  return { haupt, alternative: knapp ? alt : null };
+  const eindeutig = wunsch.includes(haupt) && wichtig.includes(haupt);
+  return { haupt, alternative: knapp && !eindeutig ? alt : null };
 }
 
 function warumText(antworten){
