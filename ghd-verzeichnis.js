@@ -65,6 +65,10 @@
         { n: 'Schnittzeichnungs-Designer', u: B + '/lernquiz.greathairday/schnittdesigner.html' },
         { n: 'Meisterin', u: B + '/lernquiz.greathairday/meisterin.html', k: 'meisterprüfung' } ] },
       { n: 'Lerntool', s: 'Lernkarten & Themen', i: 'cards', u: B + '/lernquiz.greathairday/lerntool.html', k: 'lernkarten lernen themen' },
+      { n: 'Farbkompass', s: 'Farbrichtung: Lernen & Beraten', i: 'compass', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html', k: 'farbkompass haarfarbe farbrichtung farbberatung wirkung lehrling stylistin', kids: [
+        { n: 'Lernen (Lehrlinge)', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html?modus=lernen', k: 'üben übungsfall' },
+        { n: 'Beraten (Stylist:innen)', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html?modus=beraten', k: 'beratung salon kundin' },
+        { n: 'Kund:innen-Version', u: B + '/index.greathairday/farbkompass.html', k: 'kunden homepage' } ] },
       { n: 'Schnuppertag', s: 'Lehrlings-Auswahl & Probezeit', i: 'spark', u: B + '/lernquiz.greathairday/schnuppertag.html', k: 'lehrling schnuppern probezeit' }
     ] },
     { t: 'Büro & Verwaltung', chefin: true, apps: [
@@ -98,7 +102,8 @@
       { n: 'Bewertung', s: 'Kund:innen um Bewertung bitten', i: 'star', u: W + '/bewertung/', k: 'bewertung rezension google sterne feedback review qr' },
       { n: 'HaarKompass', s: 'Pflege-Guide für Kund:innen', i: 'compass', u: W + '/haarkompass/', k: 'haarkompass pflege empfehlung fragebogen kunden', kids: [
         { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' },
-        { n: 'HaarKompass-Beratung im Salon', u: B + '/Mitarbeiterhandbuch/haarkompass-beratung.html', k: 'beratung salonprodukte produktempfehlung englisch english team' } ] }
+        { n: 'HaarKompass-Beratung im Salon', u: B + '/Mitarbeiterhandbuch/haarkompass-beratung.html', k: 'beratung salonprodukte produktempfehlung englisch english team' } ] },
+      { n: 'Farbkompass', s: 'Farbrichtung für Kund:innen', i: 'compass', u: B + '/index.greathairday/farbkompass.html', k: 'farbkompass haarfarbe farbrichtung farbberatung kunden wirkung' }
     ] },
     { t: 'Sonstiges', chefin: true, apps: [
       { n: 'Innung', s: 'Seminare & Trainer:innen', i: 'pillars', u: B + '/innungsapp.greathairday/innungsapp.html', k: 'seminar trainer weiterbildung' },
