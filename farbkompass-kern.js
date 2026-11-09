@@ -83,15 +83,35 @@ const ABSCHLUSS = 'Diese Richtung ist keine starre Vorgabe, sondern eine klare O
 
 // ── Ergebnislogik ──────────────────────────────────────────────
 // Jede Antwort gibt 1 Punkt auf 1–2 Richtungen.
-// Bei Gleichstand entscheidet zuerst der Wirkungswunsch (Frage 1),
-// dann was besonders wichtig ist (Frage 3), dann die feste Reihenfolge.
-// Alternative nur, wenn
+// Hauptrichtung:
+//   1. höchste Punktzahl
+//   2. bei Gleichstand: Frage 1 (Wunschwirkung)
+//   3. weiter Gleichstand: Frage 3 (besonders wichtig)
+//   4. weiter Gleichstand: fachlich gesetzter Vorrang (VORRANG).
+//      (Frage 2 als eigener Schritt trennt hier nie: wer bei Punkten,
+//      Frage 1 und Frage 3 gleich liegt, liegt auch bei Frage 2 gleich.)
+// Zweitempfehlung nur, wenn
 //   1. sie das erlaubte Paar der Hauptrichtung ist,
 //   2. sie höchstens 1 Punkt hinter der Hauptrichtung liegt und
-//   3. die Hauptrichtung nicht zugleich von Frage 1 UND Frage 3 gestützt ist
-//      (dann ist das Ergebnis eindeutig, auch wenn die Punkte knapp sind).
+//   3. die Hauptrichtung nicht eindeutig ist. Eindeutig heißt: Frage 1 und
+//      Frage 3 stützen die Hauptrichtung, die Partner-Richtung aber nicht
+//      genauso. Bei echtem Gleichstand erlaubter Partner sieht man beide.
 // Rückgabe: haupt, alternative (oder null), punkte und – für die
 // Team-Version – warum die Hauptrichtung gewonnen hat (entschieden).
+
+// Fachlicher Vorrang, wenn Punkte, Frage 1 und Frage 3 nichts trennen.
+// Schlüssel: beide Kürzel alphabetisch, mit „|“ verbunden.
+// Bei erlaubten Partner-Paaren erscheint die andere Richtung immer als
+// Zweitempfehlung, der Vorrang bestimmt dort nur, welche oben steht.
+const VORRANG = {
+  'RN|WW': { vor: 'WW', grund: 'Erlaubte Nachbarn: beide werden gezeigt.' },
+  'AK|TR': { vor: 'AK', grund: 'Erlaubte Nachbarn: beide werden gezeigt.' },
+  'RN|TR': { vor: 'RN', grund: 'Ruhig und natürlich ist die sanftere Veränderung.' },
+  'AK|FL': { vor: 'FL', grund: 'Frisch und lichtvoll öffnet das Gesicht, ohne Kontrast zu setzen.' },
+  'FL|LH': { vor: 'FL', grund: 'Lebendig mit mehr Höhe soll nur bei einem echten Höhe-Wunsch gewinnen.' }
+};
+const paar = (a, b) => [a, b].sort().join('|');
+
 function auswerten(antworten){
   const reihe = Object.keys(RICHTUNGEN);
   const punkte = {}; reihe.forEach(k => punkte[k] = 0);
@@ -99,16 +119,22 @@ function auswerten(antworten){
   const wunsch  = FRAGEN[0].optionen[antworten[0]].punkte;
   const wichtig = FRAGEN[2].optionen[antworten[2]].punkte;
   const rang = k => punkte[k] * 100 + (wunsch.includes(k) ? 10 : 0) + (wichtig.includes(k) ? 1 : 0);
-  const sortiert = reihe.slice().sort((a, b) => rang(b) - rang(a) || reihe.indexOf(a) - reihe.indexOf(b));
+  const vorrang = (a, b) => { const v = VORRANG[paar(a, b)]; return v ? (v.vor === a ? -1 : 1) : reihe.indexOf(a) - reihe.indexOf(b); };
+  const sortiert = reihe.slice().sort((a, b) => rang(b) - rang(a) || vorrang(a, b));
   const haupt = sortiert[0], zweit = sortiert[1];
   const entschieden =
     punkte[haupt] > punkte[zweit] ? 'punkte' :
     Math.floor(rang(haupt) / 10) > Math.floor(rang(zweit) / 10) ? 'frage1' :
-    rang(haupt) > rang(zweit) ? 'frage3' : 'reihenfolge';
+    rang(haupt) > rang(zweit) ? 'frage3' :
+    VORRANG[paar(haupt, zweit)] ? 'fachlich' : 'reihenfolge';
   const alt = ALTERNATIVE[haupt];
   const knapp = punkte[alt.zu] > 0 && punkte[haupt] - punkte[alt.zu] <= 1;
-  const eindeutig = wunsch.includes(haupt) && wichtig.includes(haupt);
-  return { haupt, alternative: knapp && !eindeutig ? alt : null, punkte, entschieden, gleichauf: punkte[haupt] === punkte[zweit] ? zweit : null, knapp, eindeutig };
+  const stuetzt = k => wunsch.includes(k) && wichtig.includes(k);
+  const eindeutig = stuetzt(haupt) && !stuetzt(alt.zu);
+  return { haupt, alternative: knapp && !eindeutig ? alt : null, punkte, entschieden,
+           gleichauf: punkte[haupt] === punkte[zweit] ? zweit : null,
+           vorrang: entschieden === 'fachlich' ? VORRANG[paar(haupt, zweit)].grund : null,
+           knapp, eindeutig };
 }
 
 function warumText(antworten){
@@ -116,5 +142,5 @@ function warumText(antworten){
   return `Du wünschst dir ${a}, möchtest ${b} und ${c}. Genau dabei kann diese Farbrichtung dich gut unterstützen.`;
 }
 
-global.FARBKOMPASS = { RICHTUNGEN, ALTERNATIVE, FRAGEN, ABSCHLUSS, auswerten, warumText };
+global.FARBKOMPASS = { RICHTUNGEN, ALTERNATIVE, FRAGEN, ABSCHLUSS, VORRANG, auswerten, warumText };
 })(typeof window !== 'undefined' ? window : globalThis);
