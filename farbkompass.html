@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Farbkompass · A Great Hair Day</title>
+<meta name="description" content="Finde in drei Schritten eine stimmige Farbrichtung für deine Farbberatung."/>
+<meta name="theme-color" content="#F7F2EA"/>
+<style>
+  @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-italic-500.woff2) format('woff2')}
+  @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-normal-500.woff2) format('woff2')}
+  @font-face{font-family:'Jost';font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/Jost-normal-400.woff2) format('woff2')}
+
+  :root{
+    --bg:#F7F2EA; --card:#FFFDF9; --ink:#2A241D; --muted:#7A6F62;
+    --line:#E6DCCD; --accent:#9A7B4F; --accent-soft:#EFE5D5; --sel:#2A241D;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.55 'Jost',system-ui,-apple-system,sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:28px 16px 56px;min-height:100vh;display:flex;flex-direction:column}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;min-height:32px}
+  .marke{font:italic 500 20px/1 'Cormorant Garamond',Georgia,serif;letter-spacing:.01em}
+  .schritte{display:flex;gap:6px}
+  .schritte i{width:22px;height:2px;border-radius:2px;background:var(--line);transition:background .3s}
+  .schritte i.on{background:var(--accent)}
+
+  .station{animation:rein .35s ease both}
+  @keyframes rein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .zaehler{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  h1{font:500 34px/1.15 'Cormorant Garamond',Georgia,serif;margin:0 0 10px}
+  .hinweis{color:var(--muted);margin:0 0 28px}
+
+  .optionen{display:grid;gap:10px}
+  .option{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    transition:border-color .2s,background .2s,transform .1s}
+  .option:hover{border-color:var(--accent)}
+  .option:active{transform:scale(.99)}
+  .option:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .option b{display:block;font-weight:500;font-size:17px}
+  .option span{display:block;color:var(--muted);font-size:14.5px;margin-top:2px}
+  .option.gewaehlt{border-color:var(--sel);background:var(--accent-soft)}
+
+  .zurueck{margin-top:28px;align-self:flex-start;background:none;border:none;padding:6px 0;
+    font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
+  .zurueck:hover{color:var(--ink)}
+
+  /* Ergebnis */
+  .ergebnis-name{font:italic 500 40px/1.1 'Cormorant Garamond',Georgia,serif;margin:4px 0 14px;color:var(--accent)}
+  .wirkung{font-size:18px;margin:0 0 32px}
+  .block{border-top:1px solid var(--line);padding:22px 0 4px}
+  .block h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 8px}
+  .block p{margin:0 0 14px}
+  .abschluss{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0 0}
+  .alternative{margin-top:28px;border:1px dashed var(--line);border-radius:14px;padding:18px 20px}
+  .alternative h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 6px}
+  .alternative .alt-name{font:italic 500 26px/1.2 'Cormorant Garamond',Georgia,serif;margin:0 0 6px}
+  .alternative p{margin:0;color:var(--muted)}
+  .aktionen{margin-top:32px}
+  .knopf{font:inherit;font-size:15px;border-radius:999px;padding:12px 22px;cursor:pointer;
+    border:1px solid var(--ink);background:transparent;color:var(--ink)}
+  .knopf:hover{background:var(--ink);color:var(--bg)}
+
+  @media (max-width:420px){ h1{font-size:30px} .ergebnis-name{font-size:36px} }
+  @media (prefers-reduced-motion:reduce){ .station{animation:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="marke">Farbkompass</div>
+    <div class="schritte" aria-hidden="true"><i></i><i></i><i></i></div>
+  </header>
+  <main id="buehne" aria-live="polite"></main>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   Farbkompass V1 – Kund:innen-Version
+   Wirkung vor Technik · Entscheidungshilfe vor Typisierung ·
+   Farbrichtung statt fixer Farbton.
+   Rein clientseitig, es werden keine Daten gespeichert oder gesendet.
+   ───────────────────────────────────────────────────────────── */
+
+// Die 6 Ergebnisrichtungen
+const RICHTUNGEN = {
+  WW: { name: 'Weich und warm',
+        wirkung: 'Diese Richtung kann dein Gesicht weicher, wärmer und zugänglicher wirken lassen.',
+        salon: 'Wir achten darauf, dass die Wärme dich sanft umgibt und nicht gelblich, schwer oder flach wirkt.' },
+  FL: { name: 'Frisch und lichtvoll',
+        wirkung: 'Diese Richtung kann dein Gesicht offener, frischer und strahlender wirken lassen.',
+        salon: 'Wir achten darauf, dass die Helligkeit dich belebt und nicht zu hart, künstlich oder unruhig wirkt.' },
+  RN: { name: 'Ruhig und natürlich',
+        wirkung: 'Diese Richtung kann dein Gesicht harmonisch, ausgeglichen und ganz selbstverständlich wirken lassen.',
+        salon: 'Wir achten darauf, dass die Farbe nah bei dir bleibt und trotzdem lebendig wirkt – nicht flach und nicht gemacht.' },
+  AK: { name: 'Mehr Ausdruck und Kontur',
+        wirkung: 'Diese Richtung kann deinem Gesicht mehr Präsenz, Klarheit und Kontur geben.',
+        salon: 'Wir achten darauf, dass die Kontur dich betont und nicht streng, hart oder unruhig wirkt.' },
+  TR: { name: 'Tiefer und ruhiger',
+        wirkung: 'Diese Richtung kann deinem Gesicht Ruhe, Tiefe und eine gesammelte Ausstrahlung geben.',
+        salon: 'Wir achten darauf, dass die Tiefe dein Gesicht ruhig rahmt und nicht schwer oder hart wirkt.' },
+  LH: { name: 'Lebendig mit mehr Höhe',
+        wirkung: 'Diese Richtung kann dein Gesicht lebendiger wirken lassen und optisch mehr Höhe und Leichtigkeit schaffen.',
+        salon: 'Wir achten darauf, dass Licht und Bewegung dort sitzen, wo sie dich heben – und nicht unruhig oder künstlich wirken.' }
+};
+
+// Erlaubte Alternativ-Paare: Hauptrichtung → Alternative + wann sie besser passen könnte
+const ALTERNATIVE = {
+  WW: { zu: 'RN', wann: 'Diese Alternative passt besser, wenn dir eine möglichst natürliche, unaufgeregte Wirkung wichtiger ist als spürbare Wärme.' },
+  FL: { zu: 'WW', wann: 'Diese Alternative passt besser, wenn du dir neben Frische vor allem mehr Weichheit und Wärme im Gesicht wünschst.' },
+  RN: { zu: 'WW', wann: 'Diese Alternative passt besser, wenn du dir etwas mehr Wärme und Weichheit wünschst, ohne an Natürlichkeit zu verlieren.' },
+  AK: { zu: 'TR', wann: 'Diese Alternative passt besser, wenn du dir Ausdruck wünschst, der eher ruhig und gesammelt wirkt als kontrastreich.' },
+  TR: { zu: 'AK', wann: 'Diese Alternative passt besser, wenn du dir neben Ruhe auch mehr sichtbare Kontur und Präsenz wünschst.' },
+  LH: { zu: 'FL', wann: 'Diese Alternative passt besser, wenn dir Frische und Licht im Gesicht wichtiger sind als mehr Höhe am Oberkopf.' }
+};
+
+// Die drei Stationen. Jede Antwort gibt 1 Punkt auf 1–2 Richtungen (punkte).
+// satz: Baustein für „Warum das zu dir passen könnte“.
+const FRAGEN = [
+  { titel: 'Wie möchtest du mit deiner Haarfarbe wirken?',
+    hinweis: 'Wähle das Gefühl, das du dir für dein Gesicht am meisten wünschst.',
+    optionen: [
+      { t: 'Frischer',      s: 'mehr Lebendigkeit im Gesicht',          punkte: ['FL','LH'], satz: 'mehr Frische' },
+      { t: 'Weicher',       s: 'weniger Härte in der Ausstrahlung',     punkte: ['WW'],      satz: 'mehr Weichheit' },
+      { t: 'Natürlicher',   s: 'weniger gemacht, mehr harmonisch',      punkte: ['RN'],      satz: 'eine natürlichere Ausstrahlung' },
+      { t: 'Mehr Ausdruck', s: 'mehr Präsenz und Kontur',               punkte: ['AK'],      satz: 'mehr Ausdruck' },
+      { t: 'Ruhiger',       s: 'weniger Unruhe, mehr Ausgeglichenheit', punkte: ['TR','RN'], satz: 'mehr Ruhe' },
+      { t: 'Strahlender',   s: 'mehr Licht und Offenheit',              punkte: ['FL'],      satz: 'mehr Strahlkraft' }
+    ] },
+  { titel: 'Was möchtest du mit deiner Haarfarbe eher vermeiden?',
+    hinweis: 'Wähle das, was auf keinen Fall passieren soll.',
+    optionen: [
+      { t: 'Zu hart',           s: 'mein Gesicht soll nicht strenger wirken',   punkte: ['WW','FL'], satz: 'Härte vermeiden' },
+      { t: 'Zu dunkel',         s: 'mein Gesicht soll nicht schwerer wirken',   punkte: ['FL','LH'], satz: 'vermeiden, dass dein Gesicht schwerer wirkt,' },
+      { t: 'Zu gelb',           s: 'die Farbe soll nicht gelblich wirken',      punkte: ['RN','TR'], satz: 'einen gelblichen Schimmer vermeiden' },
+      { t: 'Zu künstlich',      s: 'ich möchte nicht gemacht wirken',           punkte: ['RN'],      satz: 'nicht gemacht wirken' },
+      { t: 'Zu pflegeintensiv', s: 'es soll im Alltag gut für mich passen',     punkte: ['RN','TR'], satz: 'eine Farbe tragen, die gut in deinen Alltag passt,' },
+      { t: 'Zu unruhig',        s: 'ich möchte eine harmonische Gesamtwirkung', punkte: ['TR','WW'], satz: 'Unruhe vermeiden' }
+    ] },
+  { titel: 'Was ist dir dabei besonders wichtig?',
+    hinweis: 'Wähle das, was für deine Entscheidung am meisten zählt.',
+    optionen: [
+      { t: 'Wenig Ansatzstress',          s: 'die Farbe soll im Alltag unkompliziert sein',            punkte: ['RN','TR'], satz: 'möglichst wenig Ansatzstress haben' },
+      { t: 'Meine Augen betonen',         s: 'meine Augen sollen stärker zur Geltung kommen',          punkte: ['AK'],      satz: 'deine Augen stärker zur Geltung bringen' },
+      { t: 'Mehr Leichtigkeit im Gesicht',s: 'mein Gesicht soll offener und frischer wirken',          punkte: ['FL'],      satz: 'mehr Leichtigkeit in dein Gesicht bringen' },
+      { t: 'Mehr Kontur im Gesicht',      s: 'mein Gesicht soll mehr Ausdruck bekommen',               punkte: ['AK','TR'], satz: 'deinem Gesicht mehr Kontur geben' },
+      { t: 'Mehr Fülle am Oberkopf',      s: 'die Farbe soll optisch mehr Höhe und Volumen unterstützen', punkte: ['LH'],   satz: 'optisch mehr Höhe und Fülle am Oberkopf gewinnen' },
+      { t: 'Natürlich bleiben',           s: 'die Farbe soll zu mir passen und nicht zu gemacht wirken', punkte: ['RN','WW'], satz: 'ganz natürlich du selbst bleiben' }
+    ] }
+];
+
+const ABSCHLUSS = 'Diese Richtung ist keine starre Vorgabe, sondern eine klare Orientierung für deine Farbberatung. Gemeinsam schauen wir, wie wir sie zu deinem Gesicht, deinem Alltag und deinem Haar passend umsetzen.';
+
+// ── Ergebnislogik ──────────────────────────────────────────────
+// Punkte zählen. Bei Gleichstand entscheidet zuerst der Wirkungswunsch
+// (Frage 1), dann was besonders wichtig ist (Frage 3), dann die feste Reihenfolge.
+// Alternative nur, wenn das erlaubte Paar höchstens 1 Punkt dahinter liegt.
+function auswerten(antworten){
+  const punkte = {}; Object.keys(RICHTUNGEN).forEach(k => punkte[k] = 0);
+  antworten.forEach((a, i) => FRAGEN[i].optionen[a].punkte.forEach(k => punkte[k]++));
+  const wunsch  = FRAGEN[0].optionen[antworten[0]].punkte;
+  const wichtig = FRAGEN[2].optionen[antworten[2]].punkte;
+  const reihe = Object.keys(RICHTUNGEN);
+  const rang = k => punkte[k] * 100 + (wunsch.includes(k) ? 10 : 0) + (wichtig.includes(k) ? 1 : 0);
+  const haupt = reihe.slice().sort((a, b) => rang(b) - rang(a) || reihe.indexOf(a) - reihe.indexOf(b))[0];
+  const alt = ALTERNATIVE[haupt];
+  const knapp = punkte[alt.zu] > 0 && punkte[haupt] - punkte[alt.zu] <= 1;
+  return { haupt, alternative: knapp ? alt : null };
+}
+
+function warumText(antworten){
+  const [a, b, c] = antworten.map((x, i) => FRAGEN[i].optionen[x].satz);
+  return `Du wünschst dir ${a}, möchtest ${b} und ${c}. Genau dabei kann diese Farbrichtung dich gut unterstützen.`;
+}
+
+// ── Darstellung ───────────────────────────────────────────────
+const buehne = document.getElementById('buehne');
+const balken = document.querySelectorAll('.schritte i');
+let antworten = [];
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function zeigeFrage(n){
+  balken.forEach((el, i) => el.classList.toggle('on', i <= n));
+  const f = FRAGEN[n];
+  buehne.innerHTML = `
+    <section class="station">
+      <p class="zaehler">Schritt ${n + 1} von 3</p>
+      <h1>${esc(f.titel)}</h1>
+      <p class="hinweis">${esc(f.hinweis)}</p>
+      <div class="optionen">
+        ${f.optionen.map((o, i) => `
+          <button class="option${antworten[n] === i ? ' gewaehlt' : ''}" data-i="${i}">
+            <b>${esc(o.t)}</b><span>${esc(o.s)}</span>
+          </button>`).join('')}
+      </div>
+      ${n > 0 ? '<button class="zurueck" id="zurueck">← Zurück</button>' : ''}
+    </section>`;
+  buehne.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+    buehne.querySelectorAll('.option').forEach(x => x.classList.remove('gewaehlt'));
+    btn.classList.add('gewaehlt');
+    antworten[n] = Number(btn.dataset.i);
+    antworten.length = n + 1;
+    setTimeout(() => n < 2 ? zeigeFrage(n + 1) : zeigeErgebnis(), 260);
+  }));
+  const z = document.getElementById('zurueck');
+  if (z) z.addEventListener('click', () => zeigeFrage(n - 1));
+  window.scrollTo({ top: 0 });
+}
+
+function zeigeErgebnis(){
+  balken.forEach(el => el.classList.add('on'));
+  const { haupt, alternative } = auswerten(antworten);
+  const r = RICHTUNGEN[haupt];
+  buehne.innerHTML = `
+    <section class="station">
+      <p class="zaehler">Deine stimmige Farbrichtung</p>
+      <h1 class="ergebnis-name">${esc(r.name)}</h1>
+      <p class="wirkung">${esc(r.wirkung)}</p>
+
+      <div class="block">
+        <h2>Warum das zu dir passen könnte</h2>
+        <p>${esc(warumText(antworten))}</p>
+      </div>
+      <div class="block">
+        <h2>Darauf achten wir im Salon</h2>
+        <p>${esc(r.salon)}</p>
+      </div>
+      <p class="abschluss">${esc(ABSCHLUSS)}</p>
+
+      ${alternative ? `
+      <div class="alternative">
+        <h2>Auch gut zu dir passen könnte:</h2>
+        <p class="alt-name">${esc(RICHTUNGEN[alternative.zu].name)}</p>
+        <p>${esc(alternative.wann)}</p>
+      </div>` : ''}
+
+      <div class="aktionen">
+        <button class="knopf" id="neu">Noch einmal starten</button>
+      </div>
+      <button class="zurueck" id="zurueck">← Letzte Antwort ändern</button>
+    </section>`;
+  document.getElementById('neu').addEventListener('click', () => { antworten = []; zeigeFrage(0); });
+  document.getElementById('zurueck').addEventListener('click', () => zeigeFrage(2));
+  window.scrollTo({ top: 0 });
+}
+
+zeigeFrage(0);
+</script>
+</body>
+</html>
