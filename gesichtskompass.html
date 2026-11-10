@@ -114,6 +114,33 @@
   .warum b{color:var(--ink);font-weight:500}
   .uebersicht .karte{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px}
   .uebersicht .karte h2{font:500 24px/1.2 'Cormorant Garamond',Georgia,serif;margin:0 0 10px}
+  /* Farbstation */
+  .farbstation{max-width:720px;margin:0 auto}
+  .wirkungen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
+  .wirkung{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px 5px 7px;cursor:pointer;display:flex;flex-direction:column;gap:5px;align-items:center}
+  .wirkung img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px}
+  .wirkung span{font-size:12.5px;line-height:1.2;text-align:center}
+  .wirkung[aria-pressed="true"]{border-color:var(--ink);background:var(--accent-soft)}
+  .wirkung:focus-visible,.bereiche button:focus-visible,.marke-nr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .farbvergleich{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+  .farbvergleich figure{margin:0;text-align:center}
+  .farbvergleich figcaption{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .farbvergleich .mit figcaption{color:var(--ink)}
+  .farbfoto{position:relative;border-radius:12px;overflow:hidden;background:#E9E6E3}
+  .farbfoto img{width:100%;aspect-ratio:1/1;object-fit:cover}
+  .licht{position:absolute;inset:0;pointer-events:none}
+  .ring{position:absolute;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(26,26,24,.35),inset 0 0 0 1px rgba(26,26,24,.25);pointer-events:none}
+  .marke-nr{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(26,26,24,.55);color:#fff;font:600 11px/1 'Inter','Jost',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .marke-nr.an{background:var(--accent);transform:translate(-50%,-50%) scale(1.15)}
+  .kern{font:italic 500 22px/1.3 'Cormorant Garamond','Playfair Display',Georgia,serif;margin:4px 0 12px}
+  .bereiche{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+  .bereiche button{width:100%;text-align:left;display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.4}
+  .bereiche button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  .bereiche .nr{flex:0 0 22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .bereiche b{display:block;font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+  .satz{margin:0 0 10px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:17px}
+  .vereinfacht{font-size:13px;color:var(--muted);margin:0 0 6px}
+  @media (max-width:420px){ .wirkung span{font-size:11.5px} .marke-nr{width:19px;height:19px;font-size:10px} }
   @media (min-width:760px){ .vergleich{gap:16px} .vergleich figcaption{font-size:15px} }
   footer{margin-top:40px;font-size:12.5px;color:var(--muted);text-align:center}
 
@@ -196,9 +223,75 @@ const FORMEN_INFO = [
 ];
 
 const STATIONEN = [
-  { key: 'form', kurz: 'Form',    name: 'Gesichtsform' },
-  { key: 'look', kurz: 'Styling', name: 'Styling' }
+  { key: 'form',  kurz: 'Form',    name: 'Gesichtsform' },
+  { key: 'look',  kurz: 'Styling', name: 'Styling' },
+  { key: 'farbe', kurz: 'Farbe',   name: 'Farbwirkung' }
 ];
+
+// ── Farbwirkung ──────────────────────────────────────────────
+// Leitfrage: Was verändert diese Farbwirkung in deinem Gesicht und an deinem Rahmen?
+// Jede Wirkung wird in sechs Bereichen lesbar gemacht. Die Bilder zeigen das
+// optimierte Styling mit der Farbwirkung (Haar gezielt verändert, Licht- und
+// Kontrastwirkung im Gesicht), siehe bilder/gesichtskompass/<form>-opt-<wirkung>.jpg.
+const BEREICHE = [
+  { id: 'ansatz', name: 'Oberkopf & Ansatz' },
+  { id: 'stirn',  name: 'Stirn & Scheitel' },
+  { id: 'augen',  name: 'Augenpartie' },
+  { id: 'wangen', name: 'Wangen & Schläfen' },
+  { id: 'kontur', name: 'Kontur & frontnahe Längen' },
+  { id: 'rahmen', name: 'Gesamtrahmen' }
+];
+const FARB_INFO = [
+  { id: 'hell', name: 'heller und lichtvoller', kern: 'Öffnet das Gesicht und bringt mehr Licht nach vorn.',
+    satz: 'Das öffnet mein Gesicht und macht meine Augen wacher.',
+    b: { ansatz: 'Mehr Licht am Oberkopf – der Kopf wirkt leichter, nicht schwer.',
+         stirn:  'Rund um Stirn und Scheitel wird es heller – die Stirn wirkt offener und freier.',
+         augen:  'Das Licht aus dem Haar spiegelt sich in der Augenpartie – die Augen wirken wacher.',
+         wangen: 'Wangen und Schläfen bekommen mehr Licht – Schatten wirken weicher, das Gesicht frischer.',
+         kontur: 'Helle Längen direkt am Gesicht bringen das Licht nach vorn statt nur in die Spitzen.',
+         rahmen: 'Der Rahmen wird offen und leicht – das Gesicht steht hell in der Mitte.' } },
+  { id: 'tief', name: 'tiefer und ruhiger', kern: 'Fasst das Gesicht stärker und gibt dem Rahmen Ruhe und Präsenz.',
+    satz: 'Das gibt mir mehr Ruhe und Präsenz.',
+    b: { ansatz: 'Tiefe am Oberkopf gibt Halt – der Kopf wirkt ruhig und gesammelt.',
+         stirn:  'Ein tieferer Rahmen an Stirn und Scheitel grenzt die Stirn klar ab.',
+         augen:  'Mehr Tiefe rund ums Gesicht lässt die Augenpartie präsenter wirken.',
+         wangen: 'An Wangen und Schläfen fasst die Tiefe das Gesicht – es wirkt schmaler und gesammelt.',
+         kontur: 'Tiefere Längen am Gesicht zeichnen die Kontur deutlich nach.',
+         rahmen: 'Der ganze Rahmen wird ruhiger – weniger Unruhe, mehr Präsenz.' } },
+  { id: 'warm', name: 'wärmer und weicher', kern: 'Nimmt Härte aus den Konturen und lässt das Gesicht weicher und freundlicher wirken.',
+    satz: 'Das nimmt Härte raus und macht mich weicher.',
+    b: { ansatz: 'Warme Töne am Oberkopf wirken lebendig und weich statt streng.',
+         stirn:  'Um Stirn und Scheitel wirkt die Wärme sanft – harte Linien treten zurück.',
+         augen:  'Warme Reflexe lassen die Augenpartie freundlicher und offener wirken.',
+         wangen: 'Wangen und Schläfen bekommen einen warmen Schimmer – die Haut wirkt lebendiger.',
+         kontur: 'Warme Längen am Gesicht machen die Kontur weicher – Übergänge statt Kanten.',
+         rahmen: 'Der Rahmen wirkt warm und weich – das Gesicht wirkt zugänglich und freundlich.' } },
+  { id: 'kuehl', name: 'kühler und klarer', kern: 'Macht Konturen definierter und gibt dem Gesicht mehr Klarheit.',
+    satz: 'Das macht meine Kontur klarer und meine Augen präsenter.',
+    b: { ansatz: 'Kühle Töne am Oberkopf wirken klar und ruhig, ohne Gelbstich.',
+         stirn:  'An Stirn und Scheitel entsteht eine klare Linie – das Gesicht wirkt aufgeräumt.',
+         augen:  'Kühle Töne geben Kontrast zur Augenpartie – die Augen wirken präsenter.',
+         wangen: 'An Wangen und Schläfen wirkt die Haut klarer und ruhiger.',
+         kontur: 'Kühle Längen am Gesicht zeichnen die Kontur klar und definiert.',
+         rahmen: 'Der Rahmen wirkt klar und gefasst – das Gesicht bekommt mehr Klarheit.' } }
+];
+// Lage des Gesichts im Foto (Prozent): Mitte x, Augenlinie, Stirn oben, Kinn, halbe Wangenbreite b
+const GESICHT = {"rund": {"cx": 51, "augen": 50, "stirn": 30, "kinn": 82, "b": 21}, "eckig": {"cx": 50, "augen": 39, "stirn": 18, "kinn": 73, "b": 19}, "herz": {"cx": 52, "augen": 47, "stirn": 25, "kinn": 82, "b": 21}, "oval": {"cx": 50, "augen": 49, "stirn": 28, "kinn": 80, "b": 19}, "lang": {"cx": 49, "augen": 45, "stirn": 30, "kinn": 78, "b": 19}, "diamant": {"cx": 50, "augen": 46, "stirn": 23, "kinn": 82, "b": 21}};
+// Wo jeder Bereich im Foto liegt: Markierung (x, y) und Lichtkegel (Mitte lx/ly, Breite w, Höhe h), alles in Prozent
+function bereichLage(formId, id){
+  const g = GESICHT[formId], c = v => Math.max(6, Math.min(94, v));
+  const wy = g.augen + 0.38 * (g.kinn - g.augen), ky = g.augen + 0.35 * (g.kinn - g.augen);
+  const L = {
+    ansatz: [g.cx, g.stirn - 9, g.cx, g.stirn - 8, g.b * 2.6, 20],
+    stirn:  [g.cx, (g.stirn + g.augen) / 2 - 2, g.cx, (g.stirn + g.augen) / 2, g.b * 1.8, (g.augen - g.stirn) * 0.95],
+    augen:  [g.cx + g.b * 0.95, g.augen, g.cx, g.augen, g.b * 2.0, 11],
+    wangen: [g.cx + g.b * 1.12, wy + 4, g.cx + g.b * 0.72, wy, g.b * 1.1, 18],
+    kontur: [g.cx - g.b * 1.12, ky, g.cx - g.b * 1.0, ky, g.b * 1.2, (g.kinn - g.stirn) * 0.85],
+    rahmen: [g.cx + g.b * 1.45, g.stirn - 2, g.cx, (g.stirn + g.kinn) / 2, g.b * 1.15, (g.kinn - g.stirn) * 0.6]
+  }[id];
+  return { x: c(L[0]), y: c(L[1]), lx: L[2], ly: L[3], w: L[4], h: L[5] };
+}
+
 
 // ── Fotos ────────────────────────────────────────────────────
 // Pro Gesichtsform ein Foto „vorher“ und eines „optimiert“ (quadratisch, Gesicht mittig).
@@ -206,7 +299,7 @@ const foto = (id, look, alt) =>
   `<img src="bilder/gesichtskompass/${id}-${look}.jpg" width="440" height="440" alt="${esc(alt)}" decoding="async">`;
 
 // ── Ablauf ───────────────────────────────────────────────────
-const wahl = { form: null };
+const wahl = { form: null, farbe: 'hell', bereich: null };
 let ansicht = 'start';        // 'start' | 0 | 1 | 'uebersicht'
 let vonUebersicht = 'start';
 const inhalt = document.getElementById('inhalt');
@@ -220,7 +313,7 @@ function zeigeLeiste(){
   const aus = ansicht === 'start' || ansicht === 'uebersicht';
   leiste.innerHTML = STATIONEN.map((s, i) => `
     <li><button type="button" data-i="${i}" ${ansicht === i ? 'aria-current="step"' : ''} class="${wahl.form ? 'fertig' : ''}"
-      ${aus || (i === 1 && !wahl.form) ? 'disabled' : ''}>${i + 1} ${esc(s.kurz)}</button></li>`).join('') +
+      ${aus || (i > 0 && !wahl.form) ? 'disabled' : ''}>${i + 1} ${esc(s.kurz)}</button></li>`).join('') +
     `<li><button type="button" data-i="alle" ${ansicht === 'uebersicht' ? 'aria-current="step"' : ''}>Alle</button></li>`;
   leiste.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
     b.dataset.i === 'alle' ? zeigeUebersicht() : zeigeStation(Number(b.dataset.i));
@@ -237,10 +330,11 @@ function zeigeStart(){
       </div>
       <p class="zaehler">Gesichtsform-Analyse</p>
       <h1>Was passt zu welchem Gesicht?</h1>
-      <p class="hinweis">Gesichtsform erkennen und mit Styling sofort optisch ausgleichen – in zwei Schritten.</p>
+      <p class="hinweis">Gesichtsform erkennen, mit Styling ausgleichen und sehen, was Farbe im Gesicht bewirkt – in drei Schritten.</p>
       <ul class="regeln">
         <li><i>1</i><span>Gesichtsform erkennen</span></li>
         <li><i>2</i><span>Vorher und optimiert vergleichen, mit Sofortmaßnahmen</span></li>
+        <li><i>3</i><span>Farbwirkung: was Farbe an Stirn, Augen, Wangen und Kontur verändert</span></li>
       </ul>
       <div class="aktionen" style="justify-content:center">
         <button type="button" class="knopf" id="los">Beginnen</button>
@@ -252,10 +346,10 @@ function zeigeStart(){
 }
 
 function zeigeStation(i){
-  if (i === 1 && !wahl.form) return;
+  if (i > 0 && !wahl.form) return;
   ansicht = i;
   zeigeLeiste();
-  i === 0 ? stationForm() : stationStyling();
+  [stationForm, stationStyling, stationFarbe][i]();
   window.scrollTo({ top: 0 });
 }
 
@@ -268,7 +362,7 @@ function stationForm(){
     <section class="station">
       <div class="buehne"><div class="bild" id="bild">${buehne(aktiv)}</div></div>
       <div class="kopf">
-        <p class="zaehler">Schritt 1 von 2 · Gesichtsform</p>
+        <p class="zaehler">Schritt 1 von 3 · Gesichtsform</p>
         <h1>Welche Gesichtsform ist es?</h1>
         <p class="hinweis">Vergleiche Stirn, Wangenknochen und Kinn mit den Beispielen.</p>
       </div>
@@ -307,7 +401,7 @@ function stationStyling(){
   const f = form(wahl.form);
   inhalt.innerHTML = `
     <section class="styling">
-      <p class="zaehler">Schritt 2 von 2 · Styling</p>
+      <p class="zaehler">Schritt 2 von 3 · Styling</p>
       <h1>Gesichtsform ${esc(f.name)}</h1>
       <p class="hinweis">${esc(f.vorher.text)}</p>
       ${vergleich(f)}
@@ -321,11 +415,71 @@ function stationStyling(){
         <button type="button" class="zurueck" id="zurueck">← Andere Form</button>
         <div class="aktionen">
           <button type="button" class="knopf leise" id="alle">Alle Formen</button>
+          <button type="button" class="knopf" id="weiter">Weiter zur Farbwirkung</button>
         </div>
       </div>
     </section>`;
   document.getElementById('zurueck').addEventListener('click', () => zeigeStation(0));
   document.getElementById('alle').addEventListener('click', zeigeUebersicht);
+  document.getElementById('weiter').addEventListener('click', () => zeigeStation(2));
+}
+
+// Farbwirkung: dieselbe Person, dasselbe Styling – was verändert die Farbe im Gesicht?
+function farbBild(formId, farbId, alt, bereich){
+  const src = farbId ? `bilder/gesichtskompass/${formId}-opt-${farbId}.jpg` : `bilder/gesichtskompass/${formId}-opt.jpg`;
+  const marken = BEREICHE.map((b, n) => { const l = bereichLage(formId, b.id);
+    return `<button type="button" class="marke-nr${bereich === b.id ? ' an' : ''}" data-bereich="${b.id}" style="left:${l.x}%;top:${l.y}%" aria-label="${esc(b.name)}">${n + 1}</button>`; }).join('');
+  let licht = '';
+  if (bereich){ const l = bereichLage(formId, bereich);
+    // Bereich mit einem feinen Ring markieren, rundherum nur leicht abdunkeln – die Farbe bleibt gut sichtbar.
+    // Gesamtrahmen: Ring um das Gesicht, abgedunkelt wird nichts.
+    const ring = `<span class="ring" style="left:${l.lx - l.w / 2}%;top:${l.ly - l.h / 2}%;width:${l.w}%;height:${l.h}%"></span>`;
+    licht = bereich === 'rahmen' ? ring
+      : `<span class="licht" style="background:radial-gradient(ellipse ${l.w * 0.75}% ${l.h * 0.75}% at ${l.lx}% ${l.ly}%, transparent 0 60%, rgba(26,26,24,.22) 100%)"></span>` + ring; }
+  return `<div class="farbfoto"><img src="${src}" width="440" height="440" alt="${esc(alt)}" decoding="async">${licht}${marken}</div>`;
+}
+
+function stationFarbe(){
+  const f = form(wahl.form);
+  const zeichne = () => {
+    const w = FARB_INFO.find(x => x.id === wahl.farbe);
+    inhalt.innerHTML = `
+      <section class="farbstation">
+        <p class="zaehler">Schritt 3 von 3 · Farbwirkung</p>
+        <h1>Was verändert die Farbe in deinem Gesicht?</h1>
+        <p class="hinweis">Form und Styling bleiben gleich. Sieh, was die Farbwirkung an Stirn, Augen, Wangen, Kontur und am ganzen Rahmen verändert.</p>
+        <div class="wirkungen" role="group" aria-label="Farbwirkung">
+          ${FARB_INFO.map(x => `<button type="button" class="wirkung" data-farbe="${x.id}" aria-pressed="${x.id === wahl.farbe}">
+            <img src="bilder/gesichtskompass/${f.id}-opt-${x.id}.jpg" width="440" height="440" alt="" decoding="async"><span>${esc(x.name)}</span></button>`).join('')}
+        </div>
+        <div class="farbvergleich">
+          <figure>${farbBild(f.id, null, 'Ohne Farbwirkung', wahl.bereich)}<figcaption>Ohne</figcaption></figure>
+          <figure class="mit">${farbBild(f.id, w.id, 'Mit Farbwirkung ' + w.name, wahl.bereich)}<figcaption>${esc(w.name)}</figcaption></figure>
+        </div>
+        <p class="kern">${esc(w.kern)}</p>
+        <ol class="bereiche">
+          ${BEREICHE.map((b, n) => `<li><button type="button" data-bereich="${b.id}" aria-pressed="${wahl.bereich === b.id}">
+            <span class="nr">${n + 1}</span><span><b>${esc(b.name)}</b><span>${esc(w.b[b.id])}</span></span></button></li>`).join('')}
+        </ol>
+        <blockquote class="satz">„${esc(w.satz)}“</blockquote>
+        <p class="vereinfacht">Vereinfachte Darstellung: Sie zeigt die Wirkung im Gesicht, nicht das genaue Farbergebnis. Das klären wir im Gespräch.</p>
+        <div class="navi">
+          <button type="button" class="zurueck" id="zurueck">← Zurück zum Styling</button>
+          <div class="aktionen">
+            <button type="button" class="knopf leise" id="alle">Alle Formen</button>
+          </div>
+        </div>
+      </section>`;
+    inhalt.querySelectorAll('.wirkung').forEach(b => b.addEventListener('click', () => { wahl.farbe = b.dataset.farbe; zeichne(); }));
+    inhalt.querySelectorAll('[data-bereich]').forEach(b => b.addEventListener('click', () => {
+      wahl.bereich = wahl.bereich === b.dataset.bereich ? null : b.dataset.bereich;
+      const y = window.scrollY; zeichne(); window.scrollTo({ top: y });
+      if (wahl.bereich && b.closest('.bereiche')) inhalt.querySelector('.farbvergleich').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }));
+    document.getElementById('zurueck').addEventListener('click', () => zeigeStation(1));
+    document.getElementById('alle').addEventListener('click', zeigeUebersicht);
+  };
+  zeichne();
 }
 
 // Checkliste aller Formen: Vorher / Optimiert mit den Sofortmaßnahmen
