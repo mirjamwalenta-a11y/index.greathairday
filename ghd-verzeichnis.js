@@ -103,7 +103,7 @@
       { n: 'HaarKompass', s: 'Pflege-Guide für Kund:innen', i: 'compass', u: W + '/haarkompass/', k: 'haarkompass pflege empfehlung fragebogen kunden', kids: [
         { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' },
         { n: 'HaarKompass-Beratung im Salon', u: B + '/Mitarbeiterhandbuch/haarkompass-beratung.html', k: 'beratung salonprodukte produktempfehlung englisch english team' } ] },
-      { n: 'Gesichtskompass', s: 'Gesichtsform & Styling für Kund:innen', i: 'compass', u: B + '/index.greathairday/gesichtskompass.html', k: 'gesichtskompass gesichtsform styling kunden wirkung' }
+      { n: 'Gesichtskompass', s: 'Gesichtsform & Styling für Kund:innen', i: 'compass', u: W + '/gesichtskompass/', k: 'gesichtskompass gesichtsform styling kunden wirkung' }
     ] },
     { t: 'Sonstiges', chefin: true, apps: [
       { n: 'Innung', s: 'Seminare & Trainer:innen', i: 'pillars', u: B + '/innungsapp.greathairday/innungsapp.html', k: 'seminar trainer weiterbildung' },
