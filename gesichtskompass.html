@@ -184,79 +184,91 @@ const FARBEN = {
   hell:    { hell: '#E6CEA6', mitte: '#C8A67B', tief: '#A2825A' },
   tief:    { hell: '#4D3A33', mitte: '#33251F', tief: '#1F1612' },
   warm:    { hell: '#C88A60', mitte: '#A2623B', tief: '#77442A' },
-  kuehl:   { hell: '#A39A94', mitte: '#6C635E', tief: '#3E3835' }
+  kuehl:   { hell: '#A6A2A4', mitte: '#6A6466', tief: '#3E3A3C' }
 };
 
-// Frisuren: jede Haarwirkung ist eine echte Frisur und passt sich an die
-// gewählte Gesichtsform an (L/R = Gesichtsbreite, T = Stirn, K = Kinn).
-//   hinten  = Haarmasse hinter Kopf und Hals
-//   oben    = Teile, die hinter der Kopfmasse liegen (z. B. Dutt)
-//   ansatz  = Haaransatz auf der Stirn (auf die Gesichtsform beschnitten)
-//   vorne   = Partien vor dem Gesicht (Scheitel, Pony, Seiten, Längen)
-//   fall    = Strähnenlinien in Fallrichtung (dunkel)
-//   glanz   = Lichtkanten (hell)
+// Frisuren: jede Haarwirkung ist eine erkennbare Frisur.
+//   back   = Haar hinter Gesicht und Hals (dunkler, gibt Tiefe)
+//   seite  = linke Haarpartie vor dem Gesicht, wird gespiegelt (Gesicht ist symmetrisch um x=120)
+//   vorne  = asymmetrische Partie vor dem Gesicht (statt seite)
+//   ansatz = Haaransatz/Pony, auf die Gesichtsform beschnitten
+//   linien = feine Strähnen, glanz = Lichtkante, ohren = Ohren sichtbar
+// Locken-Kontur: verbindet Punkte mit nach außen gewölbten Bögen.
+function locken(pkte, wolbung, mx, my){
+  let d = `M${pkte[0][0]},${pkte[0][1]}`;
+  for (let i = 0; i < pkte.length; i++){
+    const [x1, y1] = pkte[i], [x2, y2] = pkte[(i + 1) % pkte.length];
+    const xm = (x1 + x2) / 2, ym = (y1 + y2) / 2;
+    let nx = xm - mx, ny = ym - my; const l = Math.hypot(nx, ny) || 1;
+    nx = nx / l * wolbung; ny = ny / l * wolbung;
+    d += ` Q${(xm + nx).toFixed(1)},${(ym + ny).toFixed(1)} ${x2},${y2}`;
+  }
+  return d + 'Z';
+}
+function kringel(x, y, r){
+  return `M${x - r},${y} a${r},${r} 0 1,1 ${r * 1.6},${r * .9}`;
+}
 const HAARE = {
-  // Station 1: glatt zurückgekämmt mit Dutt – die Gesichtsform bleibt frei sichtbar
-  neutral: ({ L, R, T }) => ({
-    oben: `M120,${T-50} C138,${T-50} 148,${T-40} 148,${T-28} C148,${T-14} 136,${T-8} 120,${T-8} C104,${T-8} 92,${T-14} 92,${T-28} C92,${T-40} 102,${T-50} 120,${T-50}Z`,
-    obenFall: `M100,${T-36} C110,${T-46} 132,${T-46} 141,${T-34} M98,${T-24} C110,${T-34} 132,${T-34} 144,${T-22} M104,${T-14} C114,${T-20} 128,${T-20} 138,${T-14}`,
-    hinten: `M${L+8},${T+62} C${L-6},${T+34} ${L-2},${T-10} 120,${T-16} C${R+2},${T-10} ${R+6},${T+34} ${R-8},${T+62}Z`,
-    ansatz: `M0,0 H240 V${T+40} C206,${T+40} 176,${T+12} 120,${T+11} C64,${T+12} 34,${T+40} 0,${T+40}Z`,
-    vorne: '',
-    fall: `M${L+10},${T+36} C${L+12},${T+6} 98,${T-8} 112,${T-12} M${L+22},${T+20} C${L+30},${T+2} 104,${T-6} 116,${T-10} M${R-10},${T+36} C${R-12},${T+6} 142,${T-8} 128,${T-12} M${R-22},${T+20} C${R-30},${T+2} 136,${T-6} 124,${T-10}`,
-    glanz: `M${L+20},${T+6} C${L+40},${T-10} 100,${T-14} 112,${T-14}`
+  // Station 1: glatt zurückgekämmt, damit die Gesichtsform frei sichtbar ist
+  neutral: f => ({
+    back: `M${f.L-4},${f.T+66} C${f.L-10},${f.T+14} ${f.L+12},${f.T-26} 120,${f.T-28} C${f.R-12},${f.T-26} ${f.R+10},${f.T+14} ${f.R+4},${f.T+66}Z`,
+    seite: `M${f.L-4},${f.T+64} C${f.L-10},${f.T+14} ${f.L+12},${f.T-26} 120,${f.T-28} L120,${f.T+14} ` +
+           `C${f.L+40},${f.T+14} ${f.L+16},${f.T+28} ${f.L+8},${f.T+42} C${f.L+3},${f.T+50} ${f.L+1},${f.T+58} ${f.L-4},${f.T+64}Z`,
+    linien: `M104,${f.T+15} C100,${f.T-2} 106,${f.T-18} 116,${f.T-26} M136,${f.T+15} C140,${f.T-2} 134,${f.T-18} 124,${f.T-26} ` +
+            `M${f.L+16},${f.T+32} C${f.L+12},${f.T+8} ${f.L+30},${f.T-14} 100,${f.T-24} M${f.R-16},${f.T+32} C${f.R-12},${f.T+8} ${f.R-30},${f.T-14} 140,${f.T-24} ` +
+            `M${f.L+2},${f.T+52} C${f.L-2},${f.T+30} ${f.L+6},${f.T+4} ${f.L+22},${f.T-10} M${f.R-2},${f.T+52} C${f.R+2},${f.T+30} ${f.R-6},${f.T+4} ${f.R-22},${f.T-10}`,
+    glanz: `M${f.L+22},${f.T-6} C${f.L+36},${f.T-20} 104,${f.T-25} 120,${f.T-25}`,
+    ohren: true
   }),
-
-  // mehr Höhe: Volumen am Oberkopf, seitlich gescheitelte Welle nach oben, Seiten anliegend bis zum Kiefer
-  hoehe: ({ L, R, T, K }) => ({
-    hinten: `M${L-4},${K-30} C${L-12},${T+60} ${L-18},${T-4} ${L+6},${T-34} C${L+30},${T-62} ${R-24},${T-66} ${R-2},${T-40} C${R+18},${T-14} ${R+12},${T+60} ${R+4},${K-30} C${R},${K-20} ${L},${K-20} ${L-4},${K-30}Z`,
-    vorne:
-      // große Welle vom Scheitel nach rechts oben und an der Schläfe zurück
-      `M100,${T-30} C118,${T-62} ${R-10},${T-62} ${R+8},${T-30} C${R+18},${T-8} ${R+14},${T+30} ${R+6},${T+56} C${R+4},${T+80} ${R+6},${K-46} ${R+4},${K-30} ` +
-      `C${R-4},${K-40} ${R-6},${T+80} ${R-6},${T+50} C${R-6},${T+30} ${R-12},${T+14} ${R-30},${T+8} C${R-50},${T+2} 120,${T+4} 102,${T+8} C100,${T-6} 100,${T-18} 100,${T-30}Z ` +
-      // linke Seite glatt nach hinten
-      `M100,${T-30} C84,${T-40} ${L+4},${T-30} ${L-6},${T+6} C${L-14},${T+40} ${L-6},${K-50} ${L-4},${K-30} C${L+4},${K-44} ${L+4},${T+70} ${L+8},${T+44} C${L+12},${T+22} ${L+30},${T+10} 102,${T+8} C100,${T-6} 98,${T-18} 100,${T-30}Z`,
-    fall: `M106,${T-28} C122,${T-52} ${R-16},${T-52} ${R-2},${T-26} M110,${T-12} C126,${T-38} ${R-22},${T-38} ${R-6},${T-6} C${R+2},${T+8} ${R+2},${T+30} ${R},${T+56} ` +
-          `M116,${T+2} C132,${T-18} ${R-30},${T-18} ${R-16},${T+10} M96,${T-24} C80,${T-28} ${L+4},${T-14} ${L},${T+20} M100,${T-6} C84,${T-6} ${L+10},${T+8} ${L+4},${T+44}`,
-    glanz: `M112,${T-42} C126,${T-56} ${R-22},${T-56} ${R-8},${T-38}`
+  // Hoher Dutt: Höhe am Oberkopf, Seiten glatt und nah am Kopf
+  hoehe: f => ({
+    back: `M${f.L-4},${f.T+66} C${f.L-10},${f.T+10} ${f.L+10},${f.T-32} 120,${f.T-34} C${f.R-10},${f.T-32} ${f.R+10},${f.T+10} ${f.R+4},${f.T+66}Z`,
+    dutt: `M120,${f.T-68} C150,${f.T-68} 160,${f.T-54} 158,${f.T-40} C156,${f.T-26} 140,${f.T-18} 120,${f.T-18} C100,${f.T-18} 84,${f.T-26} 82,${f.T-40} C80,${f.T-54} 90,${f.T-68} 120,${f.T-68}Z`,
+    seite: `M${f.L-4},${f.T+64} C${f.L-10},${f.T+10} ${f.L+10},${f.T-32} 121,${f.T-34} L121,${f.T+12} ` +
+           `C${f.L+40},${f.T+12} ${f.L+16},${f.T+28} ${f.L+8},${f.T+42} C${f.L+3},${f.T+50} ${f.L+1},${f.T+58} ${f.L-4},${f.T+64}Z`,
+    linien: `M106,${f.T+13} C102,${f.T-4} 108,${f.T-20} 114,${f.T-30} M134,${f.T+13} C138,${f.T-4} 132,${f.T-20} 126,${f.T-30} ` +
+            `M${f.L+16},${f.T+32} C${f.L+12},${f.T+6} ${f.L+30},${f.T-18} 102,${f.T-30} M${f.R-16},${f.T+32} C${f.R-12},${f.T+6} ${f.R-30},${f.T-18} 138,${f.T-30} ` +
+            `M${f.L+2},${f.T+52} C${f.L-2},${f.T+28} ${f.L+6},${f.T} ${f.L+24},${f.T-16} M${f.R-2},${f.T+52} C${f.R+2},${f.T+28} ${f.R-6},${f.T} ${f.R-24},${f.T-16} ` +
+            `M92,${f.T-54} C104,${f.T-66} 136,${f.T-66} 148,${f.T-54} M86,${f.T-40} C102,${f.T-56} 140,${f.T-56} 154,${f.T-40} M92,${f.T-26} C106,${f.T-40} 134,${f.T-40} 148,${f.T-26}`,
+    glanz: `M98,${f.T-60} C108,${f.T-66} 122,${f.T-66} 134,${f.T-64} M${f.L+20},${f.T-8} C${f.L+32},${f.T-22} 100,${f.T-30} 112,${f.T-31}`,
+    ohren: true
   }),
-
-  // mehr Breite: weicher, welliger Bob mit Fülle auf Wangenhöhe, Seitenscheitel
-  breite: ({ L, R, T, K }) => ({
-    hinten: `M120,${T-24} C${R+20},${T-26} ${R+34},${T+30} ${R+40},${T+70} C${R+48},${T+92} ${R+42},${K-30} ${R+46},${K-14} C${R+40},${K+4} ${R+22},${K+6} ${R+10},${K-4} ` +
-            `L${L-10},${K-4} C${L-22},${K+6} ${L-40},${K+4} ${L-46},${K-14} C${L-42},${K-30} ${L-48},${T+92} ${L-40},${T+70} C${L-34},${T+30} ${L-20},${T-26} 120,${T-24}Z`,
-    vorne:
-      `M104,${T-22} C130,${T-30} ${R+20},${T-18} ${R+26},${T+24} C${R+34},${T+44} ${R+28},${T+62} ${R+36},${T+80} C${R+44},${T+100} ${R+30},${K-30} ${R+40},${K-12} ` +
-      `C${R+26},${K-6} ${R+12},${K-20} ${R+8},${K-36} C${R+4},${K-56} ${R+10},${T+90} ${R+2},${T+74} C${R-6},${T+58} ${R-2},${T+40} ${R-10},${T+28} C${R-22},${T+10} 120,${T+8} 104,${T+10} C102,${T+2} 102,${T-12} 104,${T-22}Z ` +
-      `M104,${T-22} C80,${T-24} ${L-16},${T-10} ${L-22},${T+26} C${L-30},${T+46} ${L-24},${T+62} ${L-32},${T+80} C${L-40},${T+100} ${L-26},${K-30} ${L-36},${K-12} ` +
-      `C${L-22},${K-6} ${L-10},${K-20} ${L-6},${K-36} C${L-2},${K-56} ${L-8},${T+90} ${L},${T+74} C${L+8},${T+58} ${L+4},${T+40} ${L+14},${T+28} C${L+24},${T+14} 92,${T+8} 104,${T+10} C101,${T-6} 100,${T-14} 104,${T-22}Z`,
-    fall: `M${R-4},${T+20} C${R+16},${T+40} ${R+10},${T+60} ${R+22},${T+80} C${R+32},${T+98} ${R+20},${K-36} ${R+28},${K-16} ` +
-          `M${R+10},${T+14} C${R+26},${T+36} ${R+22},${T+56} ${R+32},${T+76} ` +
-          `M${L+4},${T+20} C${L-16},${T+40} ${L-10},${T+60} ${L-22},${T+80} C${L-32},${T+98} ${L-20},${K-36} ${L-28},${K-16} ` +
-          `M${L-10},${T+14} C${L-26},${T+36} ${L-22},${T+56} ${L-32},${T+76} M110,${T-14} C140,${T-16} ${R},${T-4} ${R+10},${T+20}`,
-    glanz: `M${L+6},${T-2} C${L+24},${T-20} 92,${T-24} 104,${T-22} M${R+16},${T+50} C${R+22},${T+62} ${R+22},${T+72} ${R+28},${T+84}`
+  // Lockenkopf: Volumen an den Seiten
+  breite: f => {
+    const top = f.T - 30, unten = f.K + 22, my = (top + unten) / 2 + 10, rx = (f.R - f.L) / 2 + 46, ry = (unten - top) / 2 + 10;
+    const pkte = [];
+    for (let i = 0; i <= 14; i++){ const a = Math.PI * (0.86 + 1.28 * i / 14); pkte.push([+(120 + Math.cos(a) * rx).toFixed(1), +Math.min(unten, my + Math.sin(a) * ry).toFixed(1)]); }
+    for (let i = 1; i < 6; i++) pkte.push([+(pkte[14][0] - (pkte[14][0] - pkte[0][0]) * i / 6).toFixed(1), unten + (i % 2 ? 6 : 0)]);
+    const pony = [[f.L - 2, f.T + 46], [f.L - 4, f.T + 4], [120, f.T - 20], [f.R + 4, f.T + 4], [f.R + 2, f.T + 46]];
+    for (let x = f.R - 16, i = 0; x >= f.L + 16; x -= 16, i++) pony.push([Math.round(x), Math.round(f.T + 22 + Math.abs(120 - x) * .22 + (i % 2 ? 8 : 0))]);
+    return {
+      back: locken(pkte, 9, 120, my),
+      pony: locken(pony, 7, 120, f.T + 10),
+      linien: [[f.L-26, f.T+40, 6], [f.L-34, f.T+96, 7], [f.L-24, f.K-18, 6], [f.L-8, f.K+12, 5], [f.R+24, f.T+46, 6], [f.R+32, f.T+104, 7], [f.R+22, f.K-12, 6],
+               [f.R+6, f.K+12, 5], [92, f.T-16, 6], [126, f.T-22, 6], [f.L+8, f.T-2, 5], [f.R-10, f.T, 5], [f.L+2, f.T+66, 4], [f.R-4, f.T+86, 4]]
+              .map(([x, y, r]) => kringel(x, y, r)).join(' ')
+    };
+  },
+  // Kinnlanger Bob mit geradem Pony
+  kontur: f => ({
+    back: `M120,${f.T-24} C${f.R+14},${f.T-24} ${f.R+20},${f.T+10} ${f.R+20},${f.T+56} L${f.R+22},${f.K+2} L${f.L-22},${f.K+2} L${f.L-20},${f.T+56} C${f.L-20},${f.T+10} ${f.L-14},${f.T-24} 120,${f.T-24}Z`,
+    seite: `M121,${f.T-24} C${f.L-14},${f.T-24} ${f.L-20},${f.T+10} ${f.L-20},${f.T+56} L${f.L-22},${f.K-2} Q${f.L-22},${f.K+8} ${f.L-12},${f.K+8} L${f.L+18},${f.K+8} ` +
+           `C${f.L+12},${f.K-20} ${f.L+12},${f.T+90} ${f.L+12},${f.T+44} L121,${f.T+44}Z`,
+    linien: [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const x = f.L + 20 + i * (f.R - f.L - 40) / 7; return `M${x.toFixed(1)},${f.T+30} L${(x + 1).toFixed(1)},${f.T+44}`; }).join(' ') +
+            ` M${f.L-12},${f.T+40} C${f.L-14},${f.T+80} ${f.L-14},${f.K-30} ${f.L-12},${f.K+6} M${f.L+2},${f.T+50} C${f.L+2},${f.T+90} ${f.L+2},${f.K-30} ${f.L+4},${f.K+6}` +
+            ` M${f.R+12},${f.T+40} C${f.R+14},${f.T+80} ${f.R+14},${f.K-30} ${f.R+12},${f.K+6} M${f.R-2},${f.T+50} C${f.R-2},${f.T+90} ${f.R-2},${f.K-30} ${f.R-4},${f.K+6}`,
+    glanz: `M${f.L+4},${f.T-2} C${f.L+18},${f.T-18} 100,${f.T-21} 124,${f.T-21}`
   }),
-
-  // mehr Kontur: glatter, stumpfer Bob auf Kinnlänge, tiefer Seitenscheitel, klare Spitzen nach vorn
-  kontur: ({ L, R, T, K }) => ({
-    hinten: `M120,${T-22} C${R+18},${T-22} ${R+18},${T+20} ${R+18},${T+70} L${R+20},${K-6} L${L-20},${K-6} L${L-18},${T+70} C${L-18},${T+20} ${L-18},${T-22} 120,${T-22}Z`,
-    vorne:
-      `M98,${T-22} C130,${T-26} ${R+20},${T-12} ${R+20},${T+44} L${R+20},${K-8} L${R-10},${K+6} C${R-8},${T+110} ${R-8},${T+60} ${R-18},${T+34} C${R-30},${T+12} 130,${T+10} 98,${T+12} C96,${T+4} 96,${T-10} 98,${T-22}Z ` +
-      `M98,${T-22} C74,${T-22} ${L-20},${T-10} ${L-20},${T+44} L${L-20},${K-8} L${L+10},${K+6} C${L+8},${T+110} ${L+8},${T+60} ${L+18},${T+34} C${L+26},${T+16} 86,${T+10} 98,${T+12} C95,${T-6} 95,${T-14} 98,${T-22}Z`,
-    fall: `M104,${T-12} C138,${T-14} ${R+8},${T+2} ${R+10},${T+46} L${R+10},${K-2} M${R-2},${T+40} L${R-2},${K+2} M${R+16},${T+60} L${R+16},${K-8} ` +
-          `M92,${T-12} C70,${T-10} ${L-8},${T+4} ${L-10},${T+46} L${L-10},${K-2} M${L+2},${T+40} L${L+2},${K+2} M${L-16},${T+60} L${L-16},${K-8}`,
-    glanz: `M${L-6},${T+6} C${L+10},${T-14} 92,${T-16} 98,${T-16} M104,${T-16} C134,${T-18} ${R-2},${T-10} ${R+8},${T+6}`
-  }),
-
-  // mehr Ruhe: lang, glatt, Mittelscheitel, geschlossene Fläche bis über die Schultern
-  ruhe: ({ L, R, T, K }) => ({
-    hinten: `M120,${T-18} C${R+14},${T-18} ${R+20},${T+30} ${R+18},${T+90} C${R+16},${T+150} ${R+24},250 ${R+28},300 L${L-28},300 C${L-24},250 ${L-16},${T+150} ${L-18},${T+90} C${L-20},${T+30} ${L-14},${T-18} 120,${T-18}Z`,
-    vorne:
-      `M120,${T-16} C${R-6},${T-16} ${R+12},${T} ${R+12},${T+50} C${R+12},${T+120} ${R+12},240 ${R+24},300 L${R-2},300 C${R-4},262 ${R-4},${K} ${R-6},${K-30} C${R-8},${T+80} ${R-4},${T+40} ${R-20},${T+22} C${R-34},${T+8} 136,${T+4} 120,${T+6}Z ` +
-      `M120,${T-16} C${L+6},${T-16} ${L-12},${T} ${L-12},${T+50} C${L-12},${T+120} ${L-12},240 ${L-24},300 L${L+2},300 C${L+4},262 ${L+4},${K} ${L+6},${K-30} C${L+8},${T+80} ${L+4},${T+40} ${L+20},${T+22} C${L+34},${T+8} 104,${T+4} 120,${T+6}Z`,
-    fall: `M126,${T-6} C${R-10},${T-6} ${R+2},${T+20} ${R+2},${T+60} C${R+2},${T+130} ${R+4},240 ${R+12},300 M${R+8},${T+70} C${R+8},${T+140} ${R+10},250 ${R+18},300 ` +
-          `M114,${T-6} C${L+10},${T-6} ${L-2},${T+20} ${L-2},${T+60} C${L-2},${T+130} ${L-4},240 ${L-12},300 M${L-8},${T+70} C${L-8},${T+140} ${L-10},250 ${L-18},300`,
-    glanz: `M${L+4},${T+4} C${L+20},${T-10} 104,${T-14} 116,${T-14} M124,${T-14} C136,${T-14} ${R-20},${T-10} ${R-4},${T+4}`
+  // Lang, glatt, Mittelscheitel
+  ruhe: f => ({
+    back: `M120,${f.T-22} C${f.R+12},${f.T-22} ${f.R+18},${f.T+20} ${f.R+18},${f.T+70} C${f.R+18},${f.T+150} ${f.R+18},250 ${f.R+16},300 L${f.L-16},300 C${f.L-18},250 ${f.L-18},${f.T+150} ${f.L-18},${f.T+70} C${f.L-18},${f.T+20} ${f.L-12},${f.T-22} 120,${f.T-22}Z`,
+    seite: `M119,${f.T-22} C${f.L-12},${f.T-22} ${f.L-18},${f.T+20} ${f.L-18},${f.T+70} C${f.L-18},${f.T+150} ${f.L-16},250 ${f.L-10},300 L${f.L+18},300 ` +
+           `C${f.L+16},262 ${f.L+12},${f.K+20} ${f.L+12},${f.K-20} C${f.L+12},${f.T+100} ${f.L+8},${f.T+60} ${f.L+18},${f.T+38} C${f.L+30},${f.T+18} 104,${f.T+10} 119,${f.T+6}Z`,
+    linien: `M114,${f.T-12} C${f.L+10},${f.T-8} ${f.L-8},${f.T+40} ${f.L-8},${f.T+100} C${f.L-8},${f.K} ${f.L-4},260 ${f.L},296 ` +
+            `M108,${f.T+4} C${f.L+18},${f.T+14} ${f.L+2},${f.T+60} ${f.L+2},${f.T+120} C${f.L+2},${f.K+10} ${f.L+6},260 ${f.L+10},296 ` +
+            `M126,${f.T-12} C${f.R-10},${f.T-8} ${f.R+8},${f.T+40} ${f.R+8},${f.T+100} C${f.R+8},${f.K} ${f.R+4},260 ${f.R},296 ` +
+            `M132,${f.T+4} C${f.R-18},${f.T+14} ${f.R-2},${f.T+60} ${f.R-2},${f.T+120} C${f.R-2},${f.K+10} ${f.R-6},260 ${f.R-10},296`,
+    glanz: `M${f.L+2},${f.T+4} C${f.L+12},${f.T-14} 98,${f.T-20} 116,${f.T-20} M${f.R-2},${f.T+4} C${f.R-12},${f.T-14} 142,${f.T-20} 124,${f.T-20}`
   })
 };
 
@@ -283,31 +295,33 @@ function zeichnung(formId, haarId, farbId, beschriftung){
   const f = FORMEN[formId];
   const h = HAARE[haarId || 'neutral'](f);
   const c = FARBEN[farbId || 'neutral'];
-  const gid = 'gk-haar-' + n, cid = 'gk-form-' + n;
-  const haar = d => d ? `<path d="${d}" fill="url(#${gid})" stroke="${c.tief}" stroke-width=".8" stroke-opacity=".55" stroke-linejoin="round"/>` : '';
-  const linie = (d, farbe, breite, deck) => d ? `<path d="${d}" fill="none" stroke="${farbe}" stroke-width="${breite}" stroke-linecap="round" opacity="${deck}"/>` : '';
-  // Ohren nur dort, wo die Frisur sie freigibt (zurückgekämmt): sitzen hinter dem Gesicht
-  const ohren = !haarId ? `<path d="M${f.L+6},138 C${f.L-8},134 ${f.L-8},168 ${f.L+6},170 M${f.R-6},138 C${f.R+8},134 ${f.R+8},168 ${f.R-6},170" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>` : '';
+  const gid = 'gk-haar-' + n, sid = 'gk-schatten-' + n, cid = 'gk-form-' + n;
+  const ohr = x => `<path d="M${x},${f.T+56} c${x < 120 ? -9 : 9},-2 ${x < 120 ? -11 : 11},12 ${x < 120 ? -9 : 9},22 c${x < 120 ? 1 : -1},6 ${x < 120 ? 4 : -4},9 ${x < 120 ? 9 : -9},8Z" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>`;
+  const seite = h.seite ? `<path d="${h.seite}" fill="url(#${gid})"/><path d="${h.seite}" fill="url(#${gid})" transform="translate(240,0) scale(-1,1)"/>` : '';
   return `<svg viewBox="0 0 240 300" role="img" aria-label="${label}">
     <defs>
       <linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="${f.T-60}" x2="0" y2="300">
-        <stop offset="0" stop-color="${c.hell}"/><stop offset=".3" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
+        <stop offset="0" stop-color="${c.hell}"/><stop offset=".4" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
+      </linearGradient>
+      <linearGradient id="${sid}" gradientUnits="userSpaceOnUse" x1="0" y1="${f.T-60}" x2="0" y2="300">
+        <stop offset="0" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
       </linearGradient>
       <clipPath id="${cid}"><path d="${f.d}"/></clipPath>
     </defs>
-    ${haar(h.oben)}${linie(h.obenFall, c.tief, 1.1, .5)}
-    ${haar(h.hinten)}
-    ${ohren}
+    <path d="${h.back}" fill="url(#${sid})"/>
+    ${h.dutt ? `<path d="${h.dutt}" fill="url(#${gid})"/>` : ''}
+    ${h.ohren ? ohr(f.L + 4) + ohr(f.R - 4) : ''}
     <path d="${HALS}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>
     <path d="${f.d}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.4"/>
     ${ZUEGE}
     ${h.ansatz ? `<path d="${h.ansatz}" fill="url(#${gid})" clip-path="url(#${cid})"/>` : ''}
-    ${haar(h.vorne)}
-    ${linie(h.fall, c.tief, 1.1, .5)}
-    ${linie(h.glanz, c.hell, 2.4, .7)}
+    ${seite}
+    ${h.pony ? `<path d="${h.pony}" fill="url(#${sid})"/>` : ''}
+    ${h.vorne ? `<path d="${h.vorne}" fill="url(#${gid})"/>` : ''}
+    ${h.linien ? `<path d="${h.linien}" fill="none" stroke="${c.tief}" stroke-width="1.3" stroke-linecap="round" opacity=".5"/>` : ''}
+    ${h.glanz ? `<path d="${h.glanz}" fill="none" stroke="${c.hell}" stroke-width="3.5" stroke-linecap="round" opacity=".55"/>` : ''}
   </svg>`;
 }
-
 // ── Ablauf ───────────────────────────────────────────────────
 const wahl = { form: null, haar: null, farbe: null };
 let ansicht = 'start';        // 'start' | 0 | 1 | 2 | 'gesamt'
@@ -417,7 +431,7 @@ function erklaere(i, id){
 function wechsleBild(i, id){
   const bild = document.getElementById('bild');
   const ruhig = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const tausch = () => { bild.innerHTML = bildFuer(i, id); erklaere(i, id); bild.classList.remove('wechsel'); };
+  const tausch = () => { if (!bild.isConnected) return; bild.innerHTML = bildFuer(i, id); erklaere(i, id); bild.classList.remove('wechsel'); };
   if (ruhig) return tausch();
   bild.classList.add('wechsel');
   setTimeout(tausch, 160);
