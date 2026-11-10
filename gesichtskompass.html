@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gesichtskompass · A Great Hair Day</title>
+<meta name="description" content="Sieh in drei Stationen, wie Gesichtsform, Haar und Farbe unterschiedlich wirken."/>
+<meta name="theme-color" content="#F7F2EA"/>
+<style>
+  @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-italic-500.woff2) format('woff2')}
+  @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-normal-500.woff2) format('woff2')}
+  @font-face{font-family:'Jost';font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/Jost-normal-400.woff2) format('woff2')}
+
+  :root{
+    --bg:#F7F2EA; --card:#FFFDF9; --ink:#2A241D; --muted:#776C5F;
+    --line:#E6DCCD; --accent:#9A7B4F; --accent-soft:#EFE5D5; --buehne:#F1E9DD;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.55 'Jost',system-ui,-apple-system,sans-serif}
+  button{font:inherit;color:inherit}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 16px 48px;min-height:100vh;display:flex;flex-direction:column}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+  .marke{font:italic 500 22px/1 'Cormorant Garamond',Georgia,serif;letter-spacing:.01em}
+  .stationen{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+  .stationen button{background:none;border:none;padding:6px 8px;cursor:pointer;font-size:12px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line)}
+  .stationen button[aria-current="step"]{color:var(--ink);border-color:var(--accent)}
+  .stationen button.fertig{border-color:var(--accent-soft)}
+  .stationen button:disabled{cursor:default;opacity:.55}
+  .stationen button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  main{flex:1}
+  .zaehler{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font:500 34px/1.15 'Cormorant Garamond',Georgia,serif;margin:0 0 8px}
+  .hinweis{color:var(--muted);margin:0 0 22px;max-width:46ch}
+
+  /* Station: Bühne + Auswahl */
+  .station{display:grid;gap:18px;grid-template-areas:'kopf' 'buehne' 'auswahl'}
+  .kopf{grid-area:kopf} .buehne{grid-area:buehne} .auswahl{grid-area:auswahl}
+  .kopf .hinweis{margin-bottom:0}
+  .buehne{background:var(--buehne);border-radius:18px;display:flex;flex-direction:column;align-items:center;padding:18px 16px 20px}
+  .buehne svg{width:100%;max-width:240px;height:auto;display:block}
+  .buehne .bild{transition:opacity .22s ease}
+  .buehne .bild.wechsel{opacity:0}
+  .erklaerung{text-align:center;min-height:4.2em;margin-top:6px;max-width:34ch}
+  .erklaerung b{display:block;font:500 22px/1.2 'Cormorant Garamond',Georgia,serif;margin-bottom:4px}
+  .erklaerung span{color:var(--muted);font-size:15px}
+
+  .frage{font-size:15px;color:var(--muted);margin:0 0 12px}
+  .optionen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .option{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 6px 10px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:6px;transition:border-color .2s,background .2s}
+  .option svg{width:100%;max-width:96px;height:auto;display:block}
+  .option span{font-size:13.5px;line-height:1.25;text-align:center}
+  .option:hover{border-color:var(--accent)}
+  .option:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .option[aria-pressed="true"]{border-color:var(--ink);background:var(--accent-soft)}
+
+  .navi{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px}
+  .zurueck{background:none;border:none;padding:8px 0;font-size:15px;color:var(--muted);cursor:pointer}
+  .zurueck:hover{color:var(--ink)}
+  .knopf{font-size:15px;border-radius:999px;padding:12px 24px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg)}
+  .knopf:disabled{background:transparent;color:var(--muted);border-color:var(--line);cursor:default}
+  .knopf.leise{background:transparent;color:var(--ink)}
+  .knopf:not(:disabled):hover{opacity:.88}
+  .zurueck:focus-visible,.knopf:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* Start */
+  .start{max-width:520px;margin:4vh auto 0;text-align:center}
+  .start h1{font-size:42px}
+  .start .hinweis{margin:0 auto 10px}
+  .start .regeln{list-style:none;padding:0;margin:22px auto 30px;display:grid;gap:8px;max-width:360px;text-align:left}
+  .start .regeln li{display:flex;gap:12px;align-items:baseline}
+  .start .regeln i{font:italic 500 20px/1 'Cormorant Garamond',Georgia,serif;color:var(--accent);font-style:italic;min-width:1em}
+
+  /* Gesamtbild */
+  .verdichtung h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 6px}
+  .verdichtung .einleitung{font:italic 500 28px/1.2 'Cormorant Garamond',Georgia,serif;margin:0 0 14px}
+  .zeilen{list-style:none;margin:0;padding:0}
+  .zeilen li{border-top:1px solid var(--line);padding:14px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .zeilen li:last-child{border-bottom:1px solid var(--line)}
+  .zeilen small{display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .zeilen b{font-weight:500;font-size:18px}
+  .zeilen button{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+  .zeilen button:hover{color:var(--ink)}
+  .schluss{color:var(--muted);margin:18px 0 24px}
+  .aktionen{display:flex;gap:10px;flex-wrap:wrap}
+
+  footer{margin-top:40px;font-size:12.5px;color:var(--muted);text-align:center}
+
+  @media (min-width:760px){
+    .station{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:'buehne kopf' 'buehne auswahl';grid-template-rows:auto 1fr;align-items:start;column-gap:36px;row-gap:20px}
+    .optionen{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .option svg{max-width:120px}
+    .option span{font-size:14.5px}
+    .buehne{position:sticky;top:16px;padding:26px 20px}
+    .buehne svg{max-width:340px}
+  }
+  @media (max-width:420px){
+    h1{font-size:29px} .start h1{font-size:36px}
+    .option{padding:6px 3px 8px} .option span{font-size:12.5px}
+    .stationen button{padding:6px 5px;font-size:11px;letter-spacing:.08em}
+  }
+  @media (prefers-reduced-motion:reduce){ .buehne .bild{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="marke">Gesichtskompass</div>
+    <nav aria-label="Stationen"><ol class="stationen" id="stationen"></ol></nav>
+  </header>
+  <main id="inhalt" aria-live="polite"></main>
+  <footer>Es werden keine Daten gespeichert oder gesendet.</footer>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   Gesichtskompass V1
+   Ein geführtes Sichtbarkeitstool: Es zeigt, was unterschiedlich
+   wirkt – nicht, was richtig ist. Keine Diagnose, keine Typen.
+   Drei Stationen, pro Station genau EIN Hebel:
+     1 Gesichtsform   (Haar und Farbe bleiben neutral)
+     2 Haarwirkung    (gewählte Form bleibt, Farbe bleibt neutral)
+     3 Farbwirkung    (gewählte Form und Haarwirkung bleiben)
+   Rein clientseitig, es werden keine Daten gespeichert oder gesendet.
+   ───────────────────────────────────────────────────────────── */
+
+// ── Inhalte ──────────────────────────────────────────────────
+const STATIONEN = [
+  { key: 'form', kurz: 'Form', name: 'Gesichtsform',
+    titel: 'Wie wirkt die Grundform?',
+    hinweis: 'Hier ändert sich nur die Form des Gesichts. Haar und Farbe bleiben neutral.',
+    frage: 'Welche Form spricht dich an oder ist dir am nächsten?',
+    optionen: [
+      { id: 'rund',  name: 'rund',       was: 'Weiche Linien, Länge und Breite fast gleich. Das Gesicht wirkt sanft und offen.', satz: 'eine weiche, runde Grundform' },
+      { id: 'eckig', name: 'eckig',      was: 'Gerade Seiten, deutlicher Kieferwinkel. Das Gesicht wirkt klar und markant.', satz: 'eine klare, kantige Grundform' },
+      { id: 'herz',  name: 'herzförmig', was: 'Breit an der Stirn, schmal zum Kinn. Der Blick geht nach oben zu Augen und Stirn.', satz: 'eine oben betonte, zum Kinn schmale Grundform' },
+      { id: 'lang',  name: 'lang',       was: 'Deutlich länger als breit. Das Gesicht wirkt gestreckt und schmal.', satz: 'eine gestreckte, schmale Grundform' }
+    ] },
+  { key: 'haar', kurz: 'Haar', name: 'Haarwirkung',
+    titel: 'Wohin lenkt das Haar die Form?',
+    hinweis: 'Deine gewählte Form bleibt. Hier ändern sich nur Linie und Volumen des Haars – die Farbe bleibt neutral.',
+    frage: 'Welche Haarwirkung spricht dich an?',
+    optionen: [
+      { id: 'hoehe',  name: 'mehr Höhe',   was: 'Volumen oben, Seiten nah am Gesicht. Das Gesicht wirkt länger und gehoben.', satz: 'Volumen, das nach oben führt' },
+      { id: 'breite', name: 'mehr Breite', was: 'Volumen an den Seiten. Das Gesicht wirkt kürzer und voller.', satz: 'Volumen, das zur Seite führt' },
+      { id: 'kontur', name: 'mehr Kontur', was: 'Gerade Kanten und klare Linien rahmen das Gesicht. Es wirkt definierter.', satz: 'klare Linien, die das Gesicht rahmen' },
+      { id: 'ruhe',   name: 'mehr Ruhe',   was: 'Eine glatte, geschlossene Fläche ohne Akzente. Das Gesicht steht ruhig in der Mitte.', satz: 'eine glatte, ruhige Fläche' }
+    ] },
+  { key: 'farbe', kurz: 'Farbe', name: 'Farbwirkung',
+    titel: 'Was macht die Farbe mit dem Gesicht?',
+    hinweis: 'Form und Haarwirkung bleiben. Hier ändert sich nur die Haarfarbe.',
+    frage: 'Welche Farbwirkung spricht dich an?',
+    optionen: [
+      { id: 'hell',  name: 'heller und lichtvoller', was: 'Mehr Licht rund ums Gesicht. Es wirkt frischer und offener.', satz: 'heller und lichtvoller' },
+      { id: 'tief',  name: 'tiefer und ruhiger',     was: 'Ein dunklerer Rahmen. Das Gesicht wirkt gesammelt und ruhig, die Züge treten deutlicher hervor.', satz: 'tiefer und ruhiger' },
+      { id: 'warm',  name: 'wärmer und weicher',     was: 'Warme Töne rund ums Gesicht. Übergänge wirken weicher, die Haut lebendiger.', satz: 'wärmer und weicher' },
+      { id: 'kuehl', name: 'kühler und klarer',      was: 'Kühle Töne rund ums Gesicht. Die Wirkung wird klarer und gefasster.', satz: 'kühler und klarer' }
+    ] }
+];
+
+// ── Zeichnung: neutrale Vorlage ──────────────────────────────
+// Ein Koordinatensystem (240 × 300) für alle Varianten, damit Augen,
+// Nase, Mund, Hals und Schultern immer an derselben Stelle bleiben.
+const HAUT = { fill: '#EBD6C4', linie: '#CDB29C', zug: '#8E7666', mund: '#B88A7C' };
+
+const FORMEN = {
+  rund:  { L: 56, R: 184, T: 80, K: 220,
+    d: 'M120,80 C161,80 184,108 184,148 C184,192 156,220 120,220 C84,220 56,192 56,148 C56,108 79,80 120,80Z' },
+  eckig: { L: 60, R: 180, T: 80, K: 218,
+    d: 'M120,80 C153,80 175,90 178,118 L180,176 C180,192 176,202 166,208 L144,217 C132,219 108,219 96,217 L74,208 C64,202 60,192 60,176 L62,118 C65,90 87,80 120,80Z' },
+  herz:  { L: 56, R: 184, T: 80, K: 224,
+    d: 'M120,80 C162,80 184,104 184,136 C184,166 168,190 148,208 C138,217 129,224 120,224 C111,224 102,217 92,208 C72,190 56,166 56,136 C56,104 78,80 120,80Z' },
+  lang:  { L: 70, R: 170, T: 70, K: 234,
+    d: 'M120,70 C153,70 170,94 170,130 L170,176 C170,210 148,234 120,234 C92,234 70,210 70,176 L70,130 C70,94 87,70 120,70Z' }
+};
+
+// Haarfarben: neutral für Station 1 und 2, danach die gewählte Farbwirkung
+const FARBEN = {
+  neutral: { hell: '#8B705C', mitte: '#6E5646', tief: '#4E3D32' },
+  hell:    { hell: '#E6CEA6', mitte: '#C8A67B', tief: '#A2825A' },
+  tief:    { hell: '#4D3A33', mitte: '#33251F', tief: '#1F1612' },
+  warm:    { hell: '#C88A60', mitte: '#A2623B', tief: '#77442A' },
+  kuehl:   { hell: '#A6A2A4', mitte: '#6A6466', tief: '#3E3A3C' }
+};
+
+// Haarwirkungen: back = hinter dem Gesicht, ansatz = Haaransatz auf der Stirn
+// (auf die Gesichtsform beschnitten), vorne = Partien vor dem Gesicht,
+// linien = wenige feine Strähnenlinien.
+function ansatz(mitte, schlaefe){
+  return `M0,0 H240 V${schlaefe} C200,${schlaefe} 168,${mitte} 122,${mitte} L118,${mitte} C72,${mitte} 40,${schlaefe} 0,${schlaefe}Z`;
+}
+const HAARE = {
+  // Station 1: neutral zurückgenommen, damit die Gesichtsform frei sichtbar ist
+  neutral: f => ({
+    back: `M${f.L+6},${f.T+60} C${f.L-6},${f.T+30} ${f.L+2},${f.T-16} 120,${f.T-18} C${f.R-2},${f.T-16} ${f.R+6},${f.T+30} ${f.R-6},${f.T+60}Z`,
+    ansatz: ansatz(f.T+12, f.T+38), vorne: '', linien: ''
+  }),
+  hoehe: f => ({
+    back: `M${f.L-3},${f.K-42} C${f.L-12},${f.T+30} ${f.L-16},${f.T-46} 120,${f.T-56} C${f.R+16},${f.T-46} ${f.R+12},${f.T+30} ${f.R+3},${f.K-42}Z`,
+    ansatz: ansatz(f.T+8, f.T+36), vorne: '',
+    linien: `M104,${f.T+6} C96,${f.T-20} 104,${f.T-40} 120,${f.T-48} M136,${f.T+6} C144,${f.T-20} 136,${f.T-40} 120,${f.T-48} M120,${f.T+6} L120,${f.T-44}`
+  }),
+  breite: f => ({
+    back: `M120,${f.T-24} C${f.R+22},${f.T-24} ${f.R+40},${f.T+50} ${f.R+42},${f.K-44} C${f.R+42},${f.K-12} ${f.R+28},${f.K} ${f.R+8},${f.K-2} L${f.L-8},${f.K-2} C${f.L-28},${f.K} ${f.L-42},${f.K-12} ${f.L-42},${f.K-44} C${f.L-40},${f.T+50} ${f.L-22},${f.T-24} 120,${f.T-24}Z`,
+    ansatz: ansatz(f.T+14, f.T+40), vorne: '',
+    linien: `M${f.L-10},${f.T+40} C${f.L-30},${f.T+80} ${f.L-20},${f.K-60} ${f.L-34},${f.K-24} M${f.R+10},${f.T+40} C${f.R+30},${f.T+80} ${f.R+20},${f.K-60} ${f.R+34},${f.K-24}`
+  }),
+  kontur: f => ({
+    back: `M120,${f.T-18} C${f.R+16},${f.T-18} ${f.R+16},${f.T+20} ${f.R+16},${f.T+60} L${f.R+20},${f.K-4} L${f.L-20},${f.K-4} L${f.L-16},${f.T+60} C${f.L-16},${f.T+20} ${f.L-16},${f.T-18} 120,${f.T-18}Z`,
+    ansatz: `M0,0 H240 V${f.T+42} H0Z`,
+    vorne: `M${f.L-16},${f.T+30} L${f.L+14},${f.T+42} L${f.L+6},${f.K-4} L${f.L-20},${f.K-4}Z M${f.R+16},${f.T+30} L${f.R-14},${f.T+42} L${f.R-6},${f.K-4} L${f.R+20},${f.K-4}Z`,
+    linien: ''
+  }),
+  ruhe: f => ({
+    back: `M120,${f.T-16} C${f.R+14},${f.T-16} ${f.R+16},${f.T+30} ${f.R+14},${f.T+80} C${f.R+12},${f.T+150} ${f.R+18},250 ${f.R+22},300 L${f.L-22},300 C${f.L-18},250 ${f.L-12},${f.T+150} ${f.L-14},${f.T+80} C${f.L-16},${f.T+30} ${f.L-14},${f.T-16} 120,${f.T-16}Z`,
+    ansatz: ansatz(f.T+10, f.T+44),
+    vorne: `M${f.L-14},${f.T+36} C${f.L+2},${f.T+56} ${f.L+8},${f.T+104} ${f.L+6},${f.K-16} C${f.L+4},${f.K+26} ${f.L+2},262 ${f.L-4},300 L${f.L-26},300 C${f.L-20},250 ${f.L-16},${f.T+150} ${f.L-14},${f.T+36}Z ` +
+           `M${f.R+14},${f.T+36} C${f.R-2},${f.T+56} ${f.R-8},${f.T+104} ${f.R-6},${f.K-16} C${f.R-4},${f.K+26} ${f.R-2},262 ${f.R+4},300 L${f.R+26},300 C${f.R+20},250 ${f.R+16},${f.T+150} ${f.R+14},${f.T+36}Z`,
+    linien: ''
+  })
+};
+
+const HALS = 'M58,300 C62,270 90,260 102,252 L103,200 L137,200 L138,252 C150,260 178,270 182,300Z';
+const ZUEGE =
+  // Brauen, Augen, Nase, Mund: immer gleich, bewusst zurückhaltend
+  `<path d="M84,136 Q96,130 108,135 M132,135 Q144,130 156,136" fill="none" stroke="${HAUT.zug}" stroke-width="2" stroke-linecap="round" opacity=".55"/>` +
+  `<path d="M86,151 Q96,144 106,151 M134,151 Q144,144 154,151" fill="none" stroke="${HAUT.zug}" stroke-width="1.8" stroke-linecap="round"/>` +
+  `<circle cx="96" cy="150" r="3.1" fill="${HAUT.zug}"/><circle cx="144" cy="150" r="3.1" fill="${HAUT.zug}"/>` +
+  `<path d="M121,158 Q117,174 113,180 Q119,184 127,181" fill="none" stroke="${HAUT.zug}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>` +
+  `<path d="M107,197 Q120,203 133,197" fill="none" stroke="${HAUT.mund}" stroke-width="2.2" stroke-linecap="round"/>`;
+
+let zeichnungNr = 0;
+function zeichnung(formId, haarId, farbId, beschriftung){
+  const n = ++zeichnungNr;
+  const label = esc(beschriftung || '');
+  if (!formId){
+    // Ausgangsbild vor der ersten Wahl: nur eine angedeutete Form
+    return `<svg viewBox="0 0 240 300" role="img" aria-label="${label}">
+      <path d="${HALS}" fill="none" stroke="${HAUT.linie}" stroke-width="1.4" stroke-dasharray="4 5"/>
+      <ellipse cx="120" cy="150" rx="62" ry="72" fill="${HAUT.fill}" fill-opacity=".45" stroke="${HAUT.linie}" stroke-width="1.4" stroke-dasharray="4 5"/>
+      <g opacity=".35">${ZUEGE}</g></svg>`;
+  }
+  const f = FORMEN[formId];
+  const h = HAARE[haarId || 'neutral'](f);
+  const c = FARBEN[farbId || 'neutral'];
+  const gid = 'gk-haar-' + n, cid = 'gk-form-' + n;
+  return `<svg viewBox="0 0 240 300" role="img" aria-label="${label}">
+    <defs>
+      <linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="${f.T-50}" x2="0" y2="300">
+        <stop offset="0" stop-color="${c.hell}"/><stop offset=".35" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
+      </linearGradient>
+      <clipPath id="${cid}"><path d="${f.d}"/></clipPath>
+    </defs>
+    <path d="${h.back}" fill="url(#${gid})"/>
+    <path d="${HALS}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>
+    <path d="${f.d}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.4"/>
+    ${ZUEGE}
+    <path d="${h.ansatz}" fill="url(#${gid})" clip-path="url(#${cid})"/>
+    ${h.vorne ? `<path d="${h.vorne}" fill="url(#${gid})"/>` : ''}
+    ${h.linien ? `<path d="${h.linien}" fill="none" stroke="${c.tief}" stroke-width="1.4" stroke-linecap="round" opacity=".45"/>` : ''}
+  </svg>`;
+}
+
+// ── Ablauf ───────────────────────────────────────────────────
+const wahl = { form: null, haar: null, farbe: null };
+let ansicht = 'start';        // 'start' | 0 | 1 | 2 | 'gesamt'
+const inhalt = document.getElementById('inhalt');
+const leiste = document.getElementById('stationen');
+
+function esc(s){ return String(s).replace(/[&<>"]/g, z => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[z])); }
+function opt(i, id){ return STATIONEN[i].optionen.find(o => o.id === id); }
+// Eine Station ist erreichbar, wenn alle Stationen davor eine Wahl haben.
+function erreichbar(i){ return STATIONEN.slice(0, i).every(s => wahl[s.key]); }
+function alleGewaehlt(){ return STATIONEN.every(s => wahl[s.key]); }
+
+// Was die Bühne pro Station zeigt: frühere Wahl bleibt, spätere Hebel neutral.
+function bildFuer(i, id){
+  if (i === 0) return zeichnung(id, null, null, id ? 'Gesichtsform ' + opt(0, id).name : 'Ausgangsbild');
+  if (i === 1) return zeichnung(wahl.form, id, null, id ? 'Haarwirkung ' + opt(1, id).name : 'Ausgangsbild mit neutralem Haar');
+  return zeichnung(wahl.form, wahl.haar, id, id ? 'Farbwirkung ' + opt(2, id).name : 'Ausgangsbild mit neutraler Farbe');
+}
+
+function zeigeLeiste(){
+  leiste.innerHTML = STATIONEN.map((s, i) => `
+    <li><button type="button" data-i="${i}" ${ansicht === i ? 'aria-current="step"' : ''}
+      class="${wahl[s.key] ? 'fertig' : ''}" ${erreichbar(i) && ansicht !== 'start' ? '' : 'disabled'}>${i + 1} ${esc(s.kurz)}</button></li>`).join('') +
+    `<li><button type="button" data-i="gesamt" ${ansicht === 'gesamt' ? 'aria-current="step"' : ''} ${alleGewaehlt() ? '' : 'disabled'}>Bild</button></li>`;
+  leiste.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const i = b.dataset.i;
+    i === 'gesamt' ? zeigeGesamt() : zeigeStation(Number(i));
+  }));
+}
+
+function zeigeStart(){
+  ansicht = 'start';
+  zeigeLeiste();
+  inhalt.innerHTML = `
+    <section class="start">
+      <p class="zaehler">Ein Blick auf Wirkung</p>
+      <h1>Was wirkt wie im Gesicht?</h1>
+      <p class="hinweis">Drei Stationen, etwa zwei Minuten. Du siehst, was unterschiedlich wirkt – es gibt kein Richtig und kein Falsch.</p>
+      <ul class="regeln">
+        <li><i>1</i><span>Gesichtsform</span></li>
+        <li><i>2</i><span>Haarwirkung</span></li>
+        <li><i>3</i><span>Farbwirkung</span></li>
+      </ul>
+      <p class="hinweis" style="margin-bottom:26px">In jeder Station verändert sich nur eine Sache. Wähle jeweils, was dich anspricht.</p>
+      <button type="button" class="knopf" id="los">Beginnen</button>
+    </section>`;
+  document.getElementById('los').addEventListener('click', () => zeigeStation(0));
+}
+
+function zeigeStation(i){
+  if (!erreichbar(i)) return;
+  ansicht = i;
+  zeigeLeiste();
+  const s = STATIONEN[i];
+  const aktiv = wahl[s.key];
+  inhalt.innerHTML = `
+    <section class="station">
+      <div class="buehne">
+        <div class="bild" id="bild">${bildFuer(i, aktiv)}</div>
+        <p class="erklaerung" id="erklaerung"></p>
+      </div>
+      <div class="kopf">
+        <p class="zaehler">Station ${i + 1} von 3 · ${esc(s.name)}</p>
+        <h1>${esc(s.titel)}</h1>
+        <p class="hinweis">${esc(s.hinweis)}</p>
+      </div>
+      <div class="auswahl">
+        <p class="frage">${esc(s.frage)}</p>
+        <div class="optionen" role="group" aria-label="${esc(s.name)}">
+          ${s.optionen.map(o => `
+            <button type="button" class="option" data-id="${o.id}" aria-pressed="${aktiv === o.id}">
+              ${bildFuer(i, o.id)}<span>${esc(o.name)}</span>
+            </button>`).join('')}
+        </div>
+        <div class="navi">
+          <button type="button" class="zurueck" id="zurueck">← Zurück</button>
+          <button type="button" class="knopf" id="weiter" ${aktiv ? '' : 'disabled'}>${i < 2 ? 'Weiter' : 'Gesamtbild ansehen'}</button>
+        </div>
+      </div>
+    </section>`;
+  erklaere(i, aktiv);
+
+  inhalt.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    if (wahl[s.key] === id) return;
+    wahl[s.key] = id;                         // genau eine aktive Hauptwahl pro Station
+    inhalt.querySelectorAll('.option').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    document.getElementById('weiter').disabled = false;
+    wechsleBild(i, id);
+    zeigeLeiste();
+  }));
+  document.getElementById('zurueck').addEventListener('click', () => i > 0 ? zeigeStation(i - 1) : zeigeStart());
+  document.getElementById('weiter').addEventListener('click', () => i < 2 ? zeigeStation(i + 1) : zeigeGesamt());
+  window.scrollTo({ top: 0 });
+}
+
+function erklaere(i, id){
+  const el = document.getElementById('erklaerung');
+  if (!id){
+    el.innerHTML = `<b>Ausgangsbild</b><span>Wähle eine Variante und sieh, was sich verändert.</span>`;
+    return;
+  }
+  const o = opt(i, id);
+  el.innerHTML = `<b>${esc(o.name)}</b><span>${esc(o.was)}</span>`;
+}
+
+function wechsleBild(i, id){
+  const bild = document.getElementById('bild');
+  const ruhig = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tausch = () => { bild.innerHTML = bildFuer(i, id); erklaere(i, id); bild.classList.remove('wechsel'); };
+  if (ruhig) return tausch();
+  bild.classList.add('wechsel');
+  setTimeout(tausch, 160);
+}
+
+function zeigeGesamt(){
+  if (!alleGewaehlt()) return;
+  ansicht = 'gesamt';
+  zeigeLeiste();
+  const zeilen = STATIONEN.map((s, i) => {
+    const o = opt(i, wahl[s.key]);
+    return `<li><div><small>${esc(s.name)} · ${esc(o.name)}</small><b>${esc(o.satz)}</b></div>
+      <button type="button" data-i="${i}">ändern</button></li>`;
+  }).join('');
+  inhalt.innerHTML = `
+    <section class="station">
+      <div class="buehne">
+        <div class="bild">${zeichnung(wahl.form, wahl.haar, wahl.farbe, 'Dein Gesamtbild')}</div>
+      </div>
+      <div class="kopf verdichtung">
+        <h2>Dein Gesamtbild</h2>
+        <p class="einleitung">Dich spricht eher an:</p>
+      </div>
+      <div class="auswahl verdichtung">
+        <ul class="zeilen">${zeilen}</ul>
+        <p class="schluss">Kein Ergebnis, sondern ein Bild für unser Gespräch.</p>
+        <div class="aktionen">
+          <button type="button" class="knopf leise" id="neu">Neu beginnen</button>
+        </div>
+        <div class="navi"><button type="button" class="zurueck" id="zurueck">← Zurück zur Farbwirkung</button></div>
+      </div>
+    </section>`;
+  inhalt.querySelectorAll('.zeilen button').forEach(b => b.addEventListener('click', () => zeigeStation(Number(b.dataset.i))));
+  document.getElementById('zurueck').addEventListener('click', () => zeigeStation(2));
+  document.getElementById('neu').addEventListener('click', () => {
+    wahl.form = wahl.haar = wahl.farbe = null;
+    zeigeStart();
+  });
+  window.scrollTo({ top: 0 });
+}
+
+zeigeStart();
+</script>
+</body>
+</html>
