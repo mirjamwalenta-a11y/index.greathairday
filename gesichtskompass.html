@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Gesichtskompass · A Great Hair Day</title>
-<meta name="description" content="Gesichtsform erkennen und mit Styling und Farbe sofort optimieren – mit Checkliste für alle Formen."/>
+<meta name="description" content="Gesichtsform erkennen und mit Styling sofort optimieren – mit Vorher/Optimiert-Fotos und Checkliste für alle Formen."/>
 <meta name="theme-color" content="#F7F2EA"/>
 <style>
   @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/CormorantGaramond-italic-500.woff2) format('woff2')}
@@ -88,22 +88,32 @@
   .schluss{color:var(--muted);margin:18px 0 24px}
   .aktionen{display:flex;gap:10px;flex-wrap:wrap}
 
-  /* 6 Gesichtsformen, Vorher/Optimiert, Sofortmaßnahmen, Übersicht */
+  /* Fotos */
+  img{display:block;max-width:100%;height:auto}
+  .buehne img,.platzhalter{width:100%;max-width:230px;aspect-ratio:4/5;object-fit:cover;border-radius:14px;background:#E9E6E3}
+  .platzhalter{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;border:1px dashed var(--line);background:transparent}
+  .buehne .erklaerung{margin-top:12px}
   .optionen.sechs{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .optionen.zwei{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .massnahmen{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-  .massnahmen h2,.uebersicht .karte h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 8px}
+  .option img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px}
+  .option{padding:6px 6px 8px}
+  .startbilder{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 22px}
+  .startbilder img{width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:12px}
+  .startbilder span{color:var(--accent);font-size:22px}
+  .styling,.uebersicht{max-width:720px;margin:0 auto}
+  .vergleich{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+  .vergleich figure{margin:0;background:var(--buehne);border-radius:14px;padding:8px 8px 12px;text-align:center}
+  .vergleich figure.opt{background:var(--accent-soft);outline:1px solid var(--accent)}
+  .vergleich img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;margin-bottom:8px}
+  .vergleich figcaption{font-size:14px;line-height:1.3}
+  .vergleich small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .massnahmen{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .massnahmen h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 8px}
   .massnahmen ol,.uebersicht ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
-  .uebersicht{max-width:760px;margin:0 auto}
+  .warum{margin:12px 0 0;color:var(--muted);font-size:15px}
+  .warum b{color:var(--ink);font-weight:500}
   .uebersicht .karte{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px}
-  .uebersicht .karte h2{font:500 24px/1.2 'Cormorant Garamond',Georgia,serif;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:10px}
-  .paar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-  .paar figure{margin:0;background:var(--buehne);border-radius:12px;padding:8px 8px 10px;text-align:center}
-  .paar svg{width:100%;max-width:170px;height:auto;display:block;margin:0 auto}
-  .paar figcaption{font-size:14px;line-height:1.3}
-  .paar figcaption small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-  @media (min-width:760px){ .optionen.sechs{grid-template-columns:repeat(3,minmax(0,1fr))} .optionen.sechs .option svg{max-width:100px} }
-
+  .uebersicht .karte h2{font:500 24px/1.2 'Cormorant Garamond',Georgia,serif;margin:0 0 10px}
+  @media (min-width:760px){ .vergleich{gap:16px} .vergleich figcaption{font-size:15px} }
   footer{margin-top:40px;font-size:12.5px;color:var(--muted);text-align:center}
 
   @media (min-width:760px){
@@ -135,11 +145,10 @@
 <script>
 /* ─────────────────────────────────────────────────────────────
    Gesichtskompass
-   Gesichtsform erkennen und mit Styling und Farbe ausgleichen.
-   Drei Stationen:
-     1 Gesichtsform  (Haar zurückgenommen, damit die Form frei sichtbar ist)
+   Gesichtsform erkennen und mit Styling sofort optisch ausgleichen.
+     1 Gesichtsform  (sechs Formen mit Beispielfoto)
      2 Styling       (Vorher und Optimiert, dazu die Sofortmaßnahmen)
-     3 Farbwirkung   (auf das gewählte Styling)
+   Dazu eine Übersicht aller Formen als Checkliste.
    Rein clientseitig, es werden keine Daten gespeichert oder gesendet.
    ───────────────────────────────────────────────────────────── */
 
@@ -149,343 +158,71 @@
 const FORMEN_INFO = [
   { id: 'rund', name: 'rund',
     was: 'Länge und Breite sind fast gleich, die Linien weich. Das Gesicht wirkt sanft und offen.',
-    vorher: { frisur: 'bobMitte', kurz: 'Symmetrie, flach am Oberkopf', text: 'Ein symmetrischer Schnitt ohne Höhe am Oberkopf lässt das Gesicht noch runder wirken.' },
-    opt: { frisur: 'rundOpt', kurz: 'Seitenscheitel, Höhe am Oberkopf',
+    vorher: { kurz: 'Symmetrie, flach am Oberkopf', text: 'Ein symmetrischer Schnitt ohne Höhe am Oberkopf lässt das Gesicht noch runder wirken.' },
+    opt: { kurz: 'Seitenscheitel, Höhe am Oberkopf',
       schritte: ['Einen tiefen Seitenscheitel ziehen.', 'Am Oberkopf mit Texturspray Höhe aufbauen.', 'Den Pony zur Seite wegstylen.'],
       warum: 'Diagonale Linien und Höhe am Oberkopf strecken das Gesicht optisch.' } },
   { id: 'eckig', name: 'eckig',
     was: 'Gerade Seiten und ein deutlicher Kieferwinkel. Das Gesicht wirkt klar und markant.',
-    vorher: { frisur: 'kontur', kurz: 'Harte Kanten', text: 'Stumpfe, gerade Linien wiederholen die Kanten und betonen den Kiefer.' },
-    opt: { frisur: 'wellenLob', kurz: 'Wellen, Seitenscheitel, weicher Pony',
+    vorher: { kurz: 'Harte Kanten', text: 'Stumpfe, gerade Linien wiederholen die Kanten und betonen den Kiefer.' },
+    opt: { kurz: 'Wellen, Seitenscheitel, weicher Pony',
       schritte: ['Mit einem schmalen Lockenstab Wellen formen.', 'Einen Seitenscheitel ziehen und so die Symmetrie aufbrechen.', 'Pony und Partien ums Gesicht weich und locker stylen.'],
       warum: 'Weiche Textur und unregelmäßige Längen zeichnen die Kieferlinie weicher.' } },
   { id: 'herz', name: 'herzförmig',
     was: 'Breit an der Stirn, schmal zum Kinn. Der Blick geht nach oben zu Augen und Stirn.',
-    vorher: { frisur: 'pixiePony', kurz: 'Breite Stirn, spitzes Kinn', text: 'Kurzes Haar mit geradem Pony betont die breite Stirn, das Kinn wirkt spitzer.' },
-    opt: { frisur: 'herzBob', kurz: 'Oben flach, Pony diagonal, Gesicht umrahmt',
+    vorher: { kurz: 'Breite Stirn, spitzes Kinn', text: 'Kurzes Haar mit geradem Pony betont die breite Stirn, das Kinn wirkt spitzer.' },
+    opt: { kurz: 'Oben flach, Pony diagonal, Gesicht umrahmt',
       schritte: ['Das Volumen am Oberkopf flach halten.', 'Den Pony diagonal zur Seite stylen.', 'Strähnen vor den Ohren lassen, damit sie das Gesicht umrahmen.'],
       warum: 'Fülle auf Kinnhöhe gleicht die schmale untere Gesichtshälfte aus.' } },
   { id: 'oval', name: 'oval',
     was: 'Etwas länger als breit, Stirn und Kinn ausgewogen. Die Proportionen wirken harmonisch.',
-    vorher: { frisur: 'zopf', kurz: 'Harmonisch, aber unauffällig', text: 'Streng zurückgenommen wirkt das ausgewogene Gesicht harmonisch, aber konventionell.' },
-    opt: { frisur: 'shag', kurz: 'Jedes Styling möglich',
+    vorher: { kurz: 'Harmonisch, aber unauffällig', text: 'Streng zurückgenommen wirkt das ausgewogene Gesicht harmonisch, aber konventionell.' },
+    opt: { kurz: 'Jedes Styling möglich',
       schritte: ['Jedes Styling ist möglich – die Form trägt fast alles.', 'Mit Asymmetrie oder einem Curtain-Pony einen Akzent setzen.', 'Textur einarbeiten, damit das Haar Bewegung bekommt.'],
       warum: 'Ausgewogene Proportionen brauchen keinen Ausgleich – hier geht es um Ausdruck.' } },
   { id: 'lang', name: 'länglich',
     was: 'Deutlich länger als breit. Das Gesicht wirkt gestreckt und schmal.',
-    vorher: { frisur: 'ruhe', kurz: 'Zieht in die Länge', text: 'Langes, glattes Haar mit Mittelscheitel führt den Blick nach unten und streckt das Gesicht noch mehr.' },
-    opt: { frisur: 'lockenPony', kurz: 'Horizontaler Pony, Breite an den Seiten',
+    vorher: { kurz: 'Zieht in die Länge', text: 'Langes, glattes Haar mit Mittelscheitel führt den Blick nach unten und streckt das Gesicht noch mehr.' },
+    opt: { kurz: 'Horizontaler Pony, Breite an den Seiten',
       schritte: ['Einen horizontalen Pony schneiden oder stylen.', 'Mit Wellen oder Locken Volumen an den Seiten aufbauen.', 'Einen Seitenscheitel ziehen.'],
       warum: 'Horizontale Linien und Breite an den Seiten verkürzen das Gesicht optisch.' } },
   { id: 'diamant', name: 'diamantförmig',
     was: 'Schmale Stirn, schmales Kinn, breite Wangenknochen. Das Gesicht wirkt markant.',
-    vorher: { frisur: 'hoehe', kurz: 'Markante Wangenknochen', text: 'Streng zurückgenommenes Haar legt die Wangenknochen frei und betont die breiteste Stelle.' },
-    opt: { frisur: 'wellenBob', kurz: 'Weicher Pony, Textur am Kiefer',
+    vorher: { kurz: 'Markante Wangenknochen', text: 'Streng zurückgenommenes Haar legt die Wangenknochen frei und betont die breiteste Stelle.' },
+    opt: { kurz: 'Weicher Pony, Textur am Kiefer',
       schritte: ['Den Pony weich und fransig stylen.', 'Auf Kieferhöhe Textur erzeugen.', 'Das Haar locker nach vorne frisieren.'],
       warum: 'Fülle an Stirn und Kiefer gleicht die schmalen Partien zu den Wangenknochen aus.' } }
 ];
 
-const FARB_INFO = [
-  { id: 'hell',  name: 'heller und lichtvoller', was: 'Mehr Licht rund ums Gesicht. Es wirkt frischer und offener.' },
-  { id: 'tief',  name: 'tiefer und ruhiger',     was: 'Ein dunklerer Rahmen. Das Gesicht wirkt gesammelt, die Züge treten deutlicher hervor.' },
-  { id: 'warm',  name: 'wärmer und weicher',     was: 'Warme Töne rund ums Gesicht. Übergänge wirken weicher, die Haut lebendiger.' },
-  { id: 'kuehl', name: 'kühler und klarer',      was: 'Kühle Töne rund ums Gesicht. Die Wirkung wird klarer und gefasster.' }
-];
-
 const STATIONEN = [
-  { key: 'form',  kurz: 'Form',    name: 'Gesichtsform' },
-  { key: 'look',  kurz: 'Styling', name: 'Styling' },
-  { key: 'farbe', kurz: 'Farbe',   name: 'Farbwirkung' }
+  { key: 'form', kurz: 'Form',    name: 'Gesichtsform' },
+  { key: 'look', kurz: 'Styling', name: 'Styling' }
 ];
 
-// ── Zeichnung ────────────────────────────────────────────────
-// Ein Koordinatensystem (240 × 300) für alle Varianten, damit Augen,
-// Nase, Mund, Hals und Schultern immer an derselben Stelle bleiben.
-// Alle Gesichtsformen sind symmetrisch um x = 120 (L + R = 240).
-const HAUT = { fill: '#EBD6C4', linie: '#CDB29C', zug: '#8E7666', mund: '#B88A7C' };
-
-const FORMEN = {
-  rund:  { L: 56, R: 184, T: 80, K: 220,
-    d: 'M120,80 C161,80 184,108 184,148 C184,192 156,220 120,220 C84,220 56,192 56,148 C56,108 79,80 120,80Z' },
-  eckig: { L: 60, R: 180, T: 80, K: 218,
-    d: 'M120,80 C153,80 175,90 178,118 L180,176 C180,192 176,202 166,208 L144,217 C132,219 108,219 96,217 L74,208 C64,202 60,192 60,176 L62,118 C65,90 87,80 120,80Z' },
-  herz:  { L: 56, R: 184, T: 80, K: 224,
-    d: 'M120,80 C162,80 184,104 184,136 C184,166 168,190 148,208 C138,217 129,224 120,224 C111,224 102,217 92,208 C72,190 56,166 56,136 C56,104 78,80 120,80Z' },
-  oval:  { L: 62, R: 178, T: 76, K: 226,
-    d: 'M120,76 C156,76 178,104 178,142 C178,186 154,226 120,226 C86,226 62,186 62,142 C62,104 84,76 120,76Z' },
-  lang:  { L: 70, R: 170, T: 70, K: 234,
-    d: 'M120,70 C153,70 170,94 170,130 L170,176 C170,210 148,234 120,234 C92,234 70,210 70,176 L70,130 C70,94 87,70 120,70Z' },
-  diamant: { L: 58, R: 182, T: 78, K: 226,
-    d: 'M120,78 C141,78 154,90 163,108 C172,126 182,138 182,150 C182,170 166,192 150,208 C138,220 128,226 120,226 C112,226 102,220 90,208 C74,192 58,170 58,150 C58,138 68,126 77,108 C86,90 99,78 120,78Z' }
-};
-
-// Haarfarben: neutral in Station 1 und 2, danach die gewählte Farbwirkung
-const FARBEN = {
-  neutral: { hell: '#8B705C', mitte: '#6E5646', tief: '#4E3D32' },
-  hell:    { hell: '#E6CEA6', mitte: '#C8A67B', tief: '#A2825A' },
-  tief:    { hell: '#4D3A33', mitte: '#33251F', tief: '#1F1612' },
-  warm:    { hell: '#C88A60', mitte: '#A2623B', tief: '#77442A' },
-  kuehl:   { hell: '#A6A2A4', mitte: '#6A6466', tief: '#3E3A3C' }
-};
-
-// Spiegelt einen Pfad (nur absolute x,y-Paare) an der Mittellinie x = 120
-// und hängt ihn an: so reicht es, Strähnen für die linke Seite zu schreiben.
-function sym(d){ return d + ' ' + d.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g, (m, x, y) => (240 - x) + ',' + y); }
-// Frisuren: jede Haarwirkung ist eine erkennbare Frisur.
-//   back   = Haar hinter Gesicht und Hals (dunkler, gibt Tiefe)
-//   seite  = linke Haarpartie vor dem Gesicht, wird gespiegelt (Gesicht ist symmetrisch um x=120)
-//   vorne  = asymmetrische Partie vor dem Gesicht (statt seite)
-//   ansatz = Haaransatz/Pony, auf die Gesichtsform beschnitten
-//   linien = feine Strähnen, glanz = Lichtkante, ohren = Ohren sichtbar
-// Locken-Kontur: verbindet Punkte mit nach außen gewölbten Bögen.
-function locken(pkte, wolbung, mx, my){
-  let d = `M${pkte[0][0]},${pkte[0][1]}`;
-  for (let i = 0; i < pkte.length; i++){
-    const [x1, y1] = pkte[i], [x2, y2] = pkte[(i + 1) % pkte.length];
-    const xm = (x1 + x2) / 2, ym = (y1 + y2) / 2;
-    let nx = xm - mx, ny = ym - my; const l = Math.hypot(nx, ny) || 1;
-    nx = nx / l * wolbung; ny = ny / l * wolbung;
-    d += ` Q${(xm + nx).toFixed(1)},${(ym + ny).toFixed(1)} ${x2},${y2}`;
-  }
-  return d + 'Z';
-}
-function kringel(x, y, r){
-  return `M${x - r},${y} a${r},${r} 0 1,1 ${r * 1.6},${r * .9}`;
-}
-const HAARE = {
-  // Station 1: glatt zurückgekämmt, damit die Gesichtsform frei sichtbar ist
-  neutral: f => ({
-    back: `M${f.L-4},${f.T+66} C${f.L-10},${f.T+14} ${f.L+12},${f.T-26} 120,${f.T-28} C${f.R-12},${f.T-26} ${f.R+10},${f.T+14} ${f.R+4},${f.T+66}Z`,
-    seite: `M${f.L-4},${f.T+64} C${f.L-10},${f.T+14} ${f.L+12},${f.T-26} 120,${f.T-28} L120,${f.T+14} ` +
-           `C${f.L+40},${f.T+14} ${f.L+16},${f.T+28} ${f.L+8},${f.T+42} C${f.L+3},${f.T+50} ${f.L+1},${f.T+58} ${f.L-4},${f.T+64}Z`,
-    linien: `M104,${f.T+15} C100,${f.T-2} 106,${f.T-18} 116,${f.T-26} M136,${f.T+15} C140,${f.T-2} 134,${f.T-18} 124,${f.T-26} ` +
-            `M${f.L+16},${f.T+32} C${f.L+12},${f.T+8} ${f.L+30},${f.T-14} 100,${f.T-24} M${f.R-16},${f.T+32} C${f.R-12},${f.T+8} ${f.R-30},${f.T-14} 140,${f.T-24} ` +
-            `M${f.L+2},${f.T+52} C${f.L-2},${f.T+30} ${f.L+6},${f.T+4} ${f.L+22},${f.T-10} M${f.R-2},${f.T+52} C${f.R+2},${f.T+30} ${f.R-6},${f.T+4} ${f.R-22},${f.T-10}`,
-    glanz: `M${f.L+22},${f.T-6} C${f.L+36},${f.T-20} 104,${f.T-25} 120,${f.T-25}`,
-    ohren: true
-  }),
-  // Hoher Dutt: Höhe am Oberkopf, Seiten glatt und nah am Kopf
-  // Diamant vorher
-  hoehe: f => ({
-    back: `M${f.L-4},${f.T+66} C${f.L-10},${f.T+10} ${f.L+10},${f.T-32} 120,${f.T-34} C${f.R-10},${f.T-32} ${f.R+10},${f.T+10} ${f.R+4},${f.T+66}Z`,
-    dutt: `M120,${f.T-68} C150,${f.T-68} 160,${f.T-54} 158,${f.T-40} C156,${f.T-26} 140,${f.T-18} 120,${f.T-18} C100,${f.T-18} 84,${f.T-26} 82,${f.T-40} C80,${f.T-54} 90,${f.T-68} 120,${f.T-68}Z`,
-    seite: `M${f.L-4},${f.T+64} C${f.L-10},${f.T+10} ${f.L+10},${f.T-32} 121,${f.T-34} L121,${f.T+12} ` +
-           `C${f.L+40},${f.T+12} ${f.L+16},${f.T+28} ${f.L+8},${f.T+42} C${f.L+3},${f.T+50} ${f.L+1},${f.T+58} ${f.L-4},${f.T+64}Z`,
-    linien: `M106,${f.T+13} C102,${f.T-4} 108,${f.T-20} 114,${f.T-30} M134,${f.T+13} C138,${f.T-4} 132,${f.T-20} 126,${f.T-30} ` +
-            `M${f.L+16},${f.T+32} C${f.L+12},${f.T+6} ${f.L+30},${f.T-18} 102,${f.T-30} M${f.R-16},${f.T+32} C${f.R-12},${f.T+6} ${f.R-30},${f.T-18} 138,${f.T-30} ` +
-            `M${f.L+2},${f.T+52} C${f.L-2},${f.T+28} ${f.L+6},${f.T} ${f.L+24},${f.T-16} M${f.R-2},${f.T+52} C${f.R+2},${f.T+28} ${f.R-6},${f.T} ${f.R-24},${f.T-16} ` +
-            `M92,${f.T-54} C104,${f.T-66} 136,${f.T-66} 148,${f.T-54} M86,${f.T-40} C102,${f.T-56} 140,${f.T-56} 154,${f.T-40} M92,${f.T-26} C106,${f.T-40} 134,${f.T-40} 148,${f.T-26}`,
-    glanz: `M98,${f.T-60} C108,${f.T-66} 122,${f.T-66} 134,${f.T-64} M${f.L+20},${f.T-8} C${f.L+32},${f.T-22} 100,${f.T-30} 112,${f.T-31}`,
-    ohren: true
-  }),
-  // Kinnlanger Bob mit geradem Pony
-  kontur: f => ({
-    back: `M120,${f.T-24} C${f.R+14},${f.T-24} ${f.R+20},${f.T+10} ${f.R+20},${f.T+56} L${f.R+22},${f.K+2} L${f.L-22},${f.K+2} L${f.L-20},${f.T+56} C${f.L-20},${f.T+10} ${f.L-14},${f.T-24} 120,${f.T-24}Z`,
-    seite: `M121,${f.T-24} C${f.L-14},${f.T-24} ${f.L-20},${f.T+10} ${f.L-20},${f.T+56} L${f.L-22},${f.K-2} Q${f.L-22},${f.K+8} ${f.L-12},${f.K+8} L${f.L+18},${f.K+8} ` +
-           `C${f.L+12},${f.K-20} ${f.L+12},${f.T+90} ${f.L+12},${f.T+44} L121,${f.T+44}Z`,
-    linien: [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const x = f.L + 20 + i * (f.R - f.L - 40) / 7; return `M${x.toFixed(1)},${f.T+30} L${(x + 1).toFixed(1)},${f.T+44}`; }).join(' ') +
-            ` M${f.L-12},${f.T+40} C${f.L-14},${f.T+80} ${f.L-14},${f.K-30} ${f.L-12},${f.K+6} M${f.L+2},${f.T+50} C${f.L+2},${f.T+90} ${f.L+2},${f.K-30} ${f.L+4},${f.K+6}` +
-            ` M${f.R+12},${f.T+40} C${f.R+14},${f.T+80} ${f.R+14},${f.K-30} ${f.R+12},${f.K+6} M${f.R-2},${f.T+50} C${f.R-2},${f.T+90} ${f.R-2},${f.K-30} ${f.R-4},${f.K+6}`,
-    glanz: `M${f.L+4},${f.T-2} C${f.L+18},${f.T-18} 100,${f.T-21} 124,${f.T-21}`
-  }),
-  // Lang, glatt, Mittelscheitel
-  ruhe: f => ({
-    back: `M120,${f.T-22} C${f.R+12},${f.T-22} ${f.R+18},${f.T+20} ${f.R+18},${f.T+70} C${f.R+18},${f.T+150} ${f.R+18},250 ${f.R+16},300 L${f.L-16},300 C${f.L-18},250 ${f.L-18},${f.T+150} ${f.L-18},${f.T+70} C${f.L-18},${f.T+20} ${f.L-12},${f.T-22} 120,${f.T-22}Z`,
-    seite: `M119,${f.T-22} C${f.L-12},${f.T-22} ${f.L-18},${f.T+20} ${f.L-18},${f.T+70} C${f.L-18},${f.T+150} ${f.L-16},250 ${f.L-10},300 L${f.L+18},300 ` +
-           `C${f.L+16},262 ${f.L+12},${f.K+20} ${f.L+12},${f.K-20} C${f.L+12},${f.T+100} ${f.L+8},${f.T+60} ${f.L+18},${f.T+38} C${f.L+30},${f.T+18} 104,${f.T+10} 119,${f.T+6}Z`,
-    linien: `M114,${f.T-12} C${f.L+10},${f.T-8} ${f.L-8},${f.T+40} ${f.L-8},${f.T+100} C${f.L-8},${f.K} ${f.L-4},260 ${f.L},296 ` +
-            `M108,${f.T+4} C${f.L+18},${f.T+14} ${f.L+2},${f.T+60} ${f.L+2},${f.T+120} C${f.L+2},${f.K+10} ${f.L+6},260 ${f.L+10},296 ` +
-            `M126,${f.T-12} C${f.R-10},${f.T-8} ${f.R+8},${f.T+40} ${f.R+8},${f.T+100} C${f.R+8},${f.K} ${f.R+4},260 ${f.R},296 ` +
-            `M132,${f.T+4} C${f.R-18},${f.T+14} ${f.R-2},${f.T+60} ${f.R-2},${f.T+120} C${f.R-2},${f.K+10} ${f.R-6},260 ${f.R-10},296`,
-    glanz: `M${f.L+2},${f.T+4} C${f.L+12},${f.T-14} 98,${f.T-20} 116,${f.T-20} M${f.R-2},${f.T+4} C${f.R-12},${f.T-14} 142,${f.T-20} 124,${f.T-20}`
-  }),
-  // Länglich optimiert: Locken mit Breite an den Seiten, horizontaler Pony
-  lockenPony: f => {
-    const top = f.T - 22, unten = f.K + 16, my = (top + unten) / 2 + 10, rx = (f.R - f.L) / 2 + 48, ry = (unten - top) / 2 + 8;
-    const pkte = [];
-    for (let i = 0; i <= 14; i++){ const a = Math.PI * (0.86 + 1.28 * i / 14); pkte.push([+(120 + Math.cos(a) * rx).toFixed(1), +Math.min(unten, my + Math.sin(a) * ry).toFixed(1)]); }
-    for (let i = 1; i < 6; i++) pkte.push([+(pkte[14][0] - (pkte[14][0] - pkte[0][0]) * i / 6).toFixed(1), unten + (i % 2 ? 6 : 0)]);
-    const pony = [[f.L - 2, f.T + 54], [f.L - 4, f.T + 4], [120, f.T - 16], [f.R + 4, f.T + 4], [f.R + 2, f.T + 54]];
-    for (let x = f.R - 12, i = 0; x >= f.L + 12; x -= 15, i++) pony.push([Math.round(x), f.T + 44 + (i % 2 ? 5 : 0)]);
-    return {
-      back: locken(pkte, 9, 120, my),
-      pony: locken(pony, 5, 120, f.T + 10), ponyDunkel: true,
-      linien: [[f.L-28, f.T+44, 6], [f.L-36, f.T+96, 7], [f.L-26, f.K-18, 6], [f.L-10, f.K+8, 5], [f.R+26, f.T+50, 6], [f.R+34, f.T+104, 7], [f.R+24, f.K-12, 6],
-               [f.R+8, f.K+8, 5], [96, f.T+4, 5], [130, f.T, 5], [f.L+14, f.T+20, 5], [f.R-14, f.T+24, 5]]
-              .map(([x, y, r]) => kringel(x, y, r)).join(' ')
-    };
-  },
-  // Oval vorher: glatt zurück mit Pferdeschwanz
-  zopf: f => {
-    const n = HAARE.neutral(f);
-    return { ...n,
-      back: n.back + ` M134,${f.T-26} C${f.R+10},${f.T-32} ${f.R+30},${f.T+10} ${f.R+26},${f.T+70} C${f.R+22},${f.T+130} ${f.R+28},${f.K+10} ${f.R+14},${f.K+44} ` +
-            `C${f.R+8},${f.K+10} ${f.R+4},${f.T+120} ${f.R+6},${f.T+70} C${f.R+8},${f.T+20} ${f.R-8},${f.T-6} 130,${f.T-12}Z`,
-      linien: n.linien + ` M${f.R+16},${f.T+30} C${f.R+22},${f.T+80} ${f.R+14},${f.T+130} ${f.R+18},${f.K+20}`
-    };
-  },
-  // Rund vorher: symmetrischer Bob mit Mittelscheitel, flach am Oberkopf
-  bobMitte: f => ({
-    back: `M120,${f.T-16} C${f.R+12},${f.T-16} ${f.R+18},${f.T+16} ${f.R+18},${f.T+56} L${f.R+18},${f.K} L${f.L-18},${f.K} L${f.L-18},${f.T+56} C${f.L-18},${f.T+16} ${f.L-12},${f.T-16} 120,${f.T-16}Z`,
-    seite: `M121,${f.T-16} C${f.L-10},${f.T-16} ${f.L-18},${f.T+16} ${f.L-18},${f.T+56} L${f.L-18},${f.K-6} Q${f.L-18},${f.K+2} ${f.L-8},${f.K+2} L${f.L+18},${f.K+2} ` +
-           `C${f.L+12},${f.K-20} ${f.L+10},${f.T+90} ${f.L+12},${f.T+50} C${f.L+20},${f.T+24} 104,${f.T+10} 121,${f.T+6}Z`,
-    linien: sym(`M112,${f.T-6} C${f.L+10},${f.T-4} ${f.L-8},${f.T+40} ${f.L-8},${f.T+90} L${f.L-8},${f.K-4} M106,${f.T+10} C${f.L+20},${f.T+20} ${f.L+2},${f.T+60} ${f.L+2},${f.T+100} L${f.L+4},${f.K-2}`),
-    glanz: `M${f.L+4},${f.T+8} C${f.L+14},${f.T-8} 98,${f.T-13} 116,${f.T-13} M${f.R-4},${f.T+8} C${f.R-14},${f.T-8} 142,${f.T-13} 124,${f.T-13}`
-  }),
-  // Rund optimiert: kurz, tiefer Seitenscheitel, Höhe am Oberkopf, Pony zur Seite
-  rundOpt: f => {
-    const d = `M${f.L-6},${f.T+62} C${f.L-12},${f.T+10} ${f.L-2},${f.T-36} 104,${f.T-42} C144,${f.T-46} ${f.R+14},${f.T-26} ${f.R+12},${f.T+20} C${f.R+12},${f.T+56} ${f.R+8},${f.T+86} ${f.R},${f.T+108}`;
-    return {
-      back: d + 'Z',
-      vorne: d + ` C${f.R-6},${f.T+86} ${f.R-6},${f.T+60} ${f.R-10},${f.T+44} C${f.R-24},${f.T+42} 146,${f.T+30} 124,${f.T+18} C104,${f.T+8} ${f.L+22},${f.T+10} ${f.L+10},${f.T+30} C${f.L+4},${f.T+40} ${f.L+2},${f.T+52} ${f.L-6},${f.T+62}Z`,
-      linien: `M${f.L+22},${f.T-4} C${f.L+46},${f.T-30} 140,${f.T-38} ${f.R+4},${f.T-6} M${f.L+24},${f.T+4} C100,${f.T-6} 150,${f.T+6} ${f.R-8},${f.T+40} ` +
-              `M${f.L+28},${f.T-14} C${f.L+50},${f.T-36} 130,${f.T-40} ${f.R-6},${f.T-22} M${f.L+18},${f.T+10} C${f.L+14},${f.T-14} ${f.L+20},${f.T-30} ${f.L+34},${f.T-38} ` +
-              `M${f.R+4},${f.T+10} C${f.R+6},${f.T+44} ${f.R+2},${f.T+76} ${f.R-2},${f.T+100}`,
-      glanz: `M${f.L+30},${f.T-20} C${f.L+46},${f.T-32} 110,${f.T-35} 132,${f.T-33}`,
-      ohren: true
-    };
-  },
-  // Eckig optimiert: Wellen-Lob mit Seitenscheitel und weichem Pony
-  wellenLob: f => ({
-    back: `M120,${f.T-24} C${f.R+12},${f.T-24} ${f.R+18},${f.T+16} ${f.R+16},${f.T+50} C${f.R+26},${f.T+100} ${f.R+20},${f.K} ${f.R+24},${f.K+30} L${f.L-24},${f.K+30} C${f.L-20},${f.K} ${f.L-26},${f.T+100} ${f.L-16},${f.T+50} C${f.L-18},${f.T+16} ${f.L-12},${f.T-24} 120,${f.T-24}Z`,
-    seite: `M121,${f.T-24} C${f.L-10},${f.T-24} ${f.L-16},${f.T+16} ${f.L-14},${f.T+50} C${f.L-12},${f.T+76} ${f.L-26},${f.T+96} ${f.L-22},${f.T+124} C${f.L-18},${f.T+150} ${f.L-8},${f.K-24} ${f.L-18},${f.K+6} ` +
-           `C${f.L-26},${f.K+24} ${f.L-14},${f.K+34} ${f.L-2},${f.K+30} C${f.L+8},${f.K+26} ${f.L+14},${f.K+20} ${f.L+18},${f.K+8} C${f.L+24},${f.K-12} ${f.L+8},${f.K-30} ${f.L+12},${f.T+100} ` +
-           `C${f.L+16},${f.T+82} ${f.L+6},${f.T+66} ${f.L+12},${f.T+46} C${f.L+24},${f.T+20} 100,${f.T+8} 121,${f.T+6}Z`,
-    vorne: `M96,${f.T-22} C70,${f.T-18} ${f.L+4},${f.T+8} ${f.L+6},${f.T+50} C${f.L+18},${f.T+34} ${f.L+34},${f.T+28} 100,${f.T+26} C130,${f.T+24} 152,${f.T+36} ${f.R-6},${f.T+60} ` +
-           `C${f.R+2},${f.T+30} ${f.R-10},${f.T-12} 150,${f.T-22} C130,${f.T-28} 110,${f.T-26} 96,${f.T-22}Z`,
-    linien: sym(`M${f.L-8},${f.T+44} C${f.L-18},${f.T+80} ${f.L+2},${f.T+110} ${f.L-10},${f.T+140} C${f.L-20},${f.K-10} ${f.L-2},${f.K+4} ${f.L-8},${f.K+24} ` +
-                `M${f.L+2},${f.T+60} C${f.L-6},${f.T+90} ${f.L+10},${f.T+120} ${f.L+2},${f.K-20} C${f.L-4},${f.K} ${f.L+8},${f.K+10} ${f.L+6},${f.K+22}`) +
-            ` M96,${f.T-18} C120,${f.T-10} 150,${f.T+8} ${f.R-10},${f.T+48} M90,${f.T-8} C${f.L+30},${f.T} ${f.L+14},${f.T+20} ${f.L+10},${f.T+40}`,
-    glanz: `M100,${f.T-18} C120,${f.T-20} 146,${f.T-10} ${f.R-10},${f.T+14}`
-  }),
-  // Herzförmig vorher: kurz mit geradem Pony
-  pixiePony: f => {
-    const d = `M${f.L-8},${f.T+62} C${f.L-12},${f.T+4} ${f.L+8},${f.T-28} 120,${f.T-30} C${f.R-8},${f.T-28} ${f.R+12},${f.T+4} ${f.R+8},${f.T+62}`;
-    return {
-      back: d + 'Z',
-      vorne: d + ` L${f.R+2},${f.T+72} C${f.R},${f.T+58} ${f.R-4},${f.T+48} ${f.R-12},${f.T+40} L${f.L+12},${f.T+40} C${f.L+4},${f.T+48} ${f.L},${f.T+58} ${f.L-2},${f.T+72}Z`,
-      linien: [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => { const x = f.L + 20 + i * (f.R - f.L - 40) / 8; return `M${x.toFixed(1)},${f.T+26} L${(x + 1).toFixed(1)},${f.T+40}`; }).join(' ') +
-              ' ' + sym(`M${f.L+10},${f.T+24} C${f.L+8},${f.T} ${f.L+24},${f.T-18} 104,${f.T-24} M${f.L-4},${f.T+50} C${f.L-6},${f.T+30} ${f.L-2},${f.T+12} ${f.L+6},${f.T}`),
-      glanz: `M${f.L+12},${f.T-8} C${f.L+26},${f.T-22} 100,${f.T-27} 120,${f.T-27}`,
-      ohren: true
-    };
-  },
-  // Herzförmig optimiert: kinnlanger, fransiger Bob, oben flach, Pony diagonal
-  herzBob: f => ({
-    back: `M120,${f.T-18} C${f.R+12},${f.T-18} ${f.R+16},${f.T+16} ${f.R+16},${f.T+56} C${f.R+18},${f.T+100} ${f.R+24},${f.K-10} ${f.R+24},${f.K+12} L${f.L-24},${f.K+12} C${f.L-24},${f.K-10} ${f.L-18},${f.T+100} ${f.L-16},${f.T+56} C${f.L-16},${f.T+16} ${f.L-12},${f.T-18} 120,${f.T-18}Z`,
-    seite: `M121,${f.T-18} C${f.L-10},${f.T-18} ${f.L-16},${f.T+16} ${f.L-16},${f.T+56} C${f.L-18},${f.T+100} ${f.L-24},${f.K-10} ${f.L-24},${f.K+12} ` +
-           `L${f.L-14},${f.K+4} L${f.L-8},${f.K+16} L${f.L},${f.K+6} L${f.L+8},${f.K+16} L${f.L+14},${f.K+4} L${f.L+22},${f.K+10} ` +
-           `C${f.L+16},${f.K-20} ${f.L+12},${f.T+100} ${f.L+12},${f.T+60} C${f.L+14},${f.T+36} 100,${f.T+12} 121,${f.T+8}Z`,
-    vorne: `M${f.L+20},${f.T-14} C${f.L+30},${f.T+16} 104,${f.T+30} 140,${f.T+38} C156,${f.T+42} ${f.R-10},${f.T+50} ${f.R-2},${f.T+62} ` +
-           `C${f.R+6},${f.T+30} ${f.R-4},${f.T-6} 150,${f.T-16} C130,${f.T-22} ${f.L+30},${f.T-22} ${f.L+20},${f.T-14}Z`,
-    linien: `M${f.L+24},${f.T-10} C${f.L+40},${f.T+12} 110,${f.T+22} ${f.R-6},${f.T+52} M${f.L+40},${f.T-16} C${f.L+60},${f.T} 130,${f.T+10} ${f.R-4},${f.T+30} ` +
-            sym(`M${f.L-8},${f.T+50} C${f.L-10},${f.T+90} ${f.L-14},${f.K-20} ${f.L-12},${f.K+8} M${f.L+6},${f.T+70} C${f.L+4},${f.T+100} ${f.L+6},${f.K-20} ${f.L+8},${f.K+10}`),
-    glanz: `M${f.L+4},${f.T+4} C${f.L+14},${f.T-12} 100,${f.T-16} 120,${f.T-16}`
-  }),
-  // Oval optimiert: Shag mit Curtain-Pony und Stufen
-  shag: f => ({
-    back: `M120,${f.T-24} C${f.R+14},${f.T-24} ${f.R+20},${f.T+20} ${f.R+20},${f.T+60} C${f.R+22},${f.T+110} ${f.R+26},${f.K+10} ${f.R+22},${f.K+40} L${f.L-22},${f.K+40} C${f.L-26},${f.K+10} ${f.L-22},${f.T+110} ${f.L-20},${f.T+60} C${f.L-20},${f.T+20} ${f.L-14},${f.T-24} 120,${f.T-24}Z`,
-    seite: `M121,${f.T-24} C${f.L-12},${f.T-24} ${f.L-20},${f.T+20} ${f.L-20},${f.T+60} C${f.L-22},${f.T+90} ${f.L-26},${f.K} ${f.L-22},${f.K+40} ` +
-           `L${f.L-12},${f.K+26} L${f.L-4},${f.K+42} L${f.L+4},${f.K+24} L${f.L+14},${f.K+34} C${f.L+14},${f.K} ${f.L+10},${f.T+100} ${f.L+12},${f.T+66} ` +
-           `C${f.L+14},${f.T+46} ${f.L+20},${f.T+36} ${f.L+28},${f.T+32} C${f.L+40},${f.T+28} 106,${f.T+20} 116,${f.T+4} L121,${f.T}Z`,
-    linien: sym(`M116,${f.T-18} C${f.L+30},${f.T-14} ${f.L+10},${f.T+10} ${f.L+16},${f.T+40} M110,${f.T+4} C${f.L+40},${f.T+14} ${f.L+20},${f.T+30} ${f.L+16},${f.T+60} ` +
-                `M${f.L-10},${f.T+70} C${f.L-14},${f.T+110} ${f.L-12},${f.K} ${f.L-14},${f.K+30} M${f.L+4},${f.T+90} C${f.L+2},${f.T+120} ${f.L+4},${f.K} ${f.L+6},${f.K+26}`),
-    glanz: `M${f.L+4},${f.T+4} C${f.L+14},${f.T-14} 98,${f.T-20} 116,${f.T-20} M${f.R-4},${f.T+4} C${f.R-14},${f.T-14} 142,${f.T-20} 124,${f.T-20}`
-  }),
-  // Diamant optimiert: welliger Kiefer-Bob mit weichem, fransigem Pony
-  wellenBob: f => {
-    let pony = `M${f.L+10},${f.T+46} C${f.L+2},${f.T+10} ${f.L+20},${f.T-12} 120,${f.T-14} C${f.R-20},${f.T-12} ${f.R-2},${f.T+10} ${f.R-10},${f.T+46}`;
-    for (let x = f.R - 16, i = 0; x > f.L + 14; x -= 8, i++) pony += ` Q${x + 4},${f.T + [46, 42, 48, 44][i % 4]} ${x},${f.T + [38, 36, 40, 37][i % 4]}`;
-    return {
-      back: `M120,${f.T-22} C${f.R+14},${f.T-22} ${f.R+20},${f.T+16} ${f.R+20},${f.T+56} C${f.R+28},${f.T+90} ${f.R+18},${f.K-20} ${f.R+26},${f.K+8} L${f.L-26},${f.K+8} C${f.L-18},${f.K-20} ${f.L-28},${f.T+90} ${f.L-20},${f.T+56} C${f.L-20},${f.T+16} ${f.L-14},${f.T-22} 120,${f.T-22}Z`,
-      seite: `M121,${f.T-22} C${f.L-12},${f.T-22} ${f.L-20},${f.T+16} ${f.L-20},${f.T+56} C${f.L-12},${f.T+80} ${f.L-30},${f.T+100} ${f.L-24},${f.T+124} C${f.L-18},${f.K-30} ${f.L-32},${f.K-12} ${f.L-26},${f.K+8} ` +
-             `C${f.L-16},${f.K+20} ${f.L-4},${f.K+14} ${f.L+4},${f.K+18} C${f.L+14},${f.K+20} ${f.L+22},${f.K+6} ${f.L+20},${f.K-6} C${f.L+10},${f.K-24} ${f.L+16},${f.T+100} ${f.L+10},${f.T+80} ` +
-             `C${f.L+6},${f.T+60} ${f.L+10},${f.T+44} ${f.L+14},${f.T+38} L121,${f.T+38}Z`,
-      pony: pony + 'Z',
-      linien: sym(`M${f.L-10},${f.T+60} C${f.L-20},${f.T+90} ${f.L},${f.T+110} ${f.L-12},${f.K-20} C${f.L-18},${f.K-6} ${f.L-10},${f.K+4} ${f.L-14},${f.K+10} ` +
-                  `M${f.L+4},${f.T+70} C${f.L-4},${f.T+96} ${f.L+12},${f.T+120} ${f.L+6},${f.K-14}`) +
-              ` M100,${f.T-6} L96,${f.T+36} M120,${f.T-8} L121,${f.T+38} M140,${f.T-6} L144,${f.T+36}`,
-      glanz: `M${f.L+12},${f.T-2} C${f.L+26},${f.T-16} 100,${f.T-20} 120,${f.T-20}`
-    };
-  }
-};
-
-
-const HALS = 'M58,300 C62,270 90,260 102,252 L103,200 L137,200 L138,252 C150,260 178,270 182,300Z';
-const ZUEGE =
-  // Brauen, Augen, Nase, Mund: immer gleich, bewusst zurückhaltend
-  `<path d="M84,136 Q96,130 108,135 M132,135 Q144,130 156,136" fill="none" stroke="${HAUT.zug}" stroke-width="2" stroke-linecap="round" opacity=".55"/>` +
-  `<path d="M86,151 Q96,144 106,151 M134,151 Q144,144 154,151" fill="none" stroke="${HAUT.zug}" stroke-width="1.8" stroke-linecap="round"/>` +
-  `<circle cx="96" cy="150" r="3.1" fill="${HAUT.zug}"/><circle cx="144" cy="150" r="3.1" fill="${HAUT.zug}"/>` +
-  `<path d="M121,158 Q117,174 113,180 Q119,184 127,181" fill="none" stroke="${HAUT.zug}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>` +
-  `<path d="M107,197 Q120,203 133,197" fill="none" stroke="${HAUT.mund}" stroke-width="2.2" stroke-linecap="round"/>`;
-
-let zeichnungNr = 0;
-function zeichnung(formId, haarId, farbId, beschriftung){
-  const n = ++zeichnungNr;
-  const label = esc(beschriftung || '');
-  if (!formId){
-    // Ausgangsbild vor der ersten Wahl: nur eine angedeutete Form
-    return `<svg viewBox="0 0 240 300" role="img" aria-label="${label}">
-      <path d="${HALS}" fill="none" stroke="${HAUT.linie}" stroke-width="1.4" stroke-dasharray="4 5"/>
-      <ellipse cx="120" cy="150" rx="62" ry="72" fill="${HAUT.fill}" fill-opacity=".45" stroke="${HAUT.linie}" stroke-width="1.4" stroke-dasharray="4 5"/>
-      <g opacity=".35">${ZUEGE}</g></svg>`;
-  }
-  const f = FORMEN[formId];
-  const h = HAARE[haarId || 'neutral'](f);
-  const c = FARBEN[farbId || 'neutral'];
-  const gid = 'gk-haar-' + n, sid = 'gk-schatten-' + n, cid = 'gk-form-' + n;
-  const ohr = x => `<path d="M${x},${f.T+56} c${x < 120 ? -9 : 9},-2 ${x < 120 ? -11 : 11},12 ${x < 120 ? -9 : 9},22 c${x < 120 ? 1 : -1},6 ${x < 120 ? 4 : -4},9 ${x < 120 ? 9 : -9},8Z" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>`;
-  const seite = h.seite ? `<path d="${h.seite}" fill="url(#${gid})"/><path d="${h.seite}" fill="url(#${gid})" transform="translate(240,0) scale(-1,1)"/>` : '';
-  return `<svg viewBox="0 0 240 300" role="img" aria-label="${label}">
-    <defs>
-      <linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="${f.T-60}" x2="0" y2="300">
-        <stop offset="0" stop-color="${c.hell}"/><stop offset=".4" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
-      </linearGradient>
-      <linearGradient id="${sid}" gradientUnits="userSpaceOnUse" x1="0" y1="${f.T-60}" x2="0" y2="300">
-        <stop offset="0" stop-color="${c.mitte}"/><stop offset="1" stop-color="${c.tief}"/>
-      </linearGradient>
-      <clipPath id="${cid}"><path d="${f.d}"/></clipPath>
-    </defs>
-    <path d="${h.back}" fill="url(#${sid})"/>
-    ${h.dutt ? `<path d="${h.dutt}" fill="url(#${gid})"/>` : ''}
-    ${h.ohren ? ohr(f.L + 4) + ohr(f.R - 4) : ''}
-    <path d="${HALS}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.2"/>
-    <path d="${f.d}" fill="${HAUT.fill}" stroke="${HAUT.linie}" stroke-width="1.4"/>
-    ${ZUEGE}
-    ${h.ansatz ? `<path d="${h.ansatz}" fill="url(#${gid})" clip-path="url(#${cid})"/>` : ''}
-    ${seite}
-    ${h.pony ? `<path d="${h.pony}" fill="url(#${h.ponyDunkel ? sid : gid})"/>` : ''}
-    ${h.vorne ? `<path d="${h.vorne}" fill="url(#${gid})"/>` : ''}
-    ${h.linien ? `<path d="${h.linien}" fill="none" stroke="${c.tief}" stroke-width="1.3" stroke-linecap="round" opacity=".5"/>` : ''}
-    ${h.glanz ? `<path d="${h.glanz}" fill="none" stroke="${c.hell}" stroke-width="3.5" stroke-linecap="round" opacity=".55"/>` : ''}
-  </svg>`;
-}
+// ── Fotos ────────────────────────────────────────────────────
+// Pro Gesichtsform ein Foto „vorher“ und eines „optimiert“ (4:5).
+const foto = (id, look, alt) =>
+  `<img src="bilder/gesichtskompass/${id}-${look}.jpg" width="360" height="450" alt="${esc(alt)}" decoding="async">`;
 
 // ── Ablauf ───────────────────────────────────────────────────
-const wahl = { form: null, look: 'opt', farbe: null };   // look: 'vorher' | 'opt'
-let ansicht = 'start';        // 'start' | 0 | 1 | 2 | 'gesamt' | 'uebersicht'
+const wahl = { form: null };
+let ansicht = 'start';        // 'start' | 0 | 1 | 'uebersicht'
+let vonUebersicht = 'start';
 const inhalt = document.getElementById('inhalt');
 const leiste = document.getElementById('stationen');
 
 function esc(s){ return String(s).replace(/[&<>"]/g, z => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[z])); }
 const form = id => FORMEN_INFO.find(o => o.id === id);
-const farbe = id => FARB_INFO.find(o => o.id === id);
-// Eine Station ist erreichbar, wenn die Gesichtsform gewählt ist (Station 2 und 3)
-// bzw. auch die Farbe (Gesamtbild).
-function erreichbar(i){ return i === 0 || !!wahl.form; }
-function alleGewaehlt(){ return !!(wahl.form && wahl.farbe); }
-const frisurVon = (formId, look) => form(formId)[look].frisur;
+const liste = schritte => `<ol>${schritte.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
 
 function zeigeLeiste(){
+  const aus = ansicht === 'start' || ansicht === 'uebersicht';
   leiste.innerHTML = STATIONEN.map((s, i) => `
-    <li><button type="button" data-i="${i}" ${ansicht === i ? 'aria-current="step"' : ''}
-      class="${(i === 0 && wahl.form) || (i === 1 && wahl.form) || (i === 2 && wahl.farbe) ? 'fertig' : ''}"
-      ${erreichbar(i) && ansicht !== 'start' && ansicht !== 'uebersicht' ? '' : 'disabled'}>${i + 1} ${esc(s.kurz)}</button></li>`).join('') +
-    `<li><button type="button" data-i="gesamt" ${ansicht === 'gesamt' ? 'aria-current="step"' : ''} ${alleGewaehlt() ? '' : 'disabled'}>Bild</button></li>`;
+    <li><button type="button" data-i="${i}" ${ansicht === i ? 'aria-current="step"' : ''} class="${wahl.form ? 'fertig' : ''}"
+      ${aus || (i === 1 && !wahl.form) ? 'disabled' : ''}>${i + 1} ${esc(s.kurz)}</button></li>`).join('') +
+    `<li><button type="button" data-i="alle" ${ansicht === 'uebersicht' ? 'aria-current="step"' : ''}>Alle</button></li>`;
   leiste.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-    const i = b.dataset.i;
-    i === 'gesamt' ? zeigeGesamt() : zeigeStation(Number(i));
+    b.dataset.i === 'alle' ? zeigeUebersicht() : zeigeStation(Number(b.dataset.i));
   }));
 }
 
@@ -494,13 +231,15 @@ function zeigeStart(){
   zeigeLeiste();
   inhalt.innerHTML = `
     <section class="start">
-      <p class="zaehler">Gesichtsform & Styling</p>
+      <div class="startbilder" aria-hidden="true">
+        ${foto('lang', 'vorher', '')}<span>→</span>${foto('lang', 'opt', '')}
+      </div>
+      <p class="zaehler">Gesichtsform-Analyse</p>
       <h1>Was passt zu welchem Gesicht?</h1>
-      <p class="hinweis">Drei Stationen, etwa zwei Minuten. Du siehst, was eine Gesichtsform betont – und wie Styling und Farbe sie sofort ausgleichen.</p>
+      <p class="hinweis">Gesichtsform erkennen und mit Styling sofort optisch ausgleichen – in zwei Schritten.</p>
       <ul class="regeln">
         <li><i>1</i><span>Gesichtsform erkennen</span></li>
-        <li><i>2</i><span>Styling: vorher und optimiert</span></li>
-        <li><i>3</i><span>Farbwirkung</span></li>
+        <li><i>2</i><span>Vorher und optimiert vergleichen, mit Sofortmaßnahmen</span></li>
       </ul>
       <div class="aktionen" style="justify-content:center">
         <button type="button" class="knopf" id="los">Beginnen</button>
@@ -511,162 +250,86 @@ function zeigeStart(){
   document.getElementById('alle').addEventListener('click', zeigeUebersicht);
 }
 
-// Gemeinsames Gerüst einer Station: Bühne links/oben, Text und Auswahl daneben.
-function geruest(i, titel, hinweis, buehne, auswahl, weiterText){
-  inhalt.innerHTML = `
-    <section class="station">
-      <div class="buehne">
-        <div class="bild" id="bild">${buehne}</div>
-        <p class="erklaerung" id="erklaerung"></p>
-      </div>
-      <div class="kopf">
-        <p class="zaehler">Station ${i + 1} von 3 · ${esc(STATIONEN[i].name)}</p>
-        <h1>${esc(titel)}</h1>
-        <p class="hinweis">${esc(hinweis)}</p>
-      </div>
-      <div class="auswahl">
-        ${auswahl}
-        <div class="navi">
-          <button type="button" class="zurueck" id="zurueck">← Zurück</button>
-          <button type="button" class="knopf" id="weiter">${esc(weiterText)}</button>
-        </div>
-      </div>
-    </section>`;
-  document.getElementById('zurueck').addEventListener('click', () => i > 0 ? zeigeStation(i - 1) : zeigeStart());
-  document.getElementById('weiter').addEventListener('click', () => i < 2 ? zeigeStation(i + 1) : zeigeGesamt());
-  window.scrollTo({ top: 0 });
-}
-
-function erklaere(titel, text){
-  document.getElementById('erklaerung').innerHTML = `<b>${esc(titel)}</b><span>${esc(text)}</span>`;
-}
-
-function wechsleBild(html, titel, text){
-  const bild = document.getElementById('bild');
-  const ruhig = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const tausch = () => { if (!bild.isConnected) return; bild.innerHTML = html; erklaere(titel, text); bild.classList.remove('wechsel'); };
-  if (ruhig) return tausch();
-  bild.classList.add('wechsel');
-  setTimeout(tausch, 160);
-}
-
-// Optionsknöpfe: genau eine aktive Wahl pro Station
-function optionen(liste, aktiv, bild, klasse){
-  return `<div class="optionen ${klasse || ''}" role="group">
-    ${liste.map(o => `<button type="button" class="option" data-id="${o.id}" aria-pressed="${aktiv === o.id}">
-      ${bild(o)}<span>${esc(o.label || o.name)}</span></button>`).join('')}</div>`;
-}
-function beiWahl(fn){
-  inhalt.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
-    inhalt.querySelectorAll('.option').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
-    fn(btn.dataset.id);
-  }));
-}
-
 function zeigeStation(i){
-  if (!erreichbar(i)) return;
+  if (i === 1 && !wahl.form) return;
   ansicht = i;
   zeigeLeiste();
-  if (i === 0) return stationForm();
-  if (i === 1) return stationStyling();
-  return stationFarbe();
+  i === 0 ? stationForm() : stationStyling();
+  window.scrollTo({ top: 0 });
 }
 
 function stationForm(){
   const aktiv = wahl.form;
-  const bild = id => zeichnung(id, id ? 'neutral' : null, null, id ? 'Gesichtsform ' + form(id).name : 'Ausgangsbild');
-  geruest(0, 'Welche Gesichtsform ist es?',
-    'Das Haar ist zurückgenommen, damit die Form frei sichtbar ist. Achte auf Stirn, Wangenknochen und Kinn.',
-    bild(aktiv),
-    `<p class="frage">Welche Form kommt dem Gesicht am nächsten?</p>` + optionen(FORMEN_INFO, aktiv, o => bild(o.id), 'sechs'),
-    'Weiter');
-  const weiter = document.getElementById('weiter');
-  weiter.disabled = !aktiv;
-  aktiv ? erklaere(form(aktiv).name, form(aktiv).was) : erklaere('Ausgangsbild', 'Wähle eine Form und vergleiche sie mit dem Gesicht.');
-  beiWahl(id => {
-    if (wahl.form !== id){ wahl.form = id; wahl.look = 'opt'; }
-    weiter.disabled = false;
-    wechsleBild(bild(id), form(id).name, form(id).was);
+  const buehne = id => id
+    ? `${foto(id, 'vorher', 'Gesichtsform ' + form(id).name)}<p class="erklaerung"><b>${esc(form(id).name)}</b><span>${esc(form(id).was)}</span></p>`
+    : `<div class="platzhalter">Wähle eine Form</div><p class="erklaerung"><b>Gesichtsform</b><span>Achte auf Stirn, Wangenknochen und Kinn – wo ist das Gesicht am breitesten?</span></p>`;
+  inhalt.innerHTML = `
+    <section class="station">
+      <div class="buehne"><div class="bild" id="bild">${buehne(aktiv)}</div></div>
+      <div class="kopf">
+        <p class="zaehler">Schritt 1 von 2 · Gesichtsform</p>
+        <h1>Welche Gesichtsform ist es?</h1>
+        <p class="hinweis">Vergleiche Stirn, Wangenknochen und Kinn mit den Beispielen.</p>
+      </div>
+      <div class="auswahl">
+        <div class="optionen sechs" role="group" aria-label="Gesichtsform">
+          ${FORMEN_INFO.map(o => `<button type="button" class="option" data-id="${o.id}" aria-pressed="${aktiv === o.id}">
+            ${foto(o.id, 'vorher', '')}<span>${esc(o.name)}</span></button>`).join('')}
+        </div>
+        <div class="navi">
+          <button type="button" class="zurueck" id="zurueck">← Zurück</button>
+          <button type="button" class="knopf" id="weiter" ${aktiv ? '' : 'disabled'}>Styling ansehen</button>
+        </div>
+      </div>
+    </section>`;
+  inhalt.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+    wahl.form = btn.dataset.id;
+    inhalt.querySelectorAll('.option').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    document.getElementById('weiter').disabled = false;
+    const bild = document.getElementById('bild');
+    bild.classList.add('wechsel');
+    setTimeout(() => { if (!bild.isConnected) return; bild.innerHTML = buehne(wahl.form); bild.classList.remove('wechsel'); }, 140);
     zeigeLeiste();
-  });
+  }));
+  document.getElementById('zurueck').addEventListener('click', zeigeStart);
+  document.getElementById('weiter').addEventListener('click', () => zeigeStation(1));
+}
+
+function vergleich(f){
+  return `<div class="vergleich">
+    <figure>${foto(f.id, 'vorher', 'Vorher: ' + f.vorher.kurz)}<figcaption><small>Vorher</small>${esc(f.vorher.kurz)}</figcaption></figure>
+    <figure class="opt">${foto(f.id, 'opt', 'Optimiert: ' + f.opt.kurz)}<figcaption><small>Optimiert</small>${esc(f.opt.kurz)}</figcaption></figure>
+  </div>`;
 }
 
 function stationStyling(){
   const f = form(wahl.form);
-  const bild = look => zeichnung(wahl.form, f[look].frisur, null, (look === 'opt' ? 'Optimiert: ' : 'Vorher: ') + f[look].kurz);
-  const text = look => look === 'opt' ? [`Optimiert: ${f.opt.kurz}`, f.opt.warum] : [`Vorher: ${f.vorher.kurz}`, f.vorher.text];
-  geruest(1, `So gleichst du ${f.id === 'oval' ? 'die ovale Form' : 'die Form „' + f.name + '“'} aus`,
-    'Links siehst du, was die Form ungünstig betont, rechts das optimierte Styling. Die Farbe bleibt noch neutral.',
-    bild(wahl.look),
-    optionen([{ id: 'vorher', label: 'Vorher' }, { id: 'opt', label: 'Optimiert' }], wahl.look, o => bild(o.id), 'zwei') +
-    `<div class="massnahmen"><h2>Sofortmaßnahmen</h2><ol>${f.opt.schritte.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>`,
-    'Weiter');
-  erklaere(...text(wahl.look));
-  beiWahl(look => { wahl.look = look; wechsleBild(bild(look), ...text(look)); });
-}
-
-function stationFarbe(){
-  const frisur = frisurVon(wahl.form, wahl.look);
-  const bild = id => zeichnung(wahl.form, frisur, id, id ? 'Farbwirkung ' + farbe(id).name : 'Neutrale Farbe');
-  geruest(2, 'Was macht die Farbe mit dem Gesicht?',
-    'Form und Styling bleiben. Hier ändert sich nur die Haarfarbe.',
-    bild(wahl.farbe),
-    `<p class="frage">Welche Farbwirkung spricht dich an?</p>` + optionen(FARB_INFO, wahl.farbe, o => bild(o.id)),
-    'Gesamtbild ansehen');
-  const weiter = document.getElementById('weiter');
-  weiter.disabled = !wahl.farbe;
-  wahl.farbe ? erklaere(farbe(wahl.farbe).name, farbe(wahl.farbe).was) : erklaere('Neutrale Farbe', 'Wähle eine Farbwirkung und sieh, was sich verändert.');
-  beiWahl(id => {
-    wahl.farbe = id;
-    weiter.disabled = false;
-    wechsleBild(bild(id), farbe(id).name, farbe(id).was);
-    zeigeLeiste();
-  });
-}
-
-function zeigeGesamt(){
-  if (!alleGewaehlt()) return;
-  ansicht = 'gesamt';
-  zeigeLeiste();
-  const f = form(wahl.form), look = f[wahl.look];
-  const zeilen = [
-    ['Gesichtsform', f.name, 0],
-    ['Styling', (wahl.look === 'opt' ? 'Optimiert: ' : 'Vorher: ') + look.kurz, 1],
-    ['Farbwirkung', farbe(wahl.farbe).name, 2]
-  ].map(([t, w, i]) => `<li><div><small>${esc(t)}</small><b>${esc(w)}</b></div><button type="button" data-i="${i}">ändern</button></li>`).join('');
   inhalt.innerHTML = `
-    <section class="station">
-      <div class="buehne">
-        <div class="bild">${zeichnung(wahl.form, look.frisur, wahl.farbe, 'Dein Gesamtbild')}</div>
+    <section class="styling">
+      <p class="zaehler">Schritt 2 von 2 · Styling</p>
+      <h1>Gesichtsform ${esc(f.name)}</h1>
+      <p class="hinweis">${esc(f.vorher.text)}</p>
+      ${vergleich(f)}
+      <div class="massnahmen">
+        <h2>Sofortmaßnahmen</h2>
+        ${liste(f.opt.schritte)}
+        <p class="warum"><b>Warum es wirkt:</b> ${esc(f.opt.warum)}</p>
       </div>
-      <div class="kopf verdichtung">
-        <h2>Dein Gesamtbild</h2>
-        <p class="einleitung">${esc(f.opt.warum)}</p>
-      </div>
-      <div class="auswahl verdichtung">
-        <ul class="zeilen">${zeilen}</ul>
-        <div class="massnahmen"><h2>Sofortmaßnahmen</h2><ol>${f.opt.schritte.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
-        <p class="schluss">Kein Urteil, sondern ein Bild für unser Gespräch.</p>
+      <p class="schluss">Kein Urteil, sondern ein Bild für unser Gespräch.</p>
+      <div class="navi">
+        <button type="button" class="zurueck" id="zurueck">← Andere Form</button>
         <div class="aktionen">
-          <button type="button" class="knopf leise" id="neu">Neu beginnen</button>
-          <button type="button" class="knopf leise" id="alle">Alle Formen im Überblick</button>
+          <button type="button" class="knopf leise" id="alle">Alle Formen</button>
         </div>
-        <div class="navi"><button type="button" class="zurueck" id="zurueck">← Zurück zur Farbwirkung</button></div>
       </div>
     </section>`;
-  inhalt.querySelectorAll('.zeilen button').forEach(b => b.addEventListener('click', () => zeigeStation(Number(b.dataset.i))));
-  document.getElementById('zurueck').addEventListener('click', () => zeigeStation(2));
+  document.getElementById('zurueck').addEventListener('click', () => zeigeStation(0));
   document.getElementById('alle').addEventListener('click', zeigeUebersicht);
-  document.getElementById('neu').addEventListener('click', () => {
-    wahl.form = wahl.farbe = null; wahl.look = 'opt';
-    zeigeStart();
-  });
-  window.scrollTo({ top: 0 });
 }
 
 // Checkliste aller Formen: Vorher / Optimiert mit den Sofortmaßnahmen
 function zeigeUebersicht(){
-  const zurueck = ansicht === 'gesamt' ? 'gesamt' : 'start';
+  if (ansicht !== 'uebersicht') vonUebersicht = ansicht;
   ansicht = 'uebersicht';
   zeigeLeiste();
   inhalt.innerHTML = `
@@ -677,15 +340,12 @@ function zeigeUebersicht(){
       ${FORMEN_INFO.map(f => `
         <article class="karte">
           <h2>${esc(f.name)}</h2>
-          <div class="paar">
-            <figure>${zeichnung(f.id, f.vorher.frisur, null, 'Vorher')}<figcaption><small>Vorher</small>${esc(f.vorher.kurz)}</figcaption></figure>
-            <figure>${zeichnung(f.id, f.opt.frisur, null, 'Optimiert')}<figcaption><small>Optimiert</small>${esc(f.opt.kurz)}</figcaption></figure>
-          </div>
-          <ol>${f.opt.schritte.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+          ${vergleich(f)}
+          ${liste(f.opt.schritte)}
         </article>`).join('')}
       <div class="navi"><button type="button" class="zurueck" id="zurueck">← Zurück</button></div>
     </section>`;
-  document.getElementById('zurueck').addEventListener('click', () => zurueck === 'gesamt' ? zeigeGesamt() : zeigeStart());
+  document.getElementById('zurueck').addEventListener('click', () => typeof vonUebersicht === 'number' ? zeigeStation(vonUebersicht) : zeigeStart());
   window.scrollTo({ top: 0 });
 }
 

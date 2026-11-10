@@ -6,7 +6,7 @@
 // Neue Seiten/Dateien dieser App hier bei `vorab` ergänzen.
 self.GHD_OFFLINE = {
   app: 'start',
-  version: '2026-11-10c',
+  version: '2026-11-10d',
   start: './index.html',
   vorab: [
     './',
@@ -22,6 +22,18 @@ self.GHD_OFFLINE = {
     './sponsoring.html',
     './impressum.html',
     './gesichtskompass.html',
+    './bilder/gesichtskompass/rund-vorher.jpg',
+    './bilder/gesichtskompass/rund-opt.jpg',
+    './bilder/gesichtskompass/eckig-vorher.jpg',
+    './bilder/gesichtskompass/eckig-opt.jpg',
+    './bilder/gesichtskompass/herz-vorher.jpg',
+    './bilder/gesichtskompass/herz-opt.jpg',
+    './bilder/gesichtskompass/oval-vorher.jpg',
+    './bilder/gesichtskompass/oval-opt.jpg',
+    './bilder/gesichtskompass/lang-vorher.jpg',
+    './bilder/gesichtskompass/lang-opt.jpg',
+    './bilder/gesichtskompass/diamant-vorher.jpg',
+    './bilder/gesichtskompass/diamant-opt.jpg',
     './bilder/haarnetzwerk-logo-schwarz.png',
     './fonts/CormorantGaramond-normal-500.woff2',
     './fonts/CormorantGaramond-italic-500.woff2',
