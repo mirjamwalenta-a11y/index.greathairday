@@ -65,7 +65,10 @@
         { n: 'Schnittzeichnungs-Designer', u: B + '/lernquiz.greathairday/schnittdesigner.html' },
         { n: 'Meisterin', u: B + '/lernquiz.greathairday/meisterin.html', k: 'meisterprüfung' } ] },
       { n: 'Lerntool', s: 'Lernkarten & Themen', i: 'cards', u: B + '/lernquiz.greathairday/lerntool.html', k: 'lernkarten lernen themen' },
-      { n: 'Gesichtskompass', s: 'Wirkung sichtbar machen: Form, Haar, Farbe', i: 'compass', u: B + '/index.greathairday/gesichtskompass.html', k: 'gesichtskompass gesichtsform haarwirkung farbwirkung wirkung beratung kundin salon sichtbarkeit' },
+      { n: 'Farbkompass', s: 'Farbrichtung: Lernen & Beraten', i: 'compass', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html', k: 'farbkompass haarfarbe farbrichtung farbberatung wirkung lehrling stylistin', kids: [
+        { n: 'Lernen (Lehrlinge)', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html?modus=lernen', k: 'üben übungsfall' },
+        { n: 'Beraten (Stylist:innen)', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html?modus=beraten', k: 'beratung salon kundin' } ] },
+      { n: 'Gesichtskompass', s: 'Gesichtsform & Styling: Vorher/Optimiert', i: 'compass', u: B + '/index.greathairday/gesichtskompass.html', k: 'gesichtskompass gesichtsform gesichtsanalyse rund eckig herzförmig oval länglich diamant styling sofortmaßnahmen beratung lehrling stylistin' },
       { n: 'Schnuppertag', s: 'Lehrlings-Auswahl & Probezeit', i: 'spark', u: B + '/lernquiz.greathairday/schnuppertag.html', k: 'lehrling schnuppern probezeit' }
     ] },
     { t: 'Büro & Verwaltung', chefin: true, apps: [
@@ -100,7 +103,7 @@
       { n: 'HaarKompass', s: 'Pflege-Guide für Kund:innen', i: 'compass', u: W + '/haarkompass/', k: 'haarkompass pflege empfehlung fragebogen kunden', kids: [
         { n: 'HaarKompass-Post erstellen', u: B + '/moment.greathairday/haarkompass-post.html', k: 'instagram reichweite beitrag' },
         { n: 'HaarKompass-Beratung im Salon', u: B + '/Mitarbeiterhandbuch/haarkompass-beratung.html', k: 'beratung salonprodukte produktempfehlung englisch english team' } ] },
-      { n: 'Gesichtskompass', s: 'Wirkung sichtbar machen für Kund:innen', i: 'compass', u: B + '/index.greathairday/gesichtskompass.html', k: 'gesichtskompass gesichtsform haarwirkung farbwirkung kunden wirkung' }
+      { n: 'Gesichtskompass', s: 'Gesichtsform & Styling für Kund:innen', i: 'compass', u: B + '/index.greathairday/gesichtskompass.html', k: 'gesichtskompass gesichtsform styling kunden wirkung' }
     ] },
     { t: 'Sonstiges', chefin: true, apps: [
       { n: 'Innung', s: 'Seminare & Trainer:innen', i: 'pillars', u: B + '/innungsapp.greathairday/innungsapp.html', k: 'seminar trainer weiterbildung' },
