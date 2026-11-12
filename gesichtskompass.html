@@ -149,6 +149,9 @@
   @media (max-width:420px){ .wirkung span{font-size:11.5px} .marke-nr{width:19px;height:19px;font-size:10px} }
   @media (min-width:760px){ .vergleich{gap:16px} .vergleich figcaption{font-size:15px} }
   footer{margin-top:40px;font-size:12.5px;color:var(--muted);text-align:center}
+  footer .recht{margin-top:6px;font-size:12px}
+  footer .recht a{color:inherit;text-decoration:none;margin:0 4px;white-space:nowrap}
+  footer .recht a:hover{color:var(--accent);text-decoration:underline}
 
   @media (min-width:760px){
     .station{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:'buehne kopf' 'buehne auswahl';grid-template-rows:auto 1fr;align-items:start;column-gap:36px;row-gap:20px}
@@ -173,7 +176,10 @@
     <nav aria-label="Stationen"><ol class="stationen" id="stationen"></ol></nav>
   </header>
   <main id="inhalt" aria-live="polite"></main>
-  <footer>Es werden keine Daten gespeichert oder gesendet.</footer>
+  <footer>Es werden keine Daten gespeichert oder gesendet.
+    <!-- Rechtliches liegt in der Lern-App (Repo lernquiz.greathairday) -->
+    <p class="recht"><a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/rechtliches.html#impressum">Impressum</a> · <a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/rechtliches.html#datenschutz">Datenschutz</a> · <a href="https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/rechtliches.html#nutzungsbedingungen">Nutzungsbedingungen</a></p>
+  </footer>
 </div>
 
 <script>
