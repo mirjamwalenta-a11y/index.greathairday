@@ -294,10 +294,13 @@
     '.ghdv-root mark{background:none;color:var(--ghdv-brown-dark);font-weight:700}';
 
   function fontsLaden() {
-    if (document.querySelector('link[href*="family=Newsreader"]') && document.querySelector('link[href*="family=Manrope"]')) return;
+    // Schriften selbst gehostet (fonts/ghdv-schriften.css neben diesem Skript), nicht von Google:
+    // so wird beim Laden keine IP-Adresse an Google übertragen (Datenschutz).
+    if (document.querySelector('link[href*="ghdv-schriften.css"]')) return;
+    var basis = (SKRIPT && SKRIPT.src) ? SKRIPT.src.replace(/[^\/]*$/, '') : 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
     var l = document.createElement('link');
     l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:ital,wght@0,500;1,400&display=swap';
+    l.href = basis + 'fonts/ghdv-schriften.css?v=20261112';
     document.head.appendChild(l);
   }
 
