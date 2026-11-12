@@ -128,6 +128,12 @@
   .farbvergleich .mit figcaption{color:var(--ink)}
   .farbfoto{position:relative;border-radius:12px;overflow:hidden;background:#E9E6E3}
   .farbfoto img{width:100%;aspect-ratio:1/1;object-fit:cover}
+  /* KI-Hinweis (AI Act, Transparenz): Alle Fotos sind mit KI (Gemini) erzeugt.
+     Klein und unaufdringlich rechts unter dem Bild bzw. unter der Kachelgruppe, nicht im Bild. */
+  .ki-zeile{display:block;align-self:stretch;text-align:right;font:300 9px/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.03em;color:var(--muted);margin-top:2px}
+  .vergleich .ki-zeile{margin:-6px 0 6px}
+  .startbilder + .ki-zeile{max-width:290px;margin:-18px auto 18px}
+  .wirkungen + .ki-zeile{margin:-12px 0 12px}
   .licht{position:absolute;inset:0;pointer-events:none}
   .ring{position:absolute;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(26,26,24,.35),inset 0 0 0 1px rgba(26,26,24,.25);pointer-events:none}
   .marke-nr{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(26,26,24,.55);color:#fff;font:600 11px/1 'Inter','Jost',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
@@ -328,6 +334,7 @@ function zeigeStart(){
       <div class="startbilder" aria-hidden="true">
         ${foto('lang', 'vorher', '')}<span>→</span>${foto('lang', 'opt', '')}
       </div>
+      <span class="ki-zeile">KI-generiert</span>
       <p class="zaehler">Gesichtsform-Analyse</p>
       <h1>Was passt zu welchem Gesicht?</h1>
       <p class="hinweis">Gesichtsform erkennen, mit Styling ausgleichen und sehen, was Farbe im Gesicht bewirkt – in drei Schritten.</p>
@@ -356,7 +363,7 @@ function zeigeStation(i){
 function stationForm(){
   const aktiv = wahl.form;
   const buehne = id => id
-    ? `${foto(id, 'vorher', 'Gesichtsform ' + form(id).name)}<p class="erklaerung"><b>${esc(form(id).name)}</b><span>${esc(form(id).was)}</span></p>`
+    ? `${foto(id, 'vorher', 'Gesichtsform ' + form(id).name)}<span class="ki-zeile">KI-generiert</span><p class="erklaerung"><b>${esc(form(id).name)}</b><span>${esc(form(id).was)}</span></p>`
     : `<div class="platzhalter">Wähle eine Form</div><p class="erklaerung"><b>Gesichtsform</b><span>Achte auf Stirn, Wangenknochen und Kinn – wo ist das Gesicht am breitesten?</span></p>`;
   inhalt.innerHTML = `
     <section class="station">
@@ -371,6 +378,7 @@ function stationForm(){
           ${FORMEN_INFO.map(o => `<button type="button" class="option" data-id="${o.id}" aria-pressed="${aktiv === o.id}">
             ${foto(o.id, 'vorher', '')}<span>${esc(o.name)}</span></button>`).join('')}
         </div>
+        <span class="ki-zeile">KI-generiert</span>
         <div class="navi">
           <button type="button" class="zurueck" id="zurueck">← Zurück</button>
           <button type="button" class="knopf" id="weiter" ${aktiv ? '' : 'disabled'}>Styling ansehen</button>
@@ -392,8 +400,8 @@ function stationForm(){
 
 function vergleich(f){
   return `<div class="vergleich">
-    <figure>${foto(f.id, 'vorher', 'Vorher: ' + f.vorher.kurz)}<figcaption><small>Vorher</small>${esc(f.vorher.kurz)}</figcaption></figure>
-    <figure class="opt">${foto(f.id, 'opt', 'Optimiert: ' + f.opt.kurz)}<figcaption><small>Optimiert</small>${esc(f.opt.kurz)}</figcaption></figure>
+    <figure>${foto(f.id, 'vorher', 'Vorher: ' + f.vorher.kurz)}<span class="ki-zeile">KI-generiert</span><figcaption><small>Vorher</small>${esc(f.vorher.kurz)}</figcaption></figure>
+    <figure class="opt">${foto(f.id, 'opt', 'Optimiert: ' + f.opt.kurz)}<span class="ki-zeile">KI-generiert</span><figcaption><small>Optimiert</small>${esc(f.opt.kurz)}</figcaption></figure>
   </div>`;
 }
 
@@ -452,9 +460,10 @@ function stationFarbe(){
           ${FARB_INFO.map(x => `<button type="button" class="wirkung" data-farbe="${x.id}" aria-pressed="${x.id === wahl.farbe}">
             <img src="bilder/gesichtskompass/${f.id}-opt-${x.id}.jpg" width="440" height="440" alt="" decoding="async"><span>${esc(x.name)}</span></button>`).join('')}
         </div>
+        <span class="ki-zeile">KI-generiert</span>
         <div class="farbvergleich">
-          <figure>${farbBild(f.id, null, 'Ohne Farbwirkung', wahl.bereich)}<figcaption>Ohne</figcaption></figure>
-          <figure class="mit">${farbBild(f.id, w.id, 'Mit Farbwirkung ' + w.name, wahl.bereich)}<figcaption>${esc(w.name)}</figcaption></figure>
+          <figure>${farbBild(f.id, null, 'Ohne Farbwirkung', wahl.bereich)}<span class="ki-zeile">KI-generiert</span><figcaption>Ohne</figcaption></figure>
+          <figure class="mit">${farbBild(f.id, w.id, 'Mit Farbwirkung ' + w.name, wahl.bereich)}<span class="ki-zeile">KI-generiert</span><figcaption>${esc(w.name)}</figcaption></figure>
         </div>
         <p class="kern">${esc(w.kern)}</p>
         <ol class="bereiche">
