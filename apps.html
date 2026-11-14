@@ -2573,7 +2573,7 @@ async function doLogout(){
     window.ghdSitzung.sperren();
     return;
   }
-  try{ await AUTH_CLIENT.auth.signOut(); }catch(e){}
+  try{ await AUTH_CLIENT.auth.signOut({scope:'local'}); }catch(e){}
   if(_tok){ try{ await AUTH_CLIENT.rpc('logout_session', { p_token: _tok }); }catch(e){} }
   currentSession=null;
   localStorage.removeItem('ghd_session');

@@ -325,7 +325,7 @@ async function szPruefeChefinRolle(session) {
 async function szZugriffVerweigert() {
   szChefBereichAktiv = false;
   clearTimeout(szInaktivitaetsTimer);
-  await SZ_AUTH.auth.signOut();
+  await SZ_AUTH.auth.signOut({scope:'local'});
   const err = document.getElementById('sz-fehler');
   if (err) { err.textContent = 'Kein Zugriff — Wörni ist der Chefin vorbehalten.'; err.style.display = 'block'; }
   document.getElementById('root').style.display = 'none';
@@ -413,7 +413,7 @@ async function szInaktivitaetsLogout() {
   // Gemeinsame Abmeldung (ghd-sitzung.js): legt die Anmeldung bei festgelegter
   // Offline-PIN verschlüsselt ab, damit die Schaltzentrale offline entsperrbar bleibt.
   if (window.ghdSitzung && window.ghdSitzung.sperren) { window.ghdSitzung.sperren(); return; }
-  await SZ_AUTH.auth.signOut();
+  await SZ_AUTH.auth.signOut({scope:'local'});
   document.getElementById('root').style.display = 'none';
   document.getElementById('sz-login').style.display = 'flex';
 }
@@ -445,7 +445,7 @@ window.addEventListener('pageshow', szPruefeNachWiedersichtbarwerden);
   if (data && data.session) {
     if (szInaktivZuLange()) {
       if (window.ghdSitzung && window.ghdSitzung.sperren) { window.ghdSitzung.sperren(); return; }
-      await SZ_AUTH.auth.signOut();
+      await SZ_AUTH.auth.signOut({scope:'local'});
       return; // sz-login bleibt sichtbar (Standard)
     }
     const chefinOk = await szPruefeChefinRolle(data.session);

@@ -833,9 +833,24 @@ const AUTH_CLIENT = supabase.createClient(
 // (dieselbe Tabelle, die auch team.html/rechte-gatekeeper bereits nutzen),
 // bevor diese Seite (Wörni-Zugang + System) angezeigt wird. Nur "ist eingeloggt"
 // reicht nicht mehr — nur rolle==='inhaberin' erhält Zugriff.
+// Ergebnis: true = Inhaberin, false = sicher keine Inhaberin (Server hat geantwortet),
+// null = Server nicht erreichbar / Fehler. Bei null wird NICHT abgemeldet: dann gilt die
+// zuletzt am Server bestätigte Rolle DIESES Kontos (nur Anzeige – die Daten selbst schützt
+// weiter die RLS am Server, wie meisterin-rolle.js im Lernquiz).
+const CHEFIN_ROLLE_KEY = 'ghd-chefin-rolle';
 async function pruefeChefinRolle(session) {
+  if (!session || !session.user || !session.user.email) return false;
+  let erg = await chefinRolleAmServer(session);
+  if (erg === null) { await new Promise(r => setTimeout(r, 1500)); erg = await chefinRolleAmServer(session); }
   try {
-    if (!session || !session.user || !session.user.email) return false;
+    if (erg === true) localStorage.setItem(CHEFIN_ROLLE_KEY, session.user.id);
+    if (erg === false) localStorage.removeItem(CHEFIN_ROLLE_KEY);
+    if (erg === null) return localStorage.getItem(CHEFIN_ROLLE_KEY) === session.user.id ? true : null;
+  } catch (e) { /* egal */ }
+  return erg;
+}
+async function chefinRolleAmServer(session) {
+  try {
     const r = await fetch(
       `https://wrxlaltgtgkdomklgrlj.supabase.co/rest/v1/teamapp_persons?email=eq.${encodeURIComponent(session.user.email)}&select=rolle`,
       { headers: {
@@ -843,14 +858,21 @@ async function pruefeChefinRolle(session) {
           "Authorization": `Bearer ${session.access_token}`
         } }
     );
+    if (!r.ok) return null;
     const rows = await r.json();
     return Array.isArray(rows) && rows.length > 0 && rows[0].rolle === 'inhaberin';
-  } catch (e) { return false; }
+  } catch (e) { return null; }
+}
+// Rolle nicht prüfbar (kein Netz): angemeldet bleiben, nur Hinweis zeigen
+function rolleNichtPruefbar() {
+  const err = document.getElementById('loginFehler');
+  if (err) { err.textContent = 'Keine Verbindung – bitte kurz warten und die Seite neu laden. Du bist weiter angemeldet.'; err.style.display = 'block'; }
+  showScreen('screen-pin');
 }
 async function zugriffVerweigert() {
   chefBereichAktiv = false;
   clearTimeout(inaktivitaetsTimer);
-  await AUTH_CLIENT.auth.signOut();
+  await AUTH_CLIENT.auth.signOut({scope:'local'});
   sessionStorage.removeItem('ghd_unlocked');
   const err = document.getElementById('loginFehler');
   if (err) { err.textContent = 'Kein Zugriff — dieser Bereich ist der Chefin vorbehalten.'; err.style.display = 'block'; }
@@ -889,6 +911,7 @@ async function loginMitSupabase() {
   }
   // Rollenprüfung: nur die Chefin darf diese Seite betreten (Wörni & System)
   const chefinOk = await pruefeChefinRolle(data.session);
+  if (chefinOk === null) { rolleNichtPruefbar(); return; }
   if (!chefinOk) { await zugriffVerweigert(); return; }
   // Session merken und weiter
   sessionStorage.setItem('ghd_unlocked', '1');
@@ -900,7 +923,7 @@ async function loginMitSupabase() {
 async function abmelden() {
   chefBereichAktiv = false;
   clearTimeout(inaktivitaetsTimer);
-  await AUTH_CLIENT.auth.signOut();
+  await AUTH_CLIENT.auth.signOut({scope:'local'});
   sessionStorage.removeItem('ghd_unlocked');
   showScreen('screen-pin');
 }
@@ -914,11 +937,30 @@ const INAKTIVITAET_MS = 10 * 60 * 1000;
 let chefBereichAktiv = false;
 let inaktivitaetsTimer = null;
 
+// Gezählt wird die gemeinsame „letzte Aktivität“ aller Apps (ghd-sitzung.js,
+// localStorage ghd-letzte-aktivitaet): Wer in der Lern-App oder Team-App arbeitet,
+// wird hier nicht abgemeldet, nur weil diese Seite im Hintergrund offen war.
+function letzteAktivitaet() {
+  try { const t = +localStorage.getItem('ghd-letzte-aktivitaet'); if (t) return t; } catch (e) { /* egal */ }
+  return Date.now();
+}
+let letzteEigene = 0;
 function inaktivitaetsTimerZuruecksetzen() {
   if (!chefBereichAktiv) return;
+  const jetzt = Date.now();
+  if (jetzt - letzteEigene < 5000) return;   // höchstens alle 5 s (mousemove/scroll feuern oft)
+  letzteEigene = jetzt;
+  try { localStorage.setItem('ghd-letzte-aktivitaet', String(jetzt)); } catch (e) { /* egal */ }
   clearTimeout(inaktivitaetsTimer);
-  inaktivitaetsTimer = setTimeout(() => { abmelden(); }, INAKTIVITAET_MS);
+  inaktivitaetsTimer = setTimeout(inaktivitaetPruefen, 30000);
 }
+function inaktivitaetPruefen() {
+  if (!chefBereichAktiv) return;
+  if (Date.now() - letzteAktivitaet() >= INAKTIVITAET_MS) { abmelden(); return; }
+  clearTimeout(inaktivitaetsTimer);
+  inaktivitaetsTimer = setTimeout(inaktivitaetPruefen, 30000);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') inaktivitaetPruefen(); });
 ['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
   document.addEventListener(ev, inaktivitaetsTimerZuruecksetzen, { passive: true })
 );
@@ -1282,6 +1324,7 @@ renderHome();
   const { data } = await AUTH_CLIENT.auth.getSession();
   if (data && data.session) {
     const chefinOk = await pruefeChefinRolle(data.session);
+    if (chefinOk === null) { rolleNichtPruefbar(); return; }
     if (!chefinOk) { await zugriffVerweigert(); return; }
     sessionStorage.setItem('ghd_unlocked', '1');
     chefBereichAktiv = true;
