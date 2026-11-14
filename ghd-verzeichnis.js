@@ -59,11 +59,14 @@
       { n: 'Lernquiz', s: 'Quiz & Prüfungsvorbereitung', i: 'scissors', u: B + '/lernquiz.greathairday/lernquiz.html', k: 'prüfung quiz lap lehrabschluss', kids: [
         { n: 'Zwischenprüfung', u: B + '/lernquiz.greathairday/zwischenpruefung.html' },
         { n: 'Werkzeugkunde', u: B + '/lernquiz.greathairday/werkzeugkunde.html' },
+        { n: 'Umformung: Dauerwelle & Glättung', u: B + '/lernquiz.greathairday/umformung.html', k: 'dauerwelle glättung glätten umformung wickler fixierung' },
+        { n: 'Farblabor', u: B + '/lernquiz.greathairday/farblabor.html', k: 'farbe mischen farbkreis aufhellung rezeptur' },
         { n: 'Beratung & Formwirkung', u: B + '/lernquiz.greathairday/beratung-formwirkung.html' },
         { n: 'Englisch im Salon', u: B + '/lernquiz.greathairday/englisch-salon.html' },
         { n: 'Schnittwerkstatt', u: B + '/lernquiz.greathairday/schnittwerkstatt.html' },
         { n: 'Schnittzeichnungs-Designer', u: B + '/lernquiz.greathairday/schnittdesigner.html' },
-        { n: 'Meisterin', u: B + '/lernquiz.greathairday/meisterin.html', k: 'meisterprüfung' } ] },
+        { n: 'Meisterin', u: B + '/lernquiz.greathairday/meisterin.html', k: 'meisterprüfung' },
+        { n: 'A–Z-Verzeichnis', u: B + '/lernquiz.greathairday/verzeichnis.html', k: 'inhaltsverzeichnis suchen finden alphabetisch stichwort' } ] },
       { n: 'Lerntool', s: 'Lernkarten & Themen', i: 'cards', u: B + '/lernquiz.greathairday/lerntool.html', k: 'lernkarten lernen themen' },
       { n: 'Farbkompass', s: 'Farbrichtung: Lernen & Beraten', i: 'compass', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html', k: 'farbkompass haarfarbe farbrichtung farbberatung wirkung lehrling stylistin', kids: [
         { n: 'Lernen (Lehrlinge)', u: B + '/Mitarbeiterhandbuch/farbkompass-team.html?modus=lernen', k: 'üben übungsfall' },
