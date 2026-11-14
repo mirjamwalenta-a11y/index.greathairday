@@ -259,6 +259,11 @@
     'width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--ghdv-cream);color:var(--ghdv-brown-dark);' +
     'border:1px solid var(--ghdv-rule)!important;box-shadow:0 4px 14px rgba(33,28,23,.14)}' +
     '.ghdv-root .ghdv-fab:hover{background:var(--ghdv-chip)}.ghdv-fab[hidden]{display:none!important}' +
+    // „Offline-PIN festlegen“ (ghd-sitzung.js) als kleiner runder Knopf unten rechts,
+    // gegenüber dem ☰-Knopf, statt als breite Pille über dem Inhalt (Text bleibt für Screenreader)
+    '#ghd-pin-hinweis{width:48px!important;height:48px!important;padding:0!important;border-radius:50%!important;font-size:0!important;line-height:48px!important;text-align:center;overflow:hidden;background:#F8F4EA!important;border:1px solid #E4DBC5!important;' +
+    'right:calc(16px + env(safe-area-inset-right,0px))!important;bottom:calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 4px 14px rgba(33,28,23,.18)!important}' +
+    '#ghd-pin-hinweis::before{content:"📴";font-size:20px}' +
     (linksBreit ? '@media (min-width:' + breitAb + 'px){.ghdv-root .ghdv-fab{left:' + linksBreit + 'px}}' : '') +
     '.ghdv-scrim{position:fixed;inset:0;background:rgba(33,28,23,.38);z-index:2147483000;opacity:0;pointer-events:none;transition:opacity .25s}' +
     '.ghdv-side{position:fixed;top:0;bottom:0;left:0;z-index:2147483001;width:min(320px,88vw);background:var(--ghdv-cream);border-right:1px solid var(--ghdv-rule);' +
@@ -494,6 +499,13 @@
     fab.style.visibility = alt;
     var neu = hoechst ? Math.max(unten, Math.round(hoechst + 12)) + 'px' : '';
     if (fab.style.getPropertyValue('--ghdv-unten') !== neu) fab.style.setProperty('--ghdv-unten', neu);
+    // Offline-PIN-Knopf auf dieselbe Höhe wie den ☰-Knopf setzen
+    var pin = document.getElementById('ghd-pin-hinweis');
+    if (pin) {
+      var b = getComputedStyle(fab).bottom;
+      if (pin.style.getPropertyValue('bottom') !== b) pin.style.setProperty('bottom', b, 'important');
+      if (!pin.title) { pin.title = 'Offline-PIN festlegen'; pin.setAttribute('aria-label', 'Offline-PIN festlegen'); }
+    }
   }
   function beobachten() {
     sichtbarkeitPruefen();
