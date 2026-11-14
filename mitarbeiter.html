@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await AUTH.auth.getSession();
     if (session && istAbgelaufen()) {
       // Zu lange inaktiv → sauber abmelden
-      await AUTH.auth.signOut();
+      await AUTH.auth.signOut({scope:'local'});
       try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
     } else if (session) {
       aktivitaetMerken();
@@ -330,7 +330,7 @@ async function zeigeApps(session, autoStart) {
   if (!res.ok) {
     console.error('Profil-Fetch Fehler:', res.status, await res.text());
     zeigeFehler('Verbindungsfehler. Bitte Seite neu laden.');
-    await AUTH.auth.signOut();
+    await AUTH.auth.signOut({scope:'local'});
     return;
   }
   const profile = await res.json();
@@ -339,7 +339,7 @@ async function zeigeApps(session, autoStart) {
 
   if (!profil) {
     zeigeFehler('Kein aktives Profil gefunden. Bitte wende dich an Mirjam.');
-    await AUTH.auth.signOut();
+    await AUTH.auth.signOut({scope:'local'});
     return;
   }
 
@@ -348,7 +348,7 @@ async function zeigeApps(session, autoStart) {
     if (autoStart) {
       // Session stammt aus dem Boss-Bereich (gleiches Supabase-Projekt).
       // Nicht weiterleiten — sonst kommt man hier nie zum Login.
-      await AUTH.auth.signOut();
+      await AUTH.auth.signOut({scope:'local'});
       try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-screen').style.display   = 'none';
@@ -419,7 +419,7 @@ async function zeigeApps(session, autoStart) {
 }
 
 async function logout() {
-  await AUTH.auth.signOut();
+  await AUTH.auth.signOut({scope:'local'});
   try { localStorage.removeItem(AKTIV_KEY); } catch(e) {}
   window.location.href = 'https://mirjamwalenta-a11y.github.io/index.greathairday/';
 }

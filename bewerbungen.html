@@ -327,7 +327,7 @@
     btn.disabled = false; btn.textContent = 'Einloggen';
     if (error) { msg.textContent = 'Falsche E-Mail oder Passwort.'; msg.classList.remove('hidden'); return; }
     if (!await istChefin()) {
-      await sb.auth.signOut();
+      await sb.auth.signOut({scope:'local'});
       msg.textContent = 'Kein Zugriff – die Bewerbungen sind der Chefin vorbehalten.'; msg.classList.remove('hidden');
       return;
     }
@@ -335,7 +335,7 @@
     zeigeListe();
   });
   async function abmelden() {
-    await sb.auth.signOut();
+    await sb.auth.signOut({scope:'local'});
     app.classList.add('hidden'); app.innerHTML = '';
     document.getElementById('login').classList.remove('hidden');
   }

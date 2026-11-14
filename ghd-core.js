@@ -78,7 +78,7 @@ const GHD = {
 
   /** Logout */
   async logout() {
-    await _ghdSupabase.auth.signOut();
+    await _ghdSupabase.auth.signOut({scope:'local'});
     _ghdSession = null;
     _ghdProfil  = null;
     _ghdApps    = null;
