@@ -1968,9 +1968,9 @@ function systemRendern(){
       }
 
       html += '<div class="sys-row" data-sysname="' + app.name + '"' + (sysSortModus || !oeffnen ? '' : ' onclick="' + oeffnen + '"')
-        + ' style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:9px 14px;margin-bottom:5px;display:flex;align-items:center;gap:12px;cursor:' + (sysSortModus?'default':'pointer') + ';-webkit-tap-highlight-color:transparent">'
-        + '<span style="font-size:17px;flex-shrink:0">' + app.icon + '</span>'
-        + '<div style="flex:1;min-width:0;color:#211D17;font-size:13px;font-weight:600">' + app.name + '</div>'
+        + ' style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:5px;display:flex;align-items:center;gap:12px;cursor:' + (sysSortModus?'default':'pointer') + ';-webkit-tap-highlight-color:transparent">'
+        + '<span style="font-size:20px;flex-shrink:0">' + app.icon + '</span>'
+        + '<div style="flex:1;min-width:0"><div style="color:#211D17;font-size:13px;font-weight:600">' + app.name + '</div><div style="color:rgba(33,29,23,0.35);font-size:11px;margin-top:1px">' + (app.desc||'') + '</div></div>'
         + rechts
         + '</div>';
     });
