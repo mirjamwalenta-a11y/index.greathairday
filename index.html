@@ -475,7 +475,7 @@
     <div class="topbar-title">Apps</div>
     <button class="icon-btn" onclick="openSortSheet()">↕ Sortieren</button>
   </div>
-  <div class="apps-grid" id="appsGrid"></div>
+  <div id="appsGrid"></div>
   <button class="manage-link" onclick="showScreen('screen-system')">Baukasten verwalten (Apps hinzufügen / bearbeiten)</button>
 </div>
 
@@ -497,7 +497,7 @@
     <div class="sheet-scroll">
       <div class="sheet-handle"></div>
       <h2>Apps sortieren</h2>
-      <p class="sheet-hint">Reihenfolge der Kacheln — mit den Pfeilen verschieben.</p>
+      <p class="sheet-hint">Reihenfolge der Kacheln innerhalb ihres Bereichs — mit den Pfeilen verschieben.</p>
       <div id="sortList"></div>
     </div>
     <div class="sheet-actions">
@@ -561,21 +561,22 @@
 <script>
 /* ── Daten ── */
 const apps = [
-  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'schaltzentrale.html'},
-  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks',             url:'https://mirjamwalenta-a11y.github.io/moment.greathairday/'},
-  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html'},
-  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html'},
-  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/'},
-  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
-  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html'},
-  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html'},
-  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html'},
-  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html'},
-  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'schaltzentrale.html'},
-  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html'},
-  {em:'🌟', nm:'Schnuppertag', sb:'Lehrlings-Auswahl & Probezeit',    url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html'},
-  {em:'🗄', nm:'Schrank',     sb:'Dokumente & Tresor',                url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html'},
-  {em:'🤝', nm:'Sponsorenwand', sb:'Danke-Bild für Veranstaltungen',  url:'sponsorenwand.html'},
+  {em:'🏠', nm:'Aufträge',    sb:'Wörni-Aufträge & Tagesübersicht',  url:'schaltzentrale.html', bereich:'Sonstiges'},
+  {em:'✨', nm:'Reichweite',  sb:'Posts, Storys & Hooks',             url:'https://mirjamwalenta-a11y.github.io/moment.greathairday/', bereich:'Marketing'},
+  {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html', bereich:'Organisation'},
+  {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html', bereich:'Team'},
+  {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/', bereich:'Team'},
+  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html', bereich:'Ausbildung'},
+  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html', bereich:'Ausbildung'},
+  {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html', bereich:'Organisation'},
+  {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html', bereich:'Team'},
+  {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html', bereich:'Finanzen'},
+  {em:'🤖', nm:'Wörni',       sb:'KI-Assistent & Aufgaben',           url:'schaltzentrale.html', bereich:'Sonstiges'},
+  {em:'🏫', nm:'Innung',      sb:'Seminare & Trainer:innen',          url:'https://mirjamwalenta-a11y.github.io/innungsapp.greathairday/innungsapp.html', bereich:'Sonstiges'},
+  {em:'🌟', nm:'Schnuppertag', sb:'Lehrlings-Auswahl & Probezeit',    url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/schnuppertag.html', bereich:'Ausbildung'},
+  {em:'🗄', nm:'Schrank',     sb:'Dokumente & Tresor',                url:'https://mirjamwalenta-a11y.github.io/dokumentenschrank-ghd/dokumentenschrank.html', bereich:'Finanzen'},
+  {em:'🌐', nm:'Haarnetzwerk', sb:'Verein & Mitglieder',            url:'https://mirjamwalenta-a11y.github.io/haarnetzwerk/', bereich:'Sonstiges'},
+  {em:'🤝', nm:'Sponsorenwand', sb:'Danke-Bild für Veranstaltungen',  url:'sponsorenwand.html', bereich:'Sonstiges'},
 ];
 
 const cardCopy = {
@@ -591,6 +592,11 @@ const cardCopy = {
   'Handbuch':    {title:'Standards nachschlagen',  sub:'Richtlinien'},
   'Innung':      {title:'Seminare planen',         sub:'Trainer:innen & Termine'},
 };
+
+// Bereiche des Apps-Bildschirms (Reihenfolge = Anzeige). Neue App ohne
+// gültigen Bereich landet automatisch unter „Sonstiges“.
+const BEREICHE = ['Ausbildung', 'Team', 'Organisation', 'Finanzen', 'Marketing', 'Sonstiges'];
+apps.forEach(a => { if (!BEREICHE.includes(a.bereich)) a.bereich = 'Sonstiges'; });
 
 const appsByName = Object.fromEntries(apps.map(a => [a.nm, a]));
 // Alias-Namen die aus Supabase ghd_signal_regeln kommen können
@@ -610,6 +616,15 @@ let priorities = ['Reichweite', 'Team', 'Belege'];
 let appOrder   = apps.map(a => a.nm);
 
 function orderedApps() { return appOrder.map(n => appsByName[n]); }
+// Apps nach Bereich gruppiert, innerhalb des Bereichs in der eigenen Reihenfolge
+function appsNachBereich() {
+  return BEREICHE.map(b => ({ bereich: b, apps: orderedApps().filter(a => a.bereich === b) }))
+                 .filter(g => g.apps.length);
+}
+function bereichKopf(b) {
+  const erster = b === appsNachBereich()[0].bereich;
+  return `<div class="prio-header"${erster ? '' : ' style="margin-top:18px;"'}><span class="prio-header-label">${b}</span></div>`;
+}
 
 /* ── Begrüßung ── */
 function updateGreeting() {
@@ -770,21 +785,23 @@ function renderHome() {
 
 /* ── Apps ── */
 function renderApps() {
-  document.getElementById('appsGrid').innerHTML = orderedApps().map(a => `
+  document.getElementById('appsGrid').innerHTML = appsNachBereich().map(g =>
+    bereichKopf(g.bereich) + `<div class="apps-grid">` + g.apps.map(a => `
     <div class="app-tile-wrap"><button class="app-tile" onclick="goApp('${a.nm}')">
       <div class="em">${a.em}</div>
       <div class="nm">${a.nm}</div>
       <div class="sb">${a.sb}</div>
-    </button></div>`).join('');
+    </button></div>`).join('') + `</div>`).join('');
 }
 
 function renderSystem() {
-  document.getElementById('systemList').innerHTML = orderedApps().map(a => `
+  document.getElementById('systemList').innerHTML = appsNachBereich().map(g =>
+    bereichKopf(g.bereich) + g.apps.map(a => `
     <div class="sys-row">
       <div class="em">${a.em}</div>
       <div><div class="nm">${a.nm}</div><div class="sb">${a.sb}</div></div>
       <button class="sys-open" onclick="goApp('${a.nm}')">Öffnen</button>
-    </div>`).join('');
+    </div>`).join('')).join('');
 }
 
 /* ── Navigation ── */
@@ -973,18 +990,19 @@ function openSortSheet()  { renderSortList(); document.getElementById('overlaySo
 function closeSortSheet() { document.getElementById('overlaySort').classList.remove('active'); renderApps(); renderSystem(); }
 function closeSortSheetBg(e) { if (e.target.id === 'overlaySort') closeSortSheet(); }
 function renderSortList() {
-  document.getElementById('sortList').innerHTML = appOrder.map((name,i) => {
-    const a = appsByName[name];
-    return `<div class="prio-row">
+  document.getElementById('sortList').innerHTML = appsNachBereich().map(g =>
+    bereichKopf(g.bereich) + g.apps.map((a,i) => `<div class="prio-row">
       <div class="em">${a.em}</div>
-      <div class="nm">${name}</div>
-      <button class="prio-btn" ${i===0?'disabled':''} onclick="moveAppOrder('${name}',-1)">↑</button>
-      <button class="prio-btn" ${i===appOrder.length-1?'disabled':''} onclick="moveAppOrder('${name}',1)">↓</button>
-    </div>`;
-  }).join('');
+      <div class="nm">${a.nm}</div>
+      <button class="prio-btn" ${i===0?'disabled':''} onclick="moveAppOrder('${a.nm}',-1)">↑</button>
+      <button class="prio-btn" ${i===g.apps.length-1?'disabled':''} onclick="moveAppOrder('${a.nm}',1)">↓</button>
+    </div>`).join('')).join('');
 }
+// Verschiebt nur innerhalb des eigenen Bereichs (tauscht mit der Nachbar-App desselben Bereichs)
 function moveAppOrder(name, dir) {
-  const i = appOrder.indexOf(name), j = i + dir;
+  const i = appOrder.indexOf(name), b = appsByName[name].bereich;
+  let j = i + dir;
+  while (j >= 0 && j < appOrder.length && appsByName[appOrder[j]].bereich !== b) j += dir;
   if (j < 0 || j >= appOrder.length) return;
   [appOrder[i], appOrder[j]] = [appOrder[j], appOrder[i]];
   renderSortList();
