@@ -63,6 +63,7 @@
         { n: 'Farblabor', u: B + '/lernquiz.greathairday/farblabor.html', k: 'farbe mischen farbkreis aufhellung rezeptur' },
         { n: 'Beratung & Formwirkung', u: B + '/lernquiz.greathairday/beratung-formwirkung.html' },
         { n: 'Englisch im Salon', u: B + '/lernquiz.greathairday/englisch-salon.html' },
+        { n: 'Fachbegriffe in 7 Sprachen', u: B + '/lernquiz.greathairday/fachbegriffe.html', k: 'wörterbuch übersetzung übersetzen sprache sprachen englisch türkisch bosnisch kroatisch serbisch arabisch dari farsi persisch ukrainisch rumänisch fachbegriff' },
         { n: 'Schnittwerkstatt', u: B + '/lernquiz.greathairday/schnittwerkstatt.html' },
         { n: 'Schnittzeichnungs-Designer', u: B + '/lernquiz.greathairday/schnittdesigner.html' },
         { n: 'Meisterin', u: B + '/lernquiz.greathairday/meisterin.html', k: 'meisterprüfung' },
