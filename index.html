@@ -566,8 +566,7 @@ const apps = [
   {em:'✅', nm:'Checklisten', sb:'Tagesaufgaben & Bereiche',          url:'https://mirjamwalenta-a11y.github.io/salon-checklist/salon-checklist.html', bereich:'Organisation'},
   {em:'📅', nm:'Abwesenheit', sb:'Urlaub & Krankenstand',             url:'https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/abwesenheiten.html', bereich:'Team'},
   {em:'💬', nm:'Team',        sb:'Mitteilungen & Besprechungen',      url:'https://mirjamwalenta-a11y.github.io/Team/', bereich:'Team'},
-  {em:'✂️', nm:'Lernquiz',   sb:'Quiz & Prüfungsvorbereitung',       url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html', bereich:'Ausbildung'},
-  {em:'📖', nm:'Lerntool',    sb:'Lernkarten & Themen',               url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html', bereich:'Ausbildung'},
+  {em:'📖', nm:'Great Hair Day Academy', sb:'Lern-App: Üben, Praxis, Prüfung', url:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lerntool.html', bereich:'Ausbildung'},  // seit 2026-11-22 statt „Lernquiz“ + „Lerntool“
   {em:'📦', nm:'Lager',       sb:'Bestand & Bestellungen',            url:'https://mirjamwalenta-a11y.github.io/lager.greathairday/Lager_index.html', bereich:'Organisation'},
   {em:'📒', nm:'Handbuch',    sb:'Richtlinien & Standards',           url:'https://mirjamwalenta-a11y.github.io/Mitarbeiterhandbuch/Mitarbeiterhandbuch_App.html', bereich:'Team'},
   {em:'🧾', nm:'Belege',      sb:'Rechnungen & Steuerberater',        url:'https://mirjamwalenta-a11y.github.io/belege.greathairday/belege.html', bereich:'Finanzen'},
@@ -587,8 +586,7 @@ const cardCopy = {
   'Lager':       {title:'Lager im Griff',          sub:'Bestand & Bestellungen'},
   'Checklisten': {title:'Tag abschließen',         sub:'Checklisten & Standards'},
   'Aufträge':    {title:'Aufträge steuern',        sub:'Tagesübersicht'},
-  'Lernquiz':    {title:'Prüfung vorbereiten',     sub:'Quiz & Fragen'},
-  'Lerntool':    {title:'Weiterbilden',            sub:'Lernkarten & Themen'},
+  'Great Hair Day Academy': {title:'Ausbildung begleiten', sub:'Lern-App: Üben, Praxis, Prüfung'},
   'Handbuch':    {title:'Standards nachschlagen',  sub:'Richtlinien'},
   'Innung':      {title:'Seminare planen',         sub:'Trainer:innen & Termine'},
 };
@@ -606,7 +604,10 @@ const appAliases = {
   'Checkliste':     'Checklisten',
   'Abwesenheiten':  'Abwesenheit',
   'Urlaub':         'Abwesenheit',
-  'Quiz':           'Lernquiz',
+  'Quiz':           'Great Hair Day Academy',
+  'Lernquiz':       'Great Hair Day Academy',   // alte Namen (z. B. app_link aus ghd_signal_regeln)
+  'Lerntool':       'Great Hair Day Academy',
+  'Lern-App':       'Great Hair Day Academy',
   'Aufgaben':       'Aufträge',
   'Wörni':          'Wörni',
   'Belege':         'Belege',
@@ -641,13 +642,13 @@ const NOW_CARDS_ALLE = [
   {id:'checklisten', title:'Team: Steht etwas Wichtiges für heute auf dem Plan?',      btn:'→ Checkliste öffnen', quiet:'Später erledigen', app:'Checklisten'},
   {id:'woerni',      title:'Wörni: Welche Aufgabe wartet schon länger auf dich?',      btn:'→ Aufgaben ansehen',  quiet:'Überspringen',     app:'Wörni'},
   {id:'einkauf',     title:'Einkauf: Was fehlt im Salon — ist die Liste aktuell?',     btn:'→ Einkauf prüfen',    quiet:'Überspringen',     app:'Checklisten'},
-  {id:'lernquiz',    title:'Lehrling: Hat der Lehrling diese Woche schon gelernt?',    btn:'→ Lernquiz öffnen',   quiet:'Morgen erledigen', app:'Lernquiz'},
+  {id:'lernquiz',    title:'Lehrling: Hat der Lehrling diese Woche schon gelernt?',    btn:'→ Lernquiz öffnen',   quiet:'Morgen erledigen', app:'https://mirjamwalenta-a11y.github.io/lernquiz.greathairday/lernquiz.html'},
   {id:'innung',      title:'Innung: Gibt es offene Seminare oder Trainer-Anfragen?',   btn:'→ Innung öffnen',     quiet:'Überspringen',     app:'Innung'},
   {id:'schrank',     title:'Dokumente: Gibt es etwas Wichtiges abzulegen oder zu finden?', btn:'→ Schrank öffnen', quiet:'Später',          app:'Schrank'},
   {id:'lager',       title:'Lager: Stimmt der Bestand — fehlt etwas Wichtiges?',       btn:'→ Lager prüfen',      quiet:'Überspringen',     app:'Lager'},
   {id:'handbuch',    title:'Handbuch: Gibt es Standards die aktualisiert werden sollten?', btn:'→ Handbuch öffnen', quiet:'Später',          app:'Handbuch'},
   {id:'abwesenheit', title:'Abwesenheit: Gibt es offene Urlaubsanträge im Team?',      btn:'→ Abwesenheit öffnen', quiet:'Später prüfen',   app:'Abwesenheit'},
-  {id:'lerntool',    title:'Lerntool: Gibt es neue Lernkarten oder Themen zu pflegen?',btn:'→ Lerntool öffnen',   quiet:'Überspringen',     app:'Lerntool'},
+  {id:'lerntool',    title:'Lerntool: Gibt es neue Lernkarten oder Themen zu pflegen?',btn:'→ Academy öffnen',    quiet:'Überspringen',     app:'Great Hair Day Academy'},
   {id:'schnuppertag',title:'Schnuppertag: Steht bald ein neuer Schnuppertag an?',      btn:'→ Schnuppertag öffnen',quiet:'Später',          app:'Schnuppertag'},
 ];
 
@@ -1102,7 +1103,7 @@ async function lernquizDieseWoche() {
 // APP-WHITELIST für Signal-Chips (verhindert XSS über app_link aus DB)
 const SIGNAL_APP_WHITELIST = [
   'Aufträge','Reichweite','Checklisten','Abwesenheit','Team','Lernquiz',
-  'Lerntool','Lager','Handbuch','Belege','Wörni','Innung','Schnuppertag','Schrank'
+  'Lerntool','Great Hair Day Academy','Lager','Handbuch','Belege','Wörni','Innung','Schnuppertag','Schrank'
 ];
 
 function signalHTML(dot, label, appLink) {
@@ -1294,7 +1295,7 @@ async function lernquizBadge() {
 
     if (!dieseWoche) {
       // Kein Quiz diese Woche → Badge "!" anzeigen
-      setBadgeCustom('Lernquiz', '!', '#A67A22');
+      setBadgeCustom('Great Hair Day Academy', '!', '#A67A22');
     } else {
       // Quiz gemacht → prüfen ob neues Abzeichen (Streak) diese Woche
       const abzeichen = await fetch(`${BADGE_SB_URL}/rest/v1/lernquiz_abzeichen?select=created_at&order=created_at.desc&limit=5`, {
@@ -1309,7 +1310,7 @@ async function lernquizBadge() {
           if (!a.created_at) return false;
           return new Date(a.created_at) >= montag;
         });
-        if (neuesAbz) setBadgeCustom('Lernquiz', '★', '#4C7A5B');
+        if (neuesAbz) setBadgeCustom('Great Hair Day Academy', '★', '#4C7A5B');
       }
     }
   } catch(e) { console.warn('Lernquiz Badge:', e); }
